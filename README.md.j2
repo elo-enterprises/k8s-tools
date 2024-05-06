@@ -1,5 +1,5 @@
 
-<table>
+<table with=100%>
   <tr>
     <td colspan=2><strong>
     k8s-tools
