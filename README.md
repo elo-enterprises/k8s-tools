@@ -28,9 +28,9 @@
 <li><a href="#clonebuildtest">Clone/Build/Test</a></li>
 <li><a href="#embedding-pattern-in-existing-projects">Embedding Pattern in Existing Projects</a></li>
 <li><a href="#hacks-for-working-with-makefiles">Hacks for Working with Makefiles</a></li>
-<li><a href="#troubleshooting">TroubleShooting</a></li>
 </ul>
 </li>
+<li><a href="#troubleshooting">TroubleShooting</a></li>
 </ul>
 </div>
 
@@ -125,6 +125,6 @@ For argument parsing, we need some kind of additional trick, because `make k8s/h
 
 -------------------------------------------------------------
 
-## TroubleShooting
+# TroubleShooting
 
 Note that KUBECONFIG must be set for things to work!  Sadly `kubectl version` and others will often crash with confusing messages when it's undefined or set incorrectly.
