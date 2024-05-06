@@ -43,14 +43,20 @@ This repository just aggregates a bunch of individual utilities for working with
 
 The containers defined here aren't built from scratch and leverage official sources where possible.  Most tools (like `kubectl`, `helm`, etc) come from [alpine/k8s](https://hub.docker.com/r/alpine/k8s) but other tools are also included (like `k9s`, `k3d`).
 
+Using the pattern described here, it's pretty easy to describe/test/deploy tool upgrades that affect your whole team, or pin different versions of tools for different projects, or use multiple versions of the tools in the same project.
+
 -------------------------------------------------------------
 
 ## Features 
 
-See the latest [upstream details for installed tools](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) and the [docker-compose.yml](docker-compose.yml) for more details.
+Unique parts of the bundle (See the [docker-compose.yml](docker-compose.yml) for more details.)
 
 - [k3d](https://k3d.io/)
 - [k9s](https://k9scli.io/)
+- [kompose](https://kompose.io/)
+
+Plus the stuff from upstream. ([See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details.)
+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 
 - [kustomize](https://github.com/kubernetes-sigs/kustomize) 
 - [helm](https://github.com/helm/helm) 
@@ -65,8 +71,6 @@ See the latest [upstream details for installed tools](https://github.com/alpine-
 - [vals](https://github.com/helmfile/vals)
 - [kubeconform](https://github.com/yannh/kubeconform) 
 - General tools, such as bash, curl, jq, yq, etc
-
-Using the pattern described here, it's pretty easy to describe/test/deploy tool upgrades that affect the whole team, pin different versions of tools for different projects, or use multiple versions of the tools in the same project.
 
 -------------------------------------------------------------
 
@@ -112,7 +116,7 @@ k8s/%:
 
 This does a few things, which may or may not be a bad idea for your project setup, but it can give you some awesome powers.  We'll unpack how this works but first let's look at invocation examples.  This basically sends commands like `make k8s/helm version` to `docker compose run helm version`.
 
-First, the line *`export MAKECMDGOALS`* takes a make-var and sends it to bash var (we need this later).  The *`k8s/%`* bit defines a parametric target under a namespace, ensuring that things like `k8s/helm`, `k8s/kubectl`, etc are all legal targets.  The *`${*}`* refers to the parameter.The *`$${MAKECMDGOALS#*k8s/${*}}`* part is truly the stuff of nightmares, mixing obscure syntax in make and bash at the same time, but it just splits the `make k8s/helm version` invocation around *`k8s/helm`* part, so we can proxy the remainder of the invocation to the container.  
+First, the line *`export MAKECMDGOALS`* takes a make-var and sends it to bash var (we need this later).  The *`k8s/%`* bit defines a parametric target under a namespace, ensuring that things like `k8s/helm`, `k8s/kubectl`, etc are all legal targets, where *`${*}`* refers to the parameter.  The *`$${MAKECMDGOALS#*k8s/${*}}`* part is truly the stuff of nightmares, mixing obscure syntax in make and bash at the same time, but it just splits the `make k8s/helm version` invocation around *`k8s/helm`* part, so we can proxy the remainder of the invocation to the container.  
 
 You might have noticed that "version" part (or whatever command you're trying to pass through to helm) is not actually a defined target for Make.  That's where the [NOOP](https://en.wikipedia.org/wiki/NOP_(code)) catch-all target *`%`* comes in.
 
@@ -123,4 +127,4 @@ For argument parsing, we need some kind of additional trick, because `make k8s/h
 
 ## TroubleShooting
 
-Note that KUBECONFIG must be set for things to work!
+Note that KUBECONFIG must be set for things to work!  Sadly `kubectl version` and others will often crash with confusing messages when it's undefined or set incorrectly.
