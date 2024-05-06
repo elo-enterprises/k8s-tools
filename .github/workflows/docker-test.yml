@@ -3,8 +3,8 @@
 name: Project Tests
 on:
   workflow_call: {}
-  # push:
-  #   branches: [ "master" ]
+  push:
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
     paths-ignore:
