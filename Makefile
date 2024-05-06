@@ -12,6 +12,10 @@ SRC_ROOT := $(shell git rev-parse --show-toplevel)
 PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 export SRC_ROOT PROJECT_ROOT
 
+init:
+	# check if docker is available 
+	docker --version
+
 build:
 	docker compose build 
 
