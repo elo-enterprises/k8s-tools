@@ -29,6 +29,7 @@ services:
   # https://github.com/kubernetes/kompose/blob/main/docs/installation.md#github-release
   kompose:
     <<: *base
+    depends_on: ['base']
     image: k8s:kompose
     build:
       context: .
@@ -40,6 +41,7 @@ services:
   
   k3d:
     <<: *base
+    depends_on: ['base']
     image: k8s:k3d
     build:
       context: .
