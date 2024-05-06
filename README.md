@@ -49,13 +49,13 @@ Using the pattern described here, it's pretty easy to describe/test/deploy tool 
 
 ## Features 
 
-Unique parts of the bundle (See the [docker-compose.yml](docker-compose.yml) for more details.)
+Unique parts of the bundle. See the [docker-compose.yml](docker-compose.yml) for more details.
 
 - [k3d](https://k3d.io/)
 - [k9s](https://k9scli.io/)
 - [kompose](https://kompose.io/)
 
-Plus the stuff from upstream. ([See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details.)
+Plus the stuff from upstream. [See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details.
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 
 - [kustomize](https://github.com/kubernetes-sigs/kustomize) 
@@ -127,4 +127,6 @@ For argument parsing, we need some kind of additional trick, because `make k8s/h
 
 # TroubleShooting
 
-Note that KUBECONFIG must be set for things to work!  Sadly `kubectl version` and others will often crash with confusing messages when it's undefined or set incorrectly.
+1. Note that KUBECONFIG must be set for things to work!  Sadly `kubectl version` and others will often crash with confusing messages when it's undefined or set incorrectly.
+1. By default, the compose file shares the working directory with containers it's using.  This means your manifests need to be in or below the working directory!
+

@@ -38,12 +38,13 @@ shell:
 	KUBECONFIG=$${KUBECONFIG:-$${FAKE_KUBECONF}} \
 		docker compose run shell
 
-# send the make var to a bash var, 
-# we need this for the substring magic later
-export MAKECMDGOALS
+docs:
+	pynchon jinja render README.md.j2
 
+# Makes compose commands available under namespaced make-targets.
+# See the README.md file for more discussion of this hack
+export MAKECMDGOALS
 k8s/%:
 	docker compose -f docker-compose.yml run ${*}  $${MAKECMDGOALS#*k8s/${*}}
-
 %:
 	@# NOOP catch all
