@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Deps
-        run: make init
       - name: Smoke Tests
-        run: make test
+        run: make init test
+        env:
+          KUBECONFIG: /something/fake
