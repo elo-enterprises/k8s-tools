@@ -19,6 +19,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Smoke Tests
-        run: make init test
-        env:
-          KUBECONFIG: /something/fake
+        run: make clean init build test
