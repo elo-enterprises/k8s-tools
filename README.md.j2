@@ -11,29 +11,14 @@
     <td>
       Dockerized version of a kubernetes toolchain
       <br/><br/>
-      <a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>
+      {%for action in github.actions%}<a href="{{action.url}}"><img src="{{action.url}}/badge.svg"></a>{%endfor%}
     </td>
   </tr>
 </table>
 
 -------------------------------------------------------------
 
-<div class="toc">
-<ul>
-<li><a href="#overview">Overview</a><ul>
-<li><a href="#features">Features</a></li>
-</ul>
-</li>
-<li><a href="#quick-start">Quick Start</a><ul>
-<li><a href="#clonebuildtest">Clone/Build/Test</a></li>
-<li><a href="#embedding-pattern-in-existing-projects">Embedding Pattern in Existing Projects</a></li>
-<li><a href="#hacks-for-working-with-makefiles">Hacks for Working with Makefiles</a></li>
-<li><a href="#troubleshooting">TroubleShooting</a></li>
-</ul>
-</li>
-</ul>
-</div>
-
+{{markdown_toc(__template__, level=2)}}
 
 -------------------------------------------------------------
 
@@ -76,10 +61,10 @@ Using the pattern described here, it's pretty easy to describe/test/deploy tool 
 
 ```bash
 # for ssh
-git clone git@github.com:elo-enterprises/k8s-tools.git
+git clone {{github.repo_ssh_url}}
 
 # or for http
-git clone https://github.com/elo-enterprises/k8s-tools
+git clone {{github.repo_url}}
 
 make clean build test
 ```
