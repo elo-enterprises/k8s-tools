@@ -1,0 +1,63 @@
+services:
+  base: &base
+    image: k8s:base
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM alpine/k8s:1.29.4
+    # build: https://github.com/alpine-docker/k8s.git#master:/
+    tty: true
+    network_mode: host 
+    volumes:
+      - "${KUBECONFIG}:/kubeconfig.conf:ro"
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      KUBECONFIG: "/kubeconfig.conf"
+
+  shell:
+      <<: *base
+      entrypoint: bash
+    
+  helm:
+    <<: *base
+    entrypoint: helm
+  
+  kubectl:
+    <<: *base
+    entrypoint: kubectl
+  
+  # https://github.com/kubernetes/kompose/blob/main/docs/installation.md#github-release
+  kompose:
+    <<: *base
+    image: k8s:kompose
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM k8s:base 
+        RUN curl -L https://github.com/kubernetes/kompose/releases/download/v1.33.0/kompose-linux-amd64 -o /usr/bin/kompose
+        RUN chmod ugo+x /usr/bin/kompose
+    entrypoint: kompose
+  
+  k3d:
+    <<: *base
+    image: k8s:k3d
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM k8s:base 
+        RUN curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.0.0 bash
+    entrypoint: k3d
+
+  k9s:
+    # NB: no inheritance from `base` since `build` conflicts with `image`.
+    build: https://github.com/derailed/k9s.git#master:/
+    tty: true
+    network_mode: host 
+    volumes:
+      - type: bind
+        source: ${KUBECONFIG}
+        target: /kubeconfig.conf
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      KUBECONFIG: "/kubeconfig.conf"
+    entrypoint: k9s 
