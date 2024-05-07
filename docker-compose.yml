@@ -31,6 +31,32 @@ services:
     <<: *base
     entrypoint: kubectl
 
+  # https://knative.dev/docs/client/install-kn/
+  kn:
+    image: k8s:kn
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM gcr.io/knative-releases/knative.dev/client/cmd/kn:latest 
+
+  # https://github.com/arttor/helmify
+  helmify:
+    <<: *base
+    image: k8s:helmify
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM debian
+        RUN apt-get update && apt-get install -y curl 
+        RUN cd /tmp && curl -s -Lo helmify.tgz \
+            https://github.com/arttor/helmify/releases/download/v0.4.12/helmify_Linux_i386.tar.gz
+        RUN 
+        RUN cd /tmp && tar -zxvf helmify.tgz && chmod +x helmify && mv helmify /usr/local/bin/
+        # RUN apt-get install -y file
+        # RUN helmify --version
+    entrypoint: helmify
+    tty: false
+    stdin_open: true
   # https://fission.io/docs/installation/
   fission:
     <<: *base

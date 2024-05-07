@@ -25,6 +25,8 @@ build:
 test:
 	KUBECONFIG=$${FAKE_KUBECONF} bash -x -c "\
 		docker compose run fission --help \
+		&& docker compose run helmify --version \
+		&& docker compose run kn version \
 		&& docker compose run k9s version \
 		&& docker compose run kubectl --help \
 		&& docker compose run kompose version \
