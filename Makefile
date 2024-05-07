@@ -13,23 +13,24 @@ PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 export SRC_ROOT PROJECT_ROOT
 export FAKE_KUBECONF:=/tmp/fake-kubeconf.conf
 init:
-	# check if docker is available 
+	# check if docker is available
 	docker --version
 	# we need this even to build if nothing else is set
 	touch $${FAKE_KUBECONF}
 
-build: 
+build:
 	KUBECONFIG=$${KUBECONFIG:-$${FAKE_KUBECONF}} \
-		docker compose build 
+		docker compose build
 
-test: 
+test:
 	KUBECONFIG=$${FAKE_KUBECONF} bash -x -c "\
-		docker compose run helm version \
+		docker compose run fission --help \
 		&& docker compose run k9s version \
 		&& docker compose run kubectl --help \
 		&& docker compose run kompose version \
-		&& docker compose run k3d version"
-	
+		&& docker compose run k3d version \
+		&& docker compose run helm version"
+
 clean:
 	KUBECONFIG=$${KUBECONFIG:-$${FAKE_KUBECONF}} \
 		docker compose down --remove-orphans
@@ -43,8 +44,5 @@ docs:
 
 # Makes compose commands available under namespaced make-targets.
 # See the README.md file for more discussion of this hack
-export MAKECMDGOALS
 k8s/%:
-	docker compose -f docker-compose.yml run ${*}  $${MAKECMDGOALS#*k8s/${*}}
-%:
-	@# NOOP catch all
+	docker compose run ${*} $${cmd:-}

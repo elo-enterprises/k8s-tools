@@ -22,7 +22,7 @@
 
 -------------------------------------------------------------
 
-# Overview 
+# Overview
 
 This repository just aggregates a bunch of individual utilities for working with kubernetes into one dockerized toolchain.  It's useful for CI/CD pipelines but also fixes the problem of different project developers using different local versions of things like `helm`.
 
@@ -32,29 +32,30 @@ Using the pattern described here, it's pretty easy to describe/test/deploy tool 
 
 -------------------------------------------------------------
 
-## Features 
+## Features
 
 Unique parts of the bundle. See the [docker-compose.yml](docker-compose.yml) for more details.
 
+- [fission](https://fission.io/docs/installation/)
 - [k3d](https://k3d.io/)
 - [k9s](https://k9scli.io/)
 - [kompose](https://kompose.io/)
 
-Plus the stuff from upstream. [See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details.
+Plus the stuff from upstream. [See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details on that.
 
-- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 
-- [kustomize](https://github.com/kubernetes-sigs/kustomize) 
-- [helm](https://github.com/helm/helm) 
-- [helm-diff](https://github.com/databus23/helm-diff) 
-- [helm-unittest](https://github.com/helm-unittest/helm-unittest) 
-- [helm-push](https://github.com/chartmuseum/helm-push) 
-- [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator) 
-- [eksctl](https://github.com/weaveworks/eksctl) 
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [kustomize](https://github.com/kubernetes-sigs/kustomize)
+- [helm](https://github.com/helm/helm)
+- [helm-diff](https://github.com/databus23/helm-diff)
+- [helm-unittest](https://github.com/helm-unittest/helm-unittest)
+- [helm-push](https://github.com/chartmuseum/helm-push)
+- [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator)
+- [eksctl](https://github.com/weaveworks/eksctl)
 - [awscli v1](https://github.com/aws/aws-cli)
 - [kubeseal](https://github.com/bitnami-labs/sealed-secrets)
-- [krew](https://github.com/kubernetes-sigs/krew) 
+- [krew](https://github.com/kubernetes-sigs/krew)
 - [vals](https://github.com/helmfile/vals)
-- [kubeconform](https://github.com/yannh/kubeconform) 
+- [kubeconform](https://github.com/yannh/kubeconform)
 - General tools, such as bash, curl, jq, yq, etc
 
 Even if you're only interested in the upstream stuff from `alpine/k8s`, the compose file is a lot nicer than the alternative huge `docker run ..` commands, because it sets up volumes for you to share the docker socket, and shares kubeconfigs for you automatically.
@@ -85,35 +86,46 @@ $ alias helm=docker compose -f myproject/k8s-tools.yml run helm
 $ helm ....
 ```
 
-## Hacks for Working with Makefiles 
+Aliases are convenient but rather fragile (obviously this will break if you move your `myproject` folder around).  See the next section for something that is a little more durable.
 
-If you're already frequently working with Makefiles in your automation, you might be interested in the following fairly magical incantations to help with proxying commands towards docker-compose:
+## Hacks for Working with Makefiles
+
+If you're already frequently working with Makefiles in your automation, you might be interested in the following fairly magical incantation to help with proxying commands towards docker-compose:
 
 ```Makefile
 # myproject/Makefile
 
-export MAKECMDGOALS
-
 k8s/%:
-	docker compose -f k8s-tools.yml run ${*} $${MAKECMDGOALS#*k8s/${*}}
-
-%:
-	@# NOOP
+	docker compose -f docker-compose.yml run ${*} $${cmd:-}
 ```
 
-This does a few things, which may or may not be a bad idea for your project setup, but it can give you some awesome powers.  We'll unpack how this works but first let's look at invocation examples.  This basically sends commands like `make k8s/helm version` to `docker compose run helm version`.
+Here *`k8s/%`* is a namespaced parametric target and basically it sends commands like `make k8s/helm cmd="version"` to `docker compose run helm version`.  The *`cmd`* argument is optional if you have nothing to pass to the container's run command.  This style is a bit shorter than the full invocation, but longer than a bash alias.  The benefits are that aliases across many projects won't get tangled, developers do not have to sync their personal .bashrcs, and your Makefile probably already includes project environment variables (like an appropriate `KUBECONFIG`)
 
-First, the line *`export MAKECMDGOALS`* takes a make-var and sends it to bash var (we need this later).  The *`k8s/%`* bit defines a parametric target under a namespace, ensuring that things like `k8s/helm`, `k8s/kubectl`, etc are all legal targets, where *`${*}`* refers to the parameter.  The *`$${MAKECMDGOALS#*k8s/${*}}`* part is truly the stuff of nightmares, mixing obscure syntax in make and bash at the same time, but it just splits the `make k8s/helm version` invocation around *`k8s/helm`* part, so we can proxy the remainder of the invocation to the container.  
+Here's another trick: If your project requires several environment variables (say `KUBECONFIG` & `CLUSTER_NAME`), you can drop into a shell *starting* from the Makefile using `make shell` and have access to those variables, or a subset of those variables.  This is not just a convenience, but it's also *safer* than potentially mixing up your dev/prod KUBECONFIGs =)
 
-You might have noticed that "version" part (or whatever command you're trying to pass through to helm) is not actually a defined target for Make.  That's where the [NOOP](https://en.wikipedia.org/wiki/NOP_(code)) catch-all target *`%`* comes in.
+```Makefile
+# myproject/Makefile
 
-For argument parsing, we need some kind of additional trick, because `make k8s/helm --help` just gives back the help for Make, not for helm.  For this use "--" aka [the POSIX end of options indicator](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_02), and then `make k8s/helm -- --help` works as expected.
+shell:
+	@# Full shell, inheriting the parent environment (including `export`s from this Makefile)
+  env bash -l
 
+ishell:
+  @# An isolated shell, no environment passed through.
+	env -i bash -l
+
+pshell:
+  @# Passing a partial environment, only the $USER var
+	env -i `env|grep USER` bash -l
+
+dshell:
+  @# a container shell, jumping into the base defined in the compose file
+  docker compose -f docker-compose.yml run --entrypoint bash base
+```
 
 -------------------------------------------------------------
 
-# TroubleShooting
+# Debugging
 
-1. Note that KUBECONFIG must be set for things to work!  Sadly `kubectl version` and others will often crash with confusing messages when it's undefined or set incorrectly.
-1. By default, the compose file shares the working directory with containers it's using.  This means your manifests need to be in or below the working directory!
-
+1. Note that `KUBECONFIG` must be set for things to work!  Sadly, lots of tools will fail even simple invocations like `kubectl version` or `--help` if this is undefined or set incorrectly, and will often crash with confusing messages.
+1. By default, the compose file shares the working directory with containers it's using.  This means your manifests need to be in or below the working directory!  The compose file itself can be anywhere though, so instead of keeping it in your projects source-tree you can opt to deploy it separately to `/opt` or `~/.config`

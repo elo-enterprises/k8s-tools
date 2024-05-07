@@ -5,13 +5,16 @@ services:
       context: .
       dockerfile_inline: |
         FROM alpine/k8s:1.29.4
-    # build: https://github.com/alpine-docker/k8s.git#master:/
     tty: true
-    network_mode: host 
-    working_dir: /workspace 
+    network_mode: host
+    working_dir: /workspace
     volumes:
       - ${PWD}:/workspace
       - "${KUBECONFIG}:/kubeconfig.conf:ro"
+      # used by helm, maybe others
+      - ${HOME}/.cache:/root/.cache
+      - ${HOME}/.config/helm:/root/.config/helm
+      - ${HOME}/.local:/root/.local:ro
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       KUBECONFIG: "/kubeconfig.conf"
@@ -19,15 +22,29 @@ services:
   shell:
       <<: *base
       entrypoint: bash
-    
+
   helm:
     <<: *base
     entrypoint: helm
-  
+
   kubectl:
     <<: *base
     entrypoint: kubectl
-  
+
+  # https://fission.io/docs/installation/
+  fission:
+    <<: *base
+    image: k8s:fission
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM k8s:base
+        RUN curl -s -Lo fission \
+            https://github.com/fission/fission/releases/download/v1.20.1/fission-v1.20.1-linux-amd64
+        RUN chmod +x fission && mv fission /usr/local/bin/
+    entrypoint: fission
+
+
   # https://github.com/kubernetes/kompose/blob/main/docs/installation.md#github-release
   kompose:
     <<: *base
@@ -36,11 +53,11 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM k8s:base 
+        FROM k8s:base
         RUN curl -L https://github.com/kubernetes/kompose/releases/download/v1.33.0/kompose-linux-amd64 -o /usr/bin/kompose
         RUN chmod ugo+x /usr/bin/kompose
     entrypoint: kompose
-  
+
   k3d:
     <<: *base
     depends_on: ['base']
@@ -48,7 +65,7 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM k8s:base 
+        FROM k8s:base
         RUN curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.0.0 bash
     entrypoint: k3d
 
@@ -56,7 +73,7 @@ services:
     # NB: no inheritance from `base` since `build` conflicts with `image`.
     build: https://github.com/derailed/k9s.git#master:/
     tty: true
-    network_mode: host 
+    network_mode: host
     volumes:
       - type: bind
         source: ${KUBECONFIG}
@@ -64,4 +81,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       KUBECONFIG: "/kubeconfig.conf"
-    entrypoint: k9s 
+    entrypoint: k9s
