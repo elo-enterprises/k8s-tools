@@ -1,0 +1,5 @@
+services:
+  ubuntu: 
+    image: ubuntu
+  debian: 
+    image: debian

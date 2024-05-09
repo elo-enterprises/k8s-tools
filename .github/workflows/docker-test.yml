@@ -8,8 +8,8 @@ on:
   pull_request:
     branches: [ "master" ]
     paths-ignore:
-      - '**.md'    
-      - '**.png'    
+      - '**.md'
+      - '**.png'
 permissions:
   contents: read
 jobs:
@@ -18,5 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Initialize
+        run: make clean init
+      - name: Build
+        run: make build
+      - name: Integration Tests
+        run: make itest
       - name: Smoke Tests
-        run: make clean init build test
+        run: make stest

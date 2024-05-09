@@ -4,45 +4,42 @@
 ##
 SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
-.SHELLFLAGS := -euxo pipefail -c
+.SHELLFLAGS := -euo pipefail -c
 THIS_MAKEFILE := $(abspath $(firstword $(MAKEFILE_LIST)))
 THIS_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${THIS_MAKEFILE}`
 
-SRC_ROOT := $(shell git rev-parse --show-toplevel)
-PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
-export SRC_ROOT PROJECT_ROOT
+export SRC_ROOT := $(shell git rev-parse --show-toplevel)
+export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
+
 export FAKE_KUBECONF:=/tmp/fake-kubeconf.conf
-init:
-	# check if docker is available
-	docker --version
-	# we need this even to build if nothing else is set
-	touch $${FAKE_KUBECONF}
+export KUBECONFIG?=${FAKE_KUBECONF}
+_:=$(shell touch ${KUBECONFIG})
 
-build:
-	KUBECONFIG=$${KUBECONFIG:-$${FAKE_KUBECONF}} \
-		docker compose build
+# Creates dynamic targets
+include Makefile.compose.mk
+$(eval $(call compose.import, ▰, ↪, TRUE, ${PROJECT_ROOT}/docker-compose.yml))
 
-test:
-	KUBECONFIG=$${FAKE_KUBECONF} bash -x -c "\
-		docker compose run fission --help \
-		&& docker compose run k9s version \
-		&& docker compose run kubectl --help \
-		&& docker compose run kompose version \
-		&& docker compose run k3d version \
-		&& docker compose run helm version"
+bash:
+	env bash -l
+k9 k9s: ▰/k9s
 
-clean:
-	KUBECONFIG=$${KUBECONFIG:-$${FAKE_KUBECONF}} \
-		docker compose down --remove-orphans
 
-shell:
-	KUBECONFIG=$${KUBECONFIG:-$${FAKE_KUBECONF}} \
-		docker compose run shell
-
+init: docker/init
+build: compose/build
+clean: compose/clean
 docs:
 	pynchon jinja render README.md.j2
 
-# Makes compose commands available under namespaced make-targets.
-# See the README.md file for more discussion of this hack
-k8s/%:
-	docker compose run ${*} $${cmd:-}
+test: itest stest
+stest:
+	@# Smoke test the containers we built
+	docker compose run fission --help \
+	&& docker compose run helmify --version \
+	&& docker compose run kn --help \
+	&& docker compose run k9s version \
+	&& docker compose run kubectl --help \
+	&& docker compose run kompose version \
+	&& docker compose run k3d --help \
+	&& docker compose run helm --help
+itest:
+	bash -x -c "cd tests && bash ./bootstrap.sh && make -s test"
