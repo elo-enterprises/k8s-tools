@@ -1,5 +1,18 @@
 services:
-  ubuntu: 
-    image: ubuntu
-  debian: 
-    image: debian
+  debian: &base
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:slim
+        RUN apt-get update && apt-get install -y make
+    entrypoint: bash
+    working_dir: /workspace
+    volumes:
+      - ${PWD}:/workspace
+  alpine:
+    <<: *base
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:alpine
+        RUN apk add --update --no-cache alpine-sdk bash
