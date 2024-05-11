@@ -19,14 +19,13 @@ _:=$(shell touch ${KUBECONFIG})
 include Makefile.compose.mk
 $(eval $(call compose.import, ▰, ↪, TRUE, ${PROJECT_ROOT}/docker-compose.yml))
 
-bash:
-	env bash -l
-k9 k9s: ▰/k9s
+bash: compose.bash
+k9: k9s
 
 
-init: docker/init
-build: compose/build
-clean: compose/clean
+init: docker.init
+build: compose.build
+clean: compose.clean
 docs:
 	pynchon jinja render README.md.j2
 

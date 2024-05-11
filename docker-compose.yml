@@ -1,3 +1,6 @@
+# k8s-tools: pin or customize versions for your whole k8s toolchain in one place.
+#   Docs: https://github.com/elo-enterprises/k8s-tools
+#   Latest: https://github.com/elo-enterprises/k8s-tools/tree/master/docker-compose.yml
 services:
 
   base: &base
@@ -11,8 +14,12 @@ services:
     network_mode: host
     working_dir: /workspace
     volumes:
-      - ${PWD}:/workspace
+      # NB: something like this if you're working with EKS and need AWS creds
+      # - ${HOME}/.aws:/root/.aws
+      # NB: something like this if you only want to share one file.
       # - "${KUBECONFIG}:/kubeconfig.conf:ro"
+      # NB: `.cache` and `.config` as below are used by helm, maybe others?
+      - ${PWD}:/workspace
       - ${HOME}/.kube:/root/.kube
       # used by helm, maybe others
       - ${HOME}/.cache:/root/.cache
@@ -30,6 +37,61 @@ services:
     <<: *base
     entrypoint: kubectl
 
+  # https://github.com/kubernetes-sigs/kustomize
+  kustomize:
+    <<: *base
+    entrypoint: kustomize
+
+  # https://github.com/databus23/helm-diff
+  helm-diff:
+    <<: *base
+    entrypoint: helm-diff
+
+  # https://github.com/helm-unittest/helm-unittest
+  helm-unittest:
+    <<: *base
+    entrypoint: helm-unittest
+
+  # https://github.com/chartmuseum/helm-push
+  helm-push:
+    <<: *base
+    entrypoint: helm-push
+
+  # https://github.com/kubernetes-sigs/aws-iam-authenticator
+  aws-iam-authenticator:
+    <<: *base
+    entrypoint: aws-iam-authenticator
+
+  # https://github.com/weaveworks/eksctl
+  eksctl:
+    <<: *base
+    entrypoint: eksctl
+
+  # https://github.com/aws/aws-cli
+  awscli: # v1
+    <<: *base
+    entrypoint: awscli
+
+  # https://github.com/bitnami-labs/sealed-secrets
+  kubeseal:
+    <<: *base
+    entrypoint: kubeseal
+
+  # https://github.com/kubernetes-sigs/krew
+  krew:
+    <<: *base
+    entrypoint: krew
+
+  # https://github.com/helmfile/vals
+  vals:
+    <<: *base
+    entrypoint: vals
+
+  # https://github.com/yannh/kubeconform
+  kubeconform:
+    <<: *base
+    entrypoint: kubeconform
+
   # https://knative.dev/docs/client/install-kn/
   kn: &knative
     <<: *base
@@ -43,7 +105,7 @@ services:
         FROM gcr.io/knative-releases/knative.dev/client/cmd/kn:latest
         COPY --from=builder /ko-app/func /ko-app/func
         COPY --from=base /usr/bin/kubectl /usr/bin/kubectl
-        RUN apk --no-cache add bash procps make python3 py-yaml
+        RUN apk --no-cache add bash procps make python3
         RUN cp /ko-app/func /usr/local/bin/kn-func
 
   # https://github.com/arttor/helmify
@@ -58,14 +120,11 @@ services:
         RUN apt-get update && apt-get install -y curl
         RUN cd /tmp && curl -s -Lo helmify.tgz \
             https://github.com/arttor/helmify/releases/download/v0.4.12/helmify_Linux_i386.tar.gz
-        RUN
         RUN cd /tmp && tar -zxvf helmify.tgz && chmod +x helmify && mv helmify /usr/local/bin/
-        # RUN apt-get install -y file
-        # RUN helmify --version
     entrypoint: helmify
     tty: false
     stdin_open: true
-  
+
   # https://fission.io/docs/installation/
   fission:
     <<: *base
@@ -94,6 +153,7 @@ services:
         RUN chmod ugo+x /usr/bin/kompose
     entrypoint: kompose
 
+  # https://k3d.io/
   k3d:
     <<: *base
     depends_on: ['base']
@@ -105,6 +165,7 @@ services:
         RUN curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.3.0 bash
     entrypoint: k3d
 
+  # https://k9scli.io/
   k9s:
     # NB: no inheritance from `base` since `build` conflicts with `image`.
     build: https://github.com/derailed/k9s.git#master:/
@@ -119,9 +180,10 @@ services:
       KUBECONFIG: "/kubeconfig.conf"
     entrypoint: k9s
 
-  yq: 
+  yq:
     # NB: included in base, but this option is slimmer
     image: mikefarah/yq:4.43.1
+
   jq:
     # NB: included in base, but this option is slimmer
     image: ghcr.io/jqlang/jq:1.7.1
