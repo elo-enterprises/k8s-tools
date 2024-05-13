@@ -69,12 +69,13 @@ Besides bundling some tooling, this repository is the reference implementation o
 The local parts of the tool bundle. See the [docker-compose.yml](docker-compose.yml) for more details.
 
 * [argocli](https://argo-workflows.readthedocs.io/en/latest/walk-through/argo-cli/)
-* [helmify](https://github.com/arttor/helmify)
 * [kn](https://knative.dev/docs/client/install-kn/)
-* [fission](https://fission.io/docs/installation/)
 * [k3d](https://k3d.io/)
 * [k9s](https://k9scli.io/)
+* [fission](https://fission.io/docs/installation/)
+* [helmify](https://github.com/arttor/helmify)
 * [kompose](https://kompose.io/)
+* [kubefwd](https://github.com/txn2/kubefwd)
 
 Plus the stuff from the upstream tool bundle. [See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details on that.
 
@@ -138,6 +139,7 @@ $ docker compose run helmify ...
 $ docker compose run fission ...
 $ docker compose run kompose ...
 $ docker compose run argo ...
+$ docker compose run kubefwd ...
 $ docker compose run k3d ...
 $ docker compose run k9s ...
 $ docker compose run yq ...
@@ -244,17 +246,20 @@ Skip to the sections describing the [Make/Compose bridge](#makecompose-bridge) a
 
 ## Makefile.compose.mk
 
-This repository includes Makefile macros which can **build a bridge between docker-compose services and make-targets**, and provide a minimum viable pattern for container-dispatch.  The main macro is called `compose.import`, which can be used/included from any Makefile, used with any compose file, and used with *multiple* compose files (more on that later).  
+This repository includes Makefile macros which can [**build a bridge between docker-compose services and make-targets**](#makecompose-bridge) at the same time as it provides a [**minimum viable pattern for container-dispatch.**](#container-dispatch).  
+
+The main macro is called `compose.import`, which can be used/included from any Makefile, used with any compose file, and used with *multiple* compose files (more on that later).  
 
 ### But Why?
 
-There's a few reasons why you might care about something like this in the context of tool-containers, builds, and complex task orchestration:
+There's many reasons why you might want these capabilities if you're working with tool-containers, builds, and complex task orchestration.  People tend to have strong opions about this topic, but here are some observations that aren't too controversial:
 
-* **Tool containers are much more useful when you can easily dispatch commands to them,** especially without some extremely long CLI invocation.  A compose file specifying volumes and such helps a lot, but, *you don't want `docker compose run ...` littered all over your scripts for builds and orchestration*.  
-* **Everyone knows that plain shell scripts won't take you far.** There's lots of reasons for this but to name a few... option/argument parsing, code-reuse, reentrant behaviours, and other things you're going to need aren't simple to get. Configuration management tools like Ansible can fix this, but bring their own problems, including: significant setup, significant dependencies, ongoing upstream changes, and the fact that many people cannot read or write it.
-* **Orchestration *between* or *across* tool containers is usually awkward.** This is a task that needs some structure imposed, and while you can get that structure in lots of ways, it's always frustrating to see your work locked into esoteric JenkinsFile / GitHubAction blobs where things get complicated to describe, run, or read.  Project automation ideally needs to run smoothly both inside and outside of CI/CD.
-* **If running commands against several containers is easy, then there is less need to try and get everything into *one* tool container**, which can be pretty hard if very different bases are involved.
-* **Make is actually the happy medium here;** it is old but it is everywhere, it's expressive if not always *easy*, and it's fast.  It's the lingua franca for engineers, devops, and data-science.  Just as important.. `make` is probably the *least* likely thing in your toolkit to be affected by externalities like pip breakage, package updates, or changing operating systems completely.  If you need something *outside* of docker that you want stability & ubiquity from, it's hard to find a better choice.  
+* **Orchestration *between* or *across* tool containers is usually awkward.** This is a task that needs some structure imposed; You can get that structure in lots of ways, but it's always frustrating to see your work locked into esoteric JenkinsFile / GitHubAction blobs where things get complicated to describe, run, or read.  *Project automation ideally needs to run smoothly both inside and outside of CI/CD.*
+* **If running commands with different containers is easy, then there is less need to try and get everything into *one* tool container.**  This is time-consuming, and can be pretty hard if very different base images are involved.
+* **Tool containers are much more useful when you can easily dispatch commands to them,** especially without a long, cluttered CLI invocation.  A compose file specifying volumes and such helps a lot, but *you don't want `docker compose run ...` littered all over your scripts for builds and orchestration*.  
+* **Everyone knows that plain shell scripts won't take you far.** There's lots of reasons for this but to name a few... features involving option/argument parsing, multiple entrypoints, code-reuse, partial-updates, and other things you're going to need *just aren't simple to get.*  Maintainability also isn't great. Configuration management tools like Ansible can fix some of this, but bring their own problems, including: significant setup, significant dependencies, ongoing upstream changes, and the fact that many people cannot read or write it.
+
+More controversially: **Make is the happy medium here**, despite the haters, the purists, and the *make is not a task-runner!* skeptics, because `make` is too good to ignore.  It is old but it is everywhere, it's expressive but has relatively few core concepts, and it's fast.  It's the lingua franca for engineers, devops, and data-science, probably because easy things stay easy and advanced things are still possible.  Most importantly: `make` is probably the *least* likely thing in your toolkit to be affected by externalities like pip breakage, package updates, or changing operating systems completely.  If you need something *outside* of docker that you want stability & ubiquity from, it's hard to find a better choice.  
 
 The only problem is.. **Makefiles have nothing like native support for running tasks in containers**.  So let's fix that!  Makefiles are already pretty good at describing task execution, but describing the containers themselves is outside of that domain.  Meanwhile, docker-compose is exactly the opposite, and so Make/Compose is a perfect combination.
 
@@ -285,7 +290,7 @@ $(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
 
 The arguments *`(▰, ↪, TRUE,)`* above allow for control of namespacing and syntax.  (More on that later in the [Macro Arguments section](#macro-arguments)).
 
-That's it for the Make/Compose boilerplate, but we already have lots of functionality that ties these two contexts together.  Here's some examples of what the automatically generated targets are, and how you can use them.
+That's it for the Make/Compose boilerplate, but we already have lots of interoperability.  Here's some examples of what the automatically generated targets are, and how you can use them.
 
 ```bash 
 
@@ -295,16 +300,16 @@ $ make debian/shell
 # Runs sh on alpine (automatically detects that bash is missing)
 $ make alpine/shell
 
-# Streams commands into debian
+# Streams commands into debian container
 $ echo uname -n -v | make debian/shell/pipe
 
 # Equivalent to above, since the debian image's default entrypoint is bash
 $ echo uname -n -v | make debian/pipe
 
-# Runs an arbitrary command on debian
+# Runs an arbitrary command on debian container (overriding compose defaults)
 $ entrypoint=ls cmd='-l' make debian
 
-# Streams data into an arbitrary command on alpine
+# Streams data into an arbitrary command on alpine container
 $ echo hello world | pipe=yes entrypoint=cat cmd='/dev/stdin' make alpine
 
 # Streams command input / output between containers
@@ -312,7 +317,7 @@ echo echo echo hello-world | make alpine/pipe | make debian/pipe
 
 # Equivalently, due to the stem of the compose-file we imported,
 # all of the stuff above will work on namespaced targets under like this.
-# (if we compose.import'ed from k8s-tools.yml, namespace is 'k8s-tools/' instead)
+# (If compose.import uses `k8s-tools.yml`, namespace is 'k8s-tools/' instead)
 $ make docker-compose/debian
 $ make docker-compose/debian/shell
 
@@ -345,16 +350,59 @@ $(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
 demo: ▰/debian/demo
 ↪demo:
   uname -n -v
-
-# Another target, dispatching ↪demo target to each of 2 containers
-demo-double-dispatch: ▰/debian/demo ▰/alpine/demo
 ```
 
-**This simple pattern for dispatching targets into containers is the main feature of `Makefile.compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, syntax, and semantics in more detail.  If you're interested in seeing a non-toy example of how you can use this, check out [the build for this FaaS-on-K3d cluster](https://github.com/elo-enterprises/k3d-faas/tree/master/Makefile).  
+This is syntactic sugar that says that running `make demo` on the host runs `make ↪demo` on the debian container.
+
+Unpacking the sugar even more, you could say that the following are equivalent:
+
+```bash
+# pithy
+$ make demo
+
+# verbose!
+$ docker compose -f docker-compose.yml \
+    run --entrypoint bash debian -c "make ↪demo"
+```
+
+Let's add another target to demonstrate dispath for multiple containers:
+
+```Makefile
+# Makefile (make sure you have real tabs, not spaces)
+
+include Makefile.compose.mk
+$(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
+
+# user-facing top-level targets
+demo: ▰/debian/demo
+demo-double-dispatch: ▰/debian/demo ▰/alpine/demo
+
+# private targets
+↪demo:
+  uname -n -v
+
+```
+
+The above looks pretty tidy, and hopefully helps to illustrate how the target/container/callback association works.  Meanwhile, the equivalent but expanded version below is getting nasty, plus it breaks when files move or get refactored.
+
+```bash
+# pithy 
+$ make demo-double-dispatch 
+
+# verbose! (and broken)
+$ docker compose -f docker-compose.yml \
+    run --entrypoint bash debian -c "make ↪demo" \
+  && docker compose -f docker-compose.yml \
+    run --entrypoint bash alpine -c "make ↪demo"
+```
+
+Eagle-eyed readers will spot that the more verbose equivalent above is *actually already broken* because alpine won't have bash!  Whereas our equivalent with `make` autodetects what shell to use.  Additionally, the make pre-processor can detect other categories of errors (like a typo in the service name, or a missing script to execute on the service) at the start of a hour-long process instead of somewhere in the middle.
+
+**This simple pattern for dispatching targets into containers is the main feature of `Makefile.compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in seeing a non-toy example of how you can use this, check out [the build for this FaaS-on-K3d cluster](https://github.com/elo-enterprises/k3d-faas/tree/master/Makefile).  
 
 To make this work as expected though, we do have to add more stuff to the compose file.  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, if the subtarget is going to run on the container, the container needs to at least have:  `make`, `bash`, a volume mount to read the `Makefile`.  *(For now, it also requires `python` for small things where `make` is really awkward, but there's work in progress to remove this dependency.)* 
 
-Here's a minimal compose file that works with target-dispatch:
+Here's a minimal compose file that works with target dispatch:
 
 ```yaml
 # docker-compose.yml
@@ -419,9 +467,9 @@ This isn't a programming language you've never seen before, it's just a (legal) 
 
 This decorator-inspired syntax is creating a convention similar to the idea of private methods: it's not easy to type the weird characters at the command line, and it's not supposed to be.  So here, users won't ever call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.
 
-But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `↪demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `↪demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  Look, no `docker run ..` clutter littered everywhere!  Ok, ok, it's kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github.
+But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `↪demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `↪demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  Look, no `docker run ..` clutter littered everywhere!  (Ok yeah, it's kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
 
-Under the hood, dispatch works by using the [default targets that are provided by the bridge](#makecompose-bridge).
+Under the hood, dispatch is implemented by building on the [default targets that are provided by the bridge](#makecompose-bridge).
 
 ---------------------------------------------------------------
 
