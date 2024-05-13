@@ -26,11 +26,11 @@
 
 This repository aggregates a bunch of individual utilities for working with kubernetes into one dockerized toolchain.  It's useful for CI/CD pipelines but also fixes the problem of different project developers using different local versions of things like `helm`.
 
-The containers defined here aren't built from scratch, leveraging official sources where possible.  Most tools (like `kubectl`, `helm`, etc) come from [alpine/k8s](https://hub.docker.com/r/alpine/k8s) but other tools are also included (like `k9s`, `k3d`).
+The containers defined here aren't built from scratch, and official sources are used where possible.  Most tools (like `kubectl`, `helm`, etc) come from [alpine/k8s](https://hub.docker.com/r/alpine/k8s) but other tools are also included (like `k9s`, `k3d`).
 
 This isn't an attempt to build an omnibus "do-everything" container, it's more a response to the fact that there are a lot of diverse tools that really can't be unified, so it's better to just learn how to work with that.
 
-Besides bundling some tooling, this repository is the reference implementation of a pattern for [bridging compose services and Makefile targets](#Makefile.compose.mk), providing a minimum viable framework for orchestrating tasks across those tool containers. This pattern makes it easy to read/write/run those tasks, and makes it easier to avoid lock-in from things like Jenkinsfiles or Github Actions.
+Besides bundling some tooling, this repository is the reference implementation of a pattern for [bridging compose services and Makefile targets](#makefilecomposemk), providing a minimum viable framework for orchestrating tasks across those tool containers. This pattern makes it easy to read/write/run those tasks, and makes it easier to avoid lock-in from things like Jenkinsfiles or Github Actions.
 
 {#Using this approach, it's easy to describe/test/deploy tool versioning that affect your whole team, or pins different versions of tools for different projects, or uses multiple versions of the tools in the same project.  Bonus: none of your automation will get locked up in Jenkinsfile's, github actions, etc where it's difficult to run.#}
 
@@ -149,7 +149,7 @@ Aliases are convenient but rather fragile (obviously this will break if you move
 
 ### Embedding Tools With Makefiles
 
-You'll probably want to read over the [Makefile.compose.mk](#Makefile.compose.mk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff for using the `compose.import` macro with your projects.
+You'll probably want to read over the [Makefile.compose.mk](#makefilecomposemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff for using the `compose.import` macro with your projects.
 
 {% set integration_block %}
 First, copy the files from this repo into your project:
@@ -300,9 +300,11 @@ demo: ▰/debian/demo
 demo-double-dispatch: ▰/debian/demo ▰/alpine/demo
 ```
 
-**This simple pattern for dispatching targets into containers is the main feature of `Makefile.compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, syntax, and semantics in more detail.  If you're interested in seeing a non-toy example of how you can use this, check out [the build for this FaaS-on-K3d cluster](https://github.com/elo-enterprises/k3d-faas/tree/main/Makefile).  
+**This simple pattern for dispatching targets into containers is the main feature of `Makefile.compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, syntax, and semantics in more detail.  If you're interested in seeing a non-toy example of how you can use this, check out [the build for this FaaS-on-K3d cluster](https://github.com/elo-enterprises/k3d-faas/tree/master/Makefile).  
 
-To make this work as expected though, we do have to add more stuff to the compose file.  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, if the subtarget is going to run on the container, the container needs to at least have:  `make` itself, `python` with yaml capabilities to parse the compose-file, and a volume mount to read `Makefile`.  Here's a minimal compose file that works with target-dispatch:
+To make this work as expected though, we do have to add more stuff to the compose file.  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, if the subtarget is going to run on the container, the container needs to at least have:  `make`, `bash`, a volume mount to read the `Makefile`.  *(For now, it also requires `python` for small things where `make` is really awkward, but there's work in progress to remove this dependency.)* 
+
+Here's a minimal compose file that works with target-dispatch:
 
 ```yaml
 # docker-compose.yml
@@ -424,4 +426,5 @@ Now if you want to ensure that you've switched context as appropriate, you can r
 1. We fake it for builds/tests, but note that **`KUBECONFIG` generally must be set for things to work!**  Sadly, lots of tools will fail even simple invocations like `helm version` or even `--help` if this is undefined or set incorrectly, and it will often crash with errors that aren't very clear.
 1. By default, the compose file shares the working directory with containers it's using as volumes.  **This means files you're using should be inside or somewhere below the working directory!**  The compose file itself can be anywhere though, so instead of keeping it in your projects source-tree you can decide to deploy it separately to `/opt` or `~/.config`
 1. Unfortunately, there's not a good way to convince `make` to just proxy arguments without parsing them.  **For example `make kubectl apply -f` looks convenient, but it won't work.**  It will parse `apply -f` as arguments to make.
+1. The usual problem with root-user-in-containers vs normal-user on host and file permissions.  If you mix host-local and dockerized usage of things like helm, then you'll end up with weird stuff.  You can fix this if it comes up using `sudo chown -R $USER:$USER .` 
 1. Working with streaming pipes currently generates temporary files with `mktemp`, removing them when the process exits with `trap`.  This is a hack that needs to be fixed, pure streams would be better.
