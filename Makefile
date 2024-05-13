@@ -39,6 +39,8 @@ stest:
 	&& docker compose run kubectl --help \
 	&& docker compose run kompose version \
 	&& docker compose run k3d --help \
-	&& docker compose run helm --help
+	&& docker compose run helm --help \
+	&& docker compose run argo --help
+
 itest:
 	bash -x -c "cd tests && bash ./bootstrap.sh && make -s test"

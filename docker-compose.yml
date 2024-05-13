@@ -152,6 +152,19 @@ services:
         RUN curl -L https://github.com/kubernetes/kompose/releases/download/v1.33.0/kompose-linux-amd64 -o /usr/bin/kompose
         RUN chmod ugo+x /usr/bin/kompose
     entrypoint: kompose
+  
+  # https://argo-workflows.readthedocs.io/en/latest/walk-through/argo-cli/
+  argo:
+    <<: *base 
+    depends_on: ['base']
+    image: k8s:argo 
+    build:
+      context: . 
+      dockerfile_inline: |
+        FROM argoproj/argocli as argo
+        FROM k8s:base 
+        COPY --from=argo /bin/argo /bin/argo
+    entrypoint: argo 
 
   # https://k3d.io/
   k3d:
