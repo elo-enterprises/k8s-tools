@@ -43,9 +43,12 @@ export COMPOSE_MK?=0
 ########################################################################
 ## BEGIN: macros
 
-# Macro to yank all the compose-services out of YAML.  This drops into python unfortunately
-# and that's a significant dependency.  But bash or awk would be a nightmare, and 
-# even perl requires packages to be installed before it can parse YAML.
+# Macro to yank all the compose-services out of YAML.  
+# This drops into python unfortunately and that's a significant dependency.  
+# But bash or awk would be a nightmare, and even perl requires packages to be
+# installed before it can parse YAML.  To work around this, the COMPOSE_MK 
+# env-var is checked, so that inside containers `compose.get_services` always 
+# returns nothing.
 define compose.get_services
 	$(shell if [ "${COMPOSE_MK}" = "0" ]; then cat ${1} | python -c 'import yaml, sys; data=yaml.safe_load(sys.stdin.read()); svc=data["services"].keys(); print(" ".join(svc))'; else echo -n ""; fi)
 endef
@@ -61,22 +64,20 @@ $(eval namespaced_service:=${target_namespace}/$(compose_service_name))
 $(eval relf:=$(shell basename -s .yml $(compose_file)))
 
 ${relf}/$(compose_service_name)/shell:
-	@# WARNING: the assert statement is stupid reason to depend on python,
-	@#   but it can't be removed easily.  Bash and/or Make will warn of undefined
 	@export entrypoint=`docker compose -f $(compose_file) \
-		run --entrypoint sh $$(shell python -c"print('$$@'.split('/')[1:][0])") \
+		run --entrypoint sh $$(shell echo $$@|awk -F/ '{print $$$$2}') \
 		-c "which bash || which sh" \
 		2>/dev/null \
 		|| printf "$${COLOR_RED}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n$${NO_COLOR}" > /dev/stderr` \
 	&& ( \
-		( python -c "import os; assert os.environ['entrypoint'].strip()" &>/dev/null \
+		( env|grep entrypoint\= &>/dev/null \
 			|| exit 1 ) \
 		&& make ${relf}/$(compose_service_name) \
 	)
 
 ${relf}/$(compose_service_name)/shell/pipe:
 	pipe=yes \
-		make ${relf}/$$(shell python -c"print('$$@'.split('/')[1:][0])")/shell
+		make ${relf}/$(compose_service_name)/shell
 
 ${relf}/$(compose_service_name)/pipe:
 	cat /dev/stdin | make ⟂/${relf}/$(compose_service_name)
@@ -89,17 +90,17 @@ $(compose_service_name)/shell/pipe:
 	cat /dev/stdin | pipe=yes make ${relf}/$(compose_service_name)/shell
 endif)
 
-
 ${target_namespace}/$(compose_service_name):
 	@# A namespaced target for each docker-compose service
-	make ${relf}/$$(shell python -c"print('$$@'.split('/')[1:][0])")
+	make ${relf}/$$(shell echo $$@|awk -F/ '{print $$$$2}')
 
 ${target_namespace}/$(compose_service_name)/%:
 	@# A subtarget for each docker-compose service.
 	@# This allows invocation of *another* make-target
 	@# that runs inside the container
-	@echo COMPOSE_MK=1 make ${dispatch_prefix}$$(shell python -c"print('/'.join('$$@'.split('/')[2:]))") \
-		| make ⟫/${relf}/$$(shell python -c"print('$$@'.split('/')[1:][0])")
+	@export target_name=$$(shell echo $$@|awk -F/ '{print $$$$3}') \
+	&& echo COMPOSE_MK=1 make ${dispatch_prefix}$$$${target_name} \
+		| make ⟫/${relf}/$(compose_service_name)
 endef
 
 # Main macro to import services from an entire compose file
@@ -121,7 +122,7 @@ ${relf}/__services__:
 	@echo $(__services__)
 
 ${relf}/%:
-	@$$(eval export svc_name:=$$(shell python -c"print('$$@'.split('/')[1:][0])"))
+	@$$(eval export svc_name:=$$(shell echo $$@|awk -F/ '{print $$$$2}'))
 	@$$(eval export cmd:=$(shell echo $${cmd:-}))
 	@$$(eval export pipe:=$(shell if [ -z "$${pipe:-}" ]; then echo ""; else echo "-T"; fi))
 	@$$(eval export entrypoint:=$(shell if [ -z "$${entrypoint:-}" ]; then echo ""; else echo "--entrypoint $${entrypoint}"; fi))
@@ -157,7 +158,7 @@ help:
 
 ## END: meta targets
 ########################################################################
-## BEGIN: convenience targets (api-unstable: these might change)
+## BEGIN: convenience targets (api-stable)
 
 compose.wait/%:
 	printf "${COLOR_DIM}Waiting for ${*} seconds..${NO_COLOR}\n" > /dev/stderr \
@@ -195,7 +196,7 @@ k8s.create.namespace:
 	| kubectl apply -f -
 
 k8s.namespace.purge:
-	kubectl delete namespace --cascade=background $${namespace} 2>/dev/null || true
+	set -x && kubectl delete namespace --cascade=background $${namespace} -v=9 2>/dev/null || true
 k8s.namespace.list:
 	kubectl get namespaces -o json \
 	| jq -r '.items[].metadata.name'

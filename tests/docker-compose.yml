@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM python:slim
+        FROM debian
         RUN apt-get update && apt-get install -y make
     entrypoint: bash
     working_dir: /workspace
@@ -14,5 +14,5 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM python:alpine
+        FROM alpine
         RUN apk add --update --no-cache alpine-sdk bash

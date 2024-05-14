@@ -365,7 +365,7 @@ $ docker compose -f docker-compose.yml \
     run --entrypoint bash debian -c "make ↪demo"
 ```
 
-Let's add another target to demonstrate dispath for multiple containers:
+Let's add another target to demonstrate dispatch for multiple containers:
 
 ```Makefile
 # Makefile (make sure you have real tabs, not spaces)
@@ -380,10 +380,9 @@ demo-double-dispatch: ▰/debian/demo ▰/alpine/demo
 # private targets
 ↪demo:
   uname -n -v
-
 ```
 
-The above looks pretty tidy, and hopefully helps to illustrate how the target/container/callback association works.  Meanwhile, the equivalent but expanded version below is getting nasty, plus it breaks when files move or get refactored.
+The above looks pretty tidy, and hopefully helps to illustrate how the target/container/callback association works.  You can group and order the topics however you want, order is not significant.  Meanwhile, the equivalent-but-expanded version below is getting nasty, plus it breaks when files move or get refactored.
 
 ```bash
 # pithy 
@@ -396,11 +395,11 @@ $ docker compose -f docker-compose.yml \
     run --entrypoint bash alpine -c "make ↪demo"
 ```
 
-Eagle-eyed readers will spot that the more verbose equivalent above is *actually already broken* because alpine won't have bash!  Whereas our equivalent with `make` autodetects what shell to use.  Additionally, the make pre-processor can detect other categories of errors (like a typo in the service name, or a missing script to execute on the service) at the start of a hour-long process instead of somewhere in the middle.
+Eagle-eyed readers will spot that the more verbose equivalent above is *actually already broken* because alpine won't have bash!  Whereas our equivalent with `make` autodetects what shell to use.  Even better, the Makefile-based approach can detect and prevent whole categories of errors (like typos in the compose-file, service name, or volumes) at the start of a hour-long process instead of somewhere in the middle.
 
 **This simple pattern for dispatching targets into containers is the main feature of `Makefile.compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in seeing a non-toy example of how you can use this, check out [the build for this FaaS-on-K3d cluster](https://github.com/elo-enterprises/k3d-faas/tree/master/Makefile).  
 
-To make this work as expected though, we do have to add more stuff to the compose file.  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, if the subtarget is going to run on the container, the container needs to at least have:  `make`, `bash`, a volume mount to read the `Makefile`.  *(For now, it also requires `python` for small things where `make` is really awkward, but there's work in progress to remove this dependency.)* 
+To make this work as expected though, we do have to add more stuff to the compose file.  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, if the subtarget is going to run on the container, the container needs to at least have:  `make`, `bash` (or whatever shell the Makefile uses), and a volume mount to read the `Makefile`.  
 
 Here's a minimal compose file that works with target dispatch:
 
@@ -411,7 +410,7 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM python:slim
+        FROM debian
         RUN apt-get update && apt-get install -y make
     entrypoint: bash
     working_dir: /workspace
@@ -422,7 +421,7 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM python:alpine
+        FROM alpine
         RUN apk add --update --no-cache alpine-sdk bash
 
 ```
@@ -459,13 +458,15 @@ demo: ▰/debian/demo
 ↪demo:
   uname -n -v
 
-# Dispatching one make target to two containers looks like this
+# Dispatching 1 target to 2 containers looks like this
 demo-dispatch: ▰/debian/demo ▰/alpine/demo
 ```
 
 This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  
 
-This decorator-inspired syntax is creating a convention similar to the idea of private methods: it's not easy to type the weird characters at the command line, and it's not supposed to be.  So here, users won't ever call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.
+The suggested defaults here will annoy some people, but the syntax is configurable, and this has the advantage that it will never collide with existing file paths or targets.
+
+This decorator-inspired syntax is also creating a convention similar to the idea of private methods: it's not easy to type the weird characters at the command line, and it's not supposed to be.  So here, users won't ever call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.
 
 But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `↪demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `↪demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  Look, no `docker run ..` clutter littered everywhere!  (Ok yeah, it's kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
 
