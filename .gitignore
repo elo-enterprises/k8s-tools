@@ -1,2 +1,3 @@
 .tmp.*
 *.profile.yaml
+tests/Makefile.k8s.mk

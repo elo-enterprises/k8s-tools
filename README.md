@@ -40,7 +40,16 @@
 <li><a href="#macro-arguments">Macro Arguments</a></li>
 <li><a href="#dispatch-syntaxsemantics">Dispatch Syntax/Semantics</a></li>
 <li><a href="#multiple-compose-files">Multiple Compose Files</a></li>
-<li><a href="#bonus-context-management-for-host-shells">Bonus: Context Management for Host Shells</a></li>
+<li><a href="#other-targets">Other Targets</a></li>
+</ul>
+</li>
+<li><a href="#makefilek8smk">Makefile.k8s.mk</a><ul>
+<li><a href="#other-targets_1">Other Targets</a></li>
+<li><a href="#examples">Examples</a></li>
+</ul>
+</li>
+<li><a href="#bonus">Bonus</a><ul>
+<li><a href="#context-management-for-host-shells">Context Management for Host Shells</a></li>
 </ul>
 </li>
 <li><a href="#known-limitations-and-issues">Known Limitations and Issues</a></li>
@@ -228,13 +237,13 @@ Now include `Makefile.compose.mk` inside your main project Makefile and call the
 # Include/invoke the target-building macros 
 # somewhere near the top of your existing boilerplate
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, TRUE, k8s-tools.yml))
+$(eval $(call compose.import, ▰, ., TRUE, k8s-tools.yml))
 
 # At this point, targets are defined for whatever services
 # are mentioned in the external compose config, and they are
 # ready to use. Now you can dispatch any task to any container!
 test: ▰/kubectl/test
-↪test:
+.test:
   kubectl --version
   echo hello world from `uname -n -v`
 ```
@@ -285,10 +294,10 @@ Next, the Makefile.  Here we just need to import macros and call them, and `comp
 ```Makefile
 # Makefile
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
+$(eval $(call compose.import, ▰, ., TRUE, docker-compose.yml))
 ```
 
-The arguments *`(▰, ↪, TRUE,)`* above allow for control of namespacing and syntax.  (More on that later in the [Macro Arguments section](#macro-arguments)).
+The arguments *`(▰, ., TRUE,)`* above allow for control of namespacing and syntax.  (More on that later in the [Macro Arguments section](#macro-arguments)).
 
 That's it for the Make/Compose boilerplate, but we already have lots of interoperability.  Here's some examples of what the automatically generated targets are, and how you can use them.
 
@@ -320,10 +329,21 @@ echo echo echo hello-world | make alpine/pipe | make debian/pipe
 # (If compose.import uses `k8s-tools.yml`, namespace is 'k8s-tools/' instead)
 $ make docker-compose/debian
 $ make docker-compose/debian/shell
+```
 
-# Lists all compose services under file
+Besides targets for working with compose-services, there are targets that work on the compose files: 
+
+```bash 
+# Build (equivalent to `docker compose -f docker-compose.yml build`)
+make docker-compose/__build__
+
+# List all services defined for file (Array of strings, xargs-friendly)
 make docker-compose/__services__
+```
 
+And a few other helpers and utilities.
+
+```bash 
 # Lists user-facing make-targets (skipping the internal ones)
 make help
 ```
@@ -342,17 +362,17 @@ For this we'll have to change the boilerplate somewhat as we add more functional
 # Makefile (make sure you have real tabs, not spaces)
 
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
+$(eval $(call compose.import, ▰, ., TRUE, docker-compose.yml))
 
 # New target declaration that we can use to run stuff
 # inside the `debian` container.  The syntax conventions
 # are configured by the `compose.import` call we used above
 demo: ▰/debian/demo
-↪demo:
+.demo:
   uname -n -v
 ```
 
-This is syntactic sugar that says that running `make demo` on the host runs `make ↪demo` on the debian container.
+This is syntactic sugar that says that running `make demo` on the host runs `make .demo` on the debian container.
 
 Unpacking the sugar even more, you could say that the following are equivalent:
 
@@ -362,7 +382,7 @@ $ make demo
 
 # verbose!
 $ docker compose -f docker-compose.yml \
-    run --entrypoint bash debian -c "make ↪demo"
+    run --entrypoint bash debian -c "make .demo"
 ```
 
 Let's add another target to demonstrate dispatch for multiple containers:
@@ -371,14 +391,14 @@ Let's add another target to demonstrate dispatch for multiple containers:
 # Makefile (make sure you have real tabs, not spaces)
 
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
+$(eval $(call compose.import, ▰, ., TRUE, docker-compose.yml))
 
 # user-facing top-level targets
 demo: ▰/debian/demo
 demo-double-dispatch: ▰/debian/demo ▰/alpine/demo
 
 # private targets
-↪demo:
+.demo:
   uname -n -v
 ```
 
@@ -390,9 +410,9 @@ $ make demo-double-dispatch
 
 # verbose! (and broken)
 $ docker compose -f docker-compose.yml \
-    run --entrypoint bash debian -c "make ↪demo" \
+    run --entrypoint bash debian -c "make .demo" \
   && docker compose -f docker-compose.yml \
-    run --entrypoint bash alpine -c "make ↪demo"
+    run --entrypoint bash alpine -c "make .demo"
 ```
 
 Eagle-eyed readers will spot that the more verbose equivalent above is *actually already broken* because alpine won't have bash!  Whereas our equivalent with `make` autodetects what shell to use.  Even better, the Makefile-based approach can detect and prevent whole categories of errors (like typos in the compose-file, service name, or volumes) at the start of a hour-long process instead of somewhere in the middle.
@@ -436,12 +456,12 @@ Let's unpack the arguments you can use with the Macro.
 
 ```Makefile
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, TRUE, docker-compose.yml))
+$(eval $(call compose.import, ▰, ., TRUE, docker-compose.yml))
 ```
 
-Make isn't big on named-arguments, but the **1st argument for `compose.import` is called `target_namespace`**, and the **2nd argument for `compose.import` is called `dispatch_prefix`**.  You can swap the unicode for `▰` and `↪` out, opting instead for different symbols, path-like prefixes, whatever.  If you're bringing in services from several compose files, one way to control syntax and namespacing is to use different symbols for different calls to `compose.import`.  See the [Integration section](#integration) below for 2-file example.
+Make isn't big on named-arguments, but the **1st argument for `compose.import` is called `target_namespace`**.  You can swap the unicode for `▰` out, opting instead for different symbols, path-like prefixes, whatever.  If you're bringing in services from several compose files, one way to control syntax and namespacing is to use different symbols for different calls to `compose.import`.  See the [Integration section](#integration) below for 2-file example.
 
-**The 3rd argument for `compose.import` controls whether service names are available as top-level Makefile targets.**  The only value that means True is *`TRUE`*, because Make isn't big on bool types.  Regardless of the value here, service targets are always under `<compose_file_stem>/<compose_service_name>`. 
+**The 2nd argument for `compose.import` controls whether service names are available as top-level Makefile targets.**  The only value that means True is *`TRUE`*, because Make isn't big on bool types.  Regardless of the value here, service targets are always under `<compose_file_stem>/<compose_service_name>`. 
 
 **The last argument for `compose.import` is the compose file to load services from.**  It will be tempting to quote this and the other arguments, but that won't work, so resist the urge.
 
@@ -455,7 +475,7 @@ Let's look at the container-dispatch example in more detail.  In the words of Wh
 # A target that runs stuff inside the `debian` container, 
 # which is runnable from host using `make demo`.
 demo: ▰/debian/demo
-↪demo:
+.demo:
   uname -n -v
 
 # Dispatching 1 target to 2 containers looks like this
@@ -468,7 +488,7 @@ The suggested defaults here will annoy some people, but the syntax is configurab
 
 This decorator-inspired syntax is also creating a convention similar to the idea of private methods: it's not easy to type the weird characters at the command line, and it's not supposed to be.  So here, users won't ever call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.
 
-But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `↪demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `↪demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  Look, no `docker run ..` clutter littered everywhere!  (Ok yeah, it's kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
+But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `.demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `.demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  Look, no `docker run ..` clutter littered everywhere!  (Ok yeah, it's kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
 
 Under the hood, dispatch is implemented by building on the [default targets that are provided by the bridge](#makecompose-bridge).
 
@@ -484,15 +504,15 @@ This can be easily adapted for working with *multiple* compose files, but you'll
 # Load 1st compose file under paralleogram namespace,
 # Load 2nd compose file under triangle namespace
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, FALSE, mycomposefiles/build-tools.yml))
-$(eval $(call compose.import, ▲, ↪, FALSE, mycomposefiles/cluster-tools.yml))
+$(eval $(call compose.import, ▰, ., FALSE, mycomposefiles/build-tools.yml))
+$(eval $(call compose.import, ▲, ., FALSE, mycomposefiles/cluster-tools.yml))
 
 # Top-level "build" target that dispatches subtargets
 # "build-code" and "build-cluster" on different containers
-build: ▰/maven/build-code ▲/kubectl/build-cluster
-↪build-cluster:
+build: ▰/maven/build.code ▲/kubectl/build.cluster
+.build.cluster:
   kubectl .. 
-↪build-code:
+.build.code:
   maven ...
 ```
 
@@ -512,7 +532,200 @@ make help
 
 ---------------------------------------------------------------
 
-### Bonus: Context Management for Host Shells
+### Other Targets 
+
+
+
+**compose.mktemp**
+
+```bash 
+
+```
+
+**compose.indent**
+
+```bash 
+
+```
+
+**compose.init**
+
+```bash 
+ Ensure compose is available and build it
+```
+
+**docker.init**
+
+```bash 
+ Check if docker is available, no real setup
+```
+
+**help**
+
+```bash 
+
+```
+
+**compose.bash**
+
+```bash 
+
+```
+
+**docker.panic**
+
+```bash 
+ Debugging only!  Running this from automation will 
+ probably quickly hit rate-limiting at dockerhub,
+ and obviously this is dangerous for production..
+```
+
+**compose.strip_ansi**
+
+```bash 
+ Pipe-friendly helper for stripping ansi
+```
+
+**compose.wait/%**
+
+```bash 
+
+```
+
+
+---------------------------------------------------------------
+
+## Makefile.k8s.mk
+
+Makefiles.k8s.mk includes lots of helper targets for working with kubernetes.  It doesn't strictly require Makefile.compose.mk or the k8s-tools compose file, but all 3 together are especially powerful.
+
+### Other Targets 
+
+
+
+**k9s**
+
+```bash 
+
+```
+
+**k8s.pods.wait_until_ready**
+
+```bash 
+ Waits until all pods in every namespace are ready
+```
+
+**k8s.namespace.list**
+
+```bash 
+ Returns all namespaces in a simple array 
+ WARNING: Must remain suitable for use with `xargs`
+```
+
+**k9**
+
+```bash 
+
+```
+
+**k9s/%**
+
+```bash 
+ Opens k9s UI at the given namespace
+```
+
+**k8s.kubens/%**
+
+```bash 
+ Context-manager.  Activates the given namespace.
+ Note that this modifies state in the kubeconfig,
+ so it can effect contexts outside of the current
+ process, therefore this is not thread-safe.
+```
+
+**k8s.kubens.create/%**
+
+```bash 
+ Context-manager.  Activates the given namespace, creating it first if necessary.
+ (This has side-effects and persists for subprocesses)
+```
+
+**k8s.test_pod_in_namespace/%**
+
+```bash 
+ Usage: 
+	 k8s.test_pod_in_namespace/<namespace>/<pod_name> or 
+   k8s.test_pod_in_namespace/<namespace>/<pod_name>/<image> 
+```
+
+**k8s.namespace/%**
+
+```bash 
+ Context-manager.  Activates the given namespace.
+ (This has side-effects and persists for subprocesses)
+```
+
+**k8s.namespace.create/%**
+
+```bash 
+ Idempotent version of namespace-create
+```
+
+**k8s.namespace.purge/%**
+
+```bash 
+ Wipes everything inside the given namespace
+```
+
+**k8s.purge_namespaces_by_prefix/%**
+
+```bash 
+ Runs a separate purge for every matching namespace
+```
+
+**k8s.namespace.wait/%**
+
+```bash 
+ Waits for every pod in the given namespace to be ready
+ NB: If the parameter is "all" then this uses --all-namespaces
+```
+
+**k8s.shell/%**
+
+```bash 
+ Usage: Interactive shell in pod:
+   k8s.shell/<namespace>/<pod>
+ Usage: Stream commands into a pod:
+   echo uname -a | make k8s.shell/<namespace>/<pod>/pipe
+
+ This drops into a debugging shell for the named pod,
+ using `kubectl exec`.  This target is unusual because
+ it MUST run from the host + also uses containers.  
+ WARNING: 
+   This target assumes that k8s-tools.yml is imported
+   to the root namespace, and using the default syntax.  
+```
+
+
+### Examples
+
+```Makefile 
+include Makefile.k8s.mk
+include Makefile.compose.mk
+$(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
+
+build: ▰/k3d/self.build_cluster 
+self.build_cluster:
+  k3d create
+
+
+```
+
+---------------------------------------------------------------
+
+## Bonus
+
+### Context Management for Host Shells
 
 We've talked about container shells, but project-based manipulation of *host* shells can also be useful.
 
@@ -543,5 +756,5 @@ Now if you want to ensure that you've switched context as appropriate, you can r
 1. We fake it for builds/tests, but note that **`KUBECONFIG` generally must be set for things to work!**  Sadly, lots of tools will fail even simple invocations like `helm version` or even `--help` if this is undefined or set incorrectly, and it will often crash with errors that aren't very clear.
 1. By default, the compose file shares the working directory with containers it's using as volumes.  **This means files you're using should be inside or somewhere below the working directory!**  The compose file itself can be anywhere though, so instead of keeping it in your projects source-tree you can decide to deploy it separately to `/opt` or `~/.config`
 1. Unfortunately, there's not a good way to convince `make` to just proxy arguments without parsing them.  **For example `make kubectl apply -f` looks convenient, but it won't work.**  It will parse `apply -f` as arguments to make.
-1. The usual problem with root-user-in-containers vs normal-user on host and file permissions.  If you mix host-local and dockerized usage of things like helm, then you'll end up with weird stuff.  You can fix this if it comes up using `sudo chown -R $USER:$USER .` 
+1. The usual problem with root-user-in-containers vs normal-user on host and file permissions.  If you mix host-local and dockerized usage of things like helm, then you'll end up with weird ownership.  You can fix this if it comes up using `sudo chown -R $USER:$USER .`.  (This is a long-standing [known bug in the compose spec](https://github.com/compose-spec/compose-go/pull/299))
 1. Working with streaming pipes currently generates temporary files with `mktemp`, removing them when the process exits with `trap`.  This is a hack that needs to be fixed, pure streams would be better.

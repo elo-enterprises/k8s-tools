@@ -1,7 +1,7 @@
 ##
 # Makefile.compose.mk
 #
-# This is designed to be used as an `include` inside your project's main Makefile.
+# This is designed to be used as an `include` from your project's main Makefile.
 #
 # DOCS: https://github.com/elo-enterprises/k8s-tools#Makefile.compose.mk
 #
@@ -9,12 +9,12 @@
 #
 # USAGE: (Add this to your project Makefile)
 #      include Makefile.compose.mk
-#      $(eval $(call compose.import, ▰, ↪, docker-compose.yml))
+#      $(eval $(call compose.import, ▰, ., docker-compose.yml))
 #
 #      # example for target dispatch:
 #      # a target that runs inside the `debian` container
 #      demo: ▰/debian/demo
-#      ↪demo:
+#      .demo:
 #      		uname -n -v
 #
 # USAGE: (Via CLI Interface)
@@ -32,12 +32,15 @@
 #      Pull requests are welcome! =P
 ########################################################################
 ## BEGIN: data
-export COLOR_GREEN:=\033[92m
-export NO_COLOR:=\033[0m
-export COLOR_DIM:=\033[2m
-export COLOR_RED=\033[91m
-export COMPOSE_IGNORE_ORPHANS:=True
+export ANSI_GREEN?=\033[92m
+export NO_ANSI?=\033[0m
+export ANSI_DIM?=\033[2m
+export ANSI_UNDERLINE?=\033[4m
+export ANSI_BOLD?=\033[1m
+export ANSI_RED?=\033[91m
+export COMPOSE_IGNORE_ORPHANS?=True
 export COMPOSE_MK?=0
+export COMPOSE_MK_POLL_DELTA?=15
 
 ## END: data
 ########################################################################
@@ -50,16 +53,15 @@ export COMPOSE_MK?=0
 # env-var is checked, so that inside containers `compose.get_services` always 
 # returns nothing.
 define compose.get_services
-	$(shell if [ "${COMPOSE_MK}" = "0" ]; then cat ${1} | python -c 'import yaml, sys; data=yaml.safe_load(sys.stdin.read()); svc=data["services"].keys(); print(" ".join(svc))'; else echo -n ""; fi)
+	$(shell if [ "${COMPOSE_MK}" = "0" ]; then cat ${1} | python3 -c 'import yaml, sys; data=yaml.safe_load(sys.stdin.read()); svc=data["services"].keys(); print(" ".join(svc))'; else echo -n ""; fi)
 endef
 
 # Macro to create all the targets for a given compose-service
 define compose.create_make_targets
 $(eval compose_service_name := $1)
 $(eval target_namespace := $2)
-$(eval dispatch_prefix := $3)
-$(eval import_to_root := $(strip $4))
-$(eval compose_file := $(strip $5))
+$(eval import_to_root := $(strip $3))
+$(eval compose_file := $(strip $4))
 $(eval namespaced_service:=${target_namespace}/$(compose_service_name))
 $(eval relf:=$(shell basename -s .yml $(compose_file)))
 
@@ -68,7 +70,7 @@ ${relf}/$(compose_service_name)/shell:
 		run --entrypoint sh $$(shell echo $$@|awk -F/ '{print $$$$2}') \
 		-c "which bash || which sh" \
 		2>/dev/null \
-		|| printf "$${COLOR_RED}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n$${NO_COLOR}" > /dev/stderr` \
+		|| printf "$${ANSI_RED}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n$${NO_ANSI}" > /dev/stderr` \
 	&& ( \
 		( env|grep entrypoint\= &>/dev/null \
 			|| exit 1 ) \
@@ -87,7 +89,8 @@ $(compose_service_name): $(target_namespace)/$(compose_service_name)
 $(compose_service_name)/pipe: ⟂/${relf}/$(compose_service_name)
 $(compose_service_name)/shell: ${relf}/$(compose_service_name)/shell
 $(compose_service_name)/shell/pipe: 
-	cat /dev/stdin | pipe=yes make ${relf}/$(compose_service_name)/shell
+	cat /dev/stdin \
+	| pipe=yes make ${relf}/$(compose_service_name)/shell
 endif)
 
 ${target_namespace}/$(compose_service_name):
@@ -98,18 +101,16 @@ ${target_namespace}/$(compose_service_name)/%:
 	@# A subtarget for each docker-compose service.
 	@# This allows invocation of *another* make-target
 	@# that runs inside the container
-	@export target_name=$$(shell echo $$@|awk -F/ '{print $$$$3}') \
-	&& echo COMPOSE_MK=1 make ${dispatch_prefix}$$$${target_name} \
+	@echo COMPOSE_MK=1 make $${*} \
 		| make ⟫/${relf}/$(compose_service_name)
 endef
 
 # Main macro to import services from an entire compose file
 define compose.import
 $(eval target_namespace:=$1)
-$(eval dispatch_prefix:=$2)
-$(eval import_to_root := $(if $(3), $(strip $(3)), FALSE))
-$(eval compose_file:=$(strip $4))
-$(eval relf:=$(shell basename -s .yml $(strip $4)))
+$(eval import_to_root := $(if $(2), $(strip $(2)), FALSE))
+$(eval compose_file:=$(strip $3))
+$(eval relf:=$(shell basename -s .yml $(strip ${3})))
 $(eval __services__:=$(call compose.get_services, ${compose_file}))
 
 ⟫/${relf}/%:
@@ -120,23 +121,33 @@ $(eval __services__:=$(call compose.get_services, ${compose_file}))
 
 ${relf}/__services__:
 	@echo $(__services__)
+${relf}/__build__:
+	set -x && docker compose -f $${compose_file} build
+${relf}/__stop__:
+	docker compose -f $${compose_file} stop -t 1
+${relf}/__up__:
+	docker compose -f $${compose_file} up
+${relf}/__clean__:
+	set -x && docker compose -f $${compose_file} --progress quiet down -t 1 --remove-orphans
 
 ${relf}/%:
 	@$$(eval export svc_name:=$$(shell echo $$@|awk -F/ '{print $$$$2}'))
 	@$$(eval export cmd:=$(shell echo $${cmd:-}))
 	@$$(eval export pipe:=$(shell if [ -z "$${pipe:-}" ]; then echo ""; else echo "-T"; fi))
 	@$$(eval export entrypoint:=$(shell if [ -z "$${entrypoint:-}" ]; then echo ""; else echo "--entrypoint $${entrypoint}"; fi))
-	@$$(eval export base:=docker compose -f ${compose_file} run --env COMPOSE_MK=1 $${pipe} $${entrypoint} $${svc_name} $${cmd})
-	@$$(eval export tmpf:=$$(shell mktemp))
+	@$$(eval export base:=docker compose -f ${compose_file} run --rm --quiet-pull --env HOME=/tmp --env COMPOSE_MK=1 $${pipe} $${entrypoint} $${svc_name} $${cmd} )
+	@$$(eval export dispbase:=$$(shell echo $${base}|sed 's/\(.\{5\}\).*/\1.../'))
+	@$$(eval export tmpf2:=$$(shell mktemp))
 	@if [ -z "$${pipe}" ]; then \
 		eval $${base} ; \
 	else \
-		cat /dev/stdin > "$${tmpf}" \
-		&& (printf "$${COLOR_GREEN}→ ($${svc_name}) $${COLOR_DIM}\n`\
-				cat $${tmpf} | sed -e 's/COMPOSE_MK=1//' \
-			`\n$${NO_COLOR}" >&2)  \
-		&& trap "rm -f $${tmpf}" EXIT \
-		&& cat "$${tmpf}" | eval $${base} \
+		cat /dev/stdin > $${tmpf2} \
+		&& (printf "\
+			$${ANSI_GREEN}⇒ ${NO_ANSI}${ANSI_DIM}container-dispatch ${ANSI_GREEN}$${svc_name}${NO_ANSI} \
+			${ANSI_DIM}${ANSI_BOLD}@${NO_ANSI} ${ANSI_DIM}${ANSI_GREEN}$$(shell basename $${compose_file})${NO_ANSI} \
+			\n${ANSI_BOLD}${ANSI_UNDERLINE}`cat $${tmpf2} | sed -e 's/COMPOSE_MK=[01]//'`\n$${NO_ANSI}" )  \
+		&& trap "rm -f $${tmpf2}" EXIT \
+		&& cat "$${tmpf2}" | eval $${base} \
 	; fi
 $(foreach \
  	compose_service_name, \
@@ -144,8 +155,7 @@ $(foreach \
 	$(eval \
 		$(call compose.create_make_targets, \
 			$${compose_service_name}, \
-			${target_namespace}, ${dispatch_prefix}, \
-			${import_to_root}, ${compose_file}, )))
+			${target_namespace}, ${import_to_root}, ${compose_file}, )))
 endef
 
 ## END: macros
@@ -159,47 +169,45 @@ help:
 ## END: meta targets
 ########################################################################
 ## BEGIN: convenience targets (api-stable)
+compose.strip_ansi:
+	@# Pipe-friendly helper for stripping ansi
+	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
+compose.mktemp:
+	export tmpf3=`mktemp` \
+	&& trap "rm -f $${tmpf3}" EXIT \
+	&& echo $${tmpf3}
 
 compose.wait/%:
-	printf "${COLOR_DIM}Waiting for ${*} seconds..${NO_COLOR}\n" > /dev/stderr \
+	printf "${ANSI_DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
 	&& sleep ${*}
+compose.indent:
+	@#
+	cat /dev/stdin | sed 's/^/  /'
 
 compose.init:
 	@# Ensure compose is available and build it
 	docker compose version >/dev/null \
 	&& make compose.build
 
-compose.build:
-	@#
-	docker compose build
-
-compose.clean:
-	@#
-	docker compose down --remove-orphans
 compose.bash:
+	@#
 	env bash -l
 
 docker.init:
 	@# Check if docker is available, no real setup
-	@docker --version
+	docker --version
 
 docker.panic:
-	@# Careful, this is potentially devastating in production..
+	@# Debugging only!  Running this from automation will 
+	@# probably quickly hit rate-limiting at dockerhub,
+	@# and obviously this is dangerous for production..
 	docker rm -f $$(docker ps -qa | tr '\n' ' ')
 	docker network prune -f
 	docker volume prune -f
 	docker system prune -a -f
 
-k8s.create.namespace:
-	kubectl create namespace $${namespace} \
-		--dry-run=client -o yaml \
-	| kubectl apply -f -
+# NB: looks empty, but don't edit this, it helps make to understand newline literals
+define newline
 
-k8s.namespace.purge:
-	set -x && kubectl delete namespace --cascade=background $${namespace} -v=9 2>/dev/null || true
-k8s.namespace.list:
-	kubectl get namespaces -o json \
-	| jq -r '.items[].metadata.name'
 
-## END: convenience targets
-########################################################################
+endef

@@ -14,20 +14,36 @@ export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 export FAKE_KUBECONF:=/tmp/fake-kubeconf.conf
 export KUBECONFIG?=${FAKE_KUBECONF}
 _:=$(shell touch ${KUBECONFIG})
+export DOCKER_UID:=$(shell id -u)
+export DOCKER_GID:=$(shell getent group docker | cut -d: -f3 || id -g)
+export DOCKER_UGNAME:=user
+
+export KN_CLI_VERSION?=v1.14.0
+export HELMIFY_CLI_VERSION?=v0.4.12
+#export K3D_VERSION?=v5.6.3
+export K3D_VERSION?=v5.5.0
 
 # Creates dynamic targets
+include Makefile.k8s.mk
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, ↪, TRUE, ${PROJECT_ROOT}/docker-compose.yml))
+$(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/docker-compose.yml))
 
 bash: compose.bash
-k9: k9s
-
 
 init: docker.init
-build: compose.build
-clean: compose.clean
+
+build: docker-compose/__build__
+
+clean: docker-compose/__clean__
+
 docs:
-	pynchon jinja render README.md.j2
+	pynchon jinja render README.md.j2 \
+	&& pynchon markdown preview README.md
+
+vhs:
+	rm -f img/*.gif 
+	ls img/*.tape | xargs -n1 -I% bash -x -c "vhs %"
+	firefox img/*gif
 
 test: itest stest
 stest:
@@ -44,4 +60,6 @@ stest:
 	&& docker compose run kubefwd --help
 
 itest:
-	bash -x -c "cd tests && bash ./bootstrap.sh && make -s test"
+	bash -x -c "cd tests && bash ./bootstrap.sh && cp -fv Makefile.itest.mk Makefile && make -s test"
+etest:
+	bash -x -c "cd tests && bash ./bootstrap.sh && cp -fv Makefile.etest.mk Makefile && make -s e2e"
