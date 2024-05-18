@@ -1,0 +1,15 @@
+# This file describes terminal videos with the `vhs` tool (https://github.com/charmbracelet/vhs)
+Output img/e2e-clean.gif 
+Require "make"
+Require "docker"
+Set Shell "bash"
+Set FontSize 18
+Set Width 1000
+Set Height 360
+Set TypingSpeed .22
+Set PlaybackSpeed 5
+Set CursorBlink false
+Type "make clean"
+Enter
+Sleep 15
+

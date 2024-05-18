@@ -32,15 +32,38 @@
 #      Pull requests are welcome! =P
 ########################################################################
 ## BEGIN: data
-export ANSI_GREEN?=\033[92m
+
+# ansi color constants
 export NO_ANSI?=\033[0m
-export ANSI_DIM?=\033[2m
-export ANSI_UNDERLINE?=\033[4m
-export ANSI_BOLD?=\033[1m
-export ANSI_RED?=\033[91m
+export GREEN?=\033[92m
+export DIM?=\033[2m
+export UNDERLINE?=\033[4m
+export BOLD?=\033[1m
+export ITAL?=\033[3m
+export NO_COLOR?=\e[39m
+export RED?=\033[91m
+export DIM_RED?=${DIM}${RED}
+export CYAN?=\033[96m
+export DIM_CYAN?=${DIM}${CYAN}
+export BOLD_CYAN?=${BOLD}${CYAN}
+export BOLD_GREEN?=${BOLD}${GREEN}
+export DIM_GREEN:=${DIM}${GREEN}
+export DIM_ITAL:=${DIM}${ITAL}
+export NO_ANSI_DIM:=${NO_ANSI}${DIM}
+export CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
+export GREEN_FLOW_LEFT:=${BOLD_GREEN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
+
+# Hints for k8s-tools.yml to fix DIND permissions
+export DOCKER_UID:=$(shell id -u)
+export DOCKER_GID:=$(shell getent group docker 2> /dev/null | cut -d: -f3 || id -g)
+export DOCKER_UGNAME:=user
+
+# honored by `docker compose`, this helps to quiet output
 export COMPOSE_IGNORE_ORPHANS?=True
+
+# 1 if dispatched inside container, otherwise 0
 export COMPOSE_MK?=0
-export COMPOSE_MK_POLL_DELTA?=15
+
 
 ## END: data
 ########################################################################
@@ -63,46 +86,49 @@ $(eval target_namespace := $2)
 $(eval import_to_root := $(strip $3))
 $(eval compose_file := $(strip $4))
 $(eval namespaced_service:=${target_namespace}/$(compose_service_name))
-$(eval relf:=$(shell basename -s .yml $(compose_file)))
+$(eval compose_file_stem:=$(shell basename -s .yml $(compose_file)))
 
-${relf}/$(compose_service_name)/shell:
-	@export entrypoint=`docker compose -f $(compose_file) \
+# Detects the shell
+${compose_file_stem}/$(compose_service_name)/__shell__:
+	docker compose -f $(compose_file) \
 		run --entrypoint sh $$(shell echo $$@|awk -F/ '{print $$$$2}') \
 		-c "which bash || which sh" \
-		2>/dev/null \
-		|| printf "$${ANSI_RED}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n$${NO_ANSI}" > /dev/stderr` \
-	&& ( \
-		( env|grep entrypoint\= &>/dev/null \
-			|| exit 1 ) \
-		&& make ${relf}/$(compose_service_name) \
-	)
+		|| printf "$${RED}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n$${NO_ANSI}" > /dev/stderr
 
-${relf}/$(compose_service_name)/shell/pipe:
-	pipe=yes \
-		make ${relf}/$(compose_service_name)/shell
+# Invokes the shell
+${compose_file_stem}/$(compose_service_name)/shell:
+	@export entrypoint=`make ${compose_file_stem}/$(compose_service_name)/__shell__` \
+	&& printf "$${GREEN}⇒${NO_ANSI}${DIM} ${compose_file_stem}/$(compose_service_name)/shell (${GREEN}`env|grep entrypoint\=`${NO_ANSI}${DIM})${NO_ANSI}\n" \
+		&& make ${compose_file_stem}/$(compose_service_name)
+	
+${compose_file_stem}/$(compose_service_name)/shell/pipe:
+	@$$(eval export tmpf21:=$$(shell mktemp))
+	@cat /dev/stdin > $${tmpf21} \
+	&& eval "cat $${tmpf21} | pipe=yes \
+	  entrypoint=`make ${compose_file_stem}/$(compose_service_name)/__shell__` \
+	  make ${compose_file_stem}/$(compose_service_name)"
 
-${relf}/$(compose_service_name)/pipe:
-	cat /dev/stdin | make ⟂/${relf}/$(compose_service_name)
+${compose_file_stem}/$(compose_service_name)/pipe:
+	cat /dev/stdin | make ⟂/${compose_file_stem}/$(compose_service_name)
 
 $(eval ifeq ($$(import_to_root), TRUE)
 $(compose_service_name): $(target_namespace)/$(compose_service_name)
-$(compose_service_name)/pipe: ⟂/${relf}/$(compose_service_name)
-$(compose_service_name)/shell: ${relf}/$(compose_service_name)/shell
-$(compose_service_name)/shell/pipe: 
-	cat /dev/stdin \
-	| pipe=yes make ${relf}/$(compose_service_name)/shell
+$(compose_service_name)/pipe: ⟂/${compose_file_stem}/$(compose_service_name)
+$(compose_service_name)/shell: ${compose_file_stem}/$(compose_service_name)/shell
+$(compose_service_name)/__shell__:  ${compose_file_stem}/$(compose_service_name)/__shell__
+$(compose_service_name)/shell/pipe: ${compose_file_stem}/$(compose_service_name)/shell/pipe
 endif)
 
 ${target_namespace}/$(compose_service_name):
 	@# A namespaced target for each docker-compose service
-	make ${relf}/$$(shell echo $$@|awk -F/ '{print $$$$2}')
+	make ${compose_file_stem}/$$(shell echo $$@|awk -F/ '{print $$$$2}')
 
 ${target_namespace}/$(compose_service_name)/%:
 	@# A subtarget for each docker-compose service.
 	@# This allows invocation of *another* make-target
 	@# that runs inside the container
 	@echo COMPOSE_MK=1 make $${*} \
-		| make ⟫/${relf}/$(compose_service_name)
+		| entrypoint=bash pipe=yes make ${compose_file_stem}/$(compose_service_name)
 endef
 
 # Main macro to import services from an entire compose file
@@ -110,45 +136,51 @@ define compose.import
 $(eval target_namespace:=$1)
 $(eval import_to_root := $(if $(2), $(strip $(2)), FALSE))
 $(eval compose_file:=$(strip $3))
-$(eval relf:=$(shell basename -s .yml $(strip ${3})))
+$(eval compose_file_stem:=$(shell basename -s.yaml `basename -s.yml $(strip ${3}`)))
 $(eval __services__:=$(call compose.get_services, ${compose_file}))
 
-⟫/${relf}/%:
-	@entrypoint=bash make ⟂/${relf}/$${*}
+⟂/${compose_file_stem}/%:
+	@pipe=yes make ${compose_file_stem}/$${*}
 
-⟂/${relf}/%:
-	@pipe=yes make ${relf}/$${*}
-
-${relf}/__services__:
+${compose_file_stem}/__services__:
 	@echo $(__services__)
-${relf}/__build__:
+${compose_file_stem}/__build__:
 	set -x && docker compose -f $${compose_file} build
-${relf}/__stop__:
+${compose_file_stem}/__stop__:
 	docker compose -f $${compose_file} stop -t 1
-${relf}/__up__:
+${compose_file_stem}/__up__:
 	docker compose -f $${compose_file} up
-${relf}/__clean__:
+${compose_file_stem}/__clean__:
 	set -x && docker compose -f $${compose_file} --progress quiet down -t 1 --remove-orphans
 
-${relf}/%:
+${compose_file_stem}/%:
 	@$$(eval export svc_name:=$$(shell echo $$@|awk -F/ '{print $$$$2}'))
 	@$$(eval export cmd:=$(shell echo $${cmd:-}))
-	@$$(eval export pipe:=$(shell if [ -z "$${pipe:-}" ]; then echo ""; else echo "-T"; fi))
-	@$$(eval export entrypoint:=$(shell if [ -z "$${entrypoint:-}" ]; then echo ""; else echo "--entrypoint $${entrypoint}"; fi))
-	@$$(eval export base:=docker compose -f ${compose_file} run --rm --quiet-pull --env HOME=/tmp --env COMPOSE_MK=1 $${pipe} $${entrypoint} $${svc_name} $${cmd} )
-	@$$(eval export dispbase:=$$(shell echo $${base}|sed 's/\(.\{5\}\).*/\1.../'))
+	@$$(eval export pipe:=$(shell \
+		if [ -z "$${pipe:-}" ]; then echo ""; else echo "-T"; fi))
+	@$$(eval export nsdisp:=${BOLD}$${target_namespace}${NO_ANSI})
+	@$$(eval export header:=${GREEN}$${nsdisp}${DIM} // ${BOLD}${DIM_GREEN}$${compose_file_stem}${NO_ANSI_DIM} // ${BOLD}${GREEN}${UNDERLINE}$${svc_name}${NO_ANSI_DIM} container${NO_ANSI}\n)
+	@$$(eval export entrypoint:=$(shell \
+		if [ -z "$${entrypoint:-}" ]; \
+		then echo ""; else echo "--entrypoint $${entrypoint:-}"; fi))
+	@$$(eval export base:=docker compose -f ${compose_file} \
+		run --rm --quiet-pull --env HOME=/tmp --env COMPOSE_MK=1 \
+		$${pipe} $${entrypoint} $${svc_name} $${cmd} )
 	@$$(eval export tmpf2:=$$(shell mktemp))
-	@if [ -z "$${pipe}" ]; then \
-		eval $${base} ; \
+	@$$(eval export epdisp:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
+			if [ -z "$${entrypoint:-}" ]; \
+			then echo "default${NO_ANSI} entrypoint"; else echo "$${entrypoint:-}"; fi)${NO_ANSI_DIM}${CYAN}]${NO_ANSI})
+	@$$(eval export cmddisp:=${NO_ANSI_DIM}${ITAL}`[ -z "$${cmd}" ] && echo " " || echo " $${cmd}\n"`${NO_ANSI})
+	
+	@trap "rm -f $${tmpf2}" EXIT \
+	&& if [ -z "$${pipe}" ]; then \
+		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${epdisp}$${cmddisp}${GREEN_FLOW_LEFT} ${CYAN}[${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}]${NO_ANSI}${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
+		&& eval $${base} ; \
 	else \
 		cat /dev/stdin > $${tmpf2} \
-		&& (printf "\
-			$${ANSI_GREEN}⇒ ${NO_ANSI}${ANSI_DIM}container-dispatch ${ANSI_GREEN}$${svc_name}${NO_ANSI} \
-			${ANSI_DIM}${ANSI_BOLD}@${NO_ANSI} ${ANSI_DIM}${ANSI_GREEN}$$(shell basename $${compose_file})${NO_ANSI} \
-			\n${ANSI_BOLD}${ANSI_UNDERLINE}`cat $${tmpf2} | sed -e 's/COMPOSE_MK=[01]//'`\n$${NO_ANSI}" )  \
-		&& trap "rm -f $${tmpf2}" EXIT \
+		&& printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${epdisp}$${cmddisp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
 		&& cat "$${tmpf2}" | eval $${base} \
-	; fi
+	; fi && printf '\n'
 $(foreach \
  	compose_service_name, \
  	$(__services__), \
@@ -163,51 +195,102 @@ endef
 ## BEGIN: meta targets (api-stable)
 
 help:
+	@# Attempts to autodetect the targets defined in this Makefile context.  
+	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
+	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
+	@#
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true
-
 
 ## END: meta targets
 ########################################################################
 ## BEGIN: convenience targets (api-stable)
-compose.strip_ansi:
-	@# Pipe-friendly helper for stripping ansi
-	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
-compose.mktemp:
-	export tmpf3=`mktemp` \
-	&& trap "rm -f $${tmpf3}" EXIT \
-	&& echo $${tmpf3}
+compose.bash:
+	@# Drops into an interactive shell with the en vars 
+	@# that have been set by the parent environment, 
+	@# plus those set by this Makefile context.
+	@#
+	env bash -l
+compose.divider: compose.print_divider
+	@# Alias for print_divider
 
-compose.wait/%:
-	printf "${ANSI_DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
-	&& sleep ${*}
 compose.indent:
+	@# Pipe-friendly helper for indenting, 
+	@# reading from stdin and returning it to stdout.
 	@#
 	cat /dev/stdin | sed 's/^/  /'
 
 compose.init:
-	@# Ensure compose is available and build it
-	docker compose version >/dev/null \
-	&& make compose.build
-
-compose.bash:
+	@# Ensures compose is available.  Note that 
+	@# build/run/etc cannot happen without a file, 
+	@# for that, see instead targets like '<compose_file_stem>/__build__'
 	@#
-	env bash -l
+	docker compose version >/dev/null
+
+compose.mktemp:
+	@# Helper for working with temp files.  Returns filename, 
+	@# and uses 'trap' to handle at-exit file-deletion automatically
+	@#
+	export tmpf3=`mktemp` \
+	&& trap "rm -f $${tmpf3}" EXIT \
+	&& echo $${tmpf3}
+
+compose.print_divider:
+	@# Prints a divider on stdout, defaulting to the full terminal width, 
+	@# with optional label.  This automatically detects console width, but
+	@# it requires 'tput', which is usually part of an ncurses package.
+	@#
+	@# USAGE: 
+	@#  make compose.print_divider label=".." filler=".." width="..."
+	@#
+	@export width=$${width:-`tput cols`} \
+	&& export label=$${label:-} \
+	&& if [ -z "$${label}" ]; then \
+	    export filler=$${filler:-¯} && printf "%*s$${NO_ANSI}\n" "$${width}" '' | sed "s/ /$${filler}/g"; \
+	else \
+		export label=" $${label//-/ } " \
+	    && export default="#" \
+		&& export filler=$${filler:-$${default}} && label_length=$${#label} \
+	    && side_length=$$(( ($${width} - $${label_length} - 2) / 2 )) \
+	    && printf "%*s" "$${side_length}" | sed "s/ /$${filler}/g" \
+		&& printf "$${label}" \
+	    && printf "%*s\n" "$${side_length}" | sed "s/ /$${filler}/g" \
+	; fi
+
+compose.print_divider/%:
+	@# Print a divider with a width of `term_width / <arg>`
+	@#
+	@# USAGE: 
+	@#  make compose.print_divider/<int>
+	@#
+	@width=`echo \`tput cols\` / ${*} | bc` \
+	make compose.print_divider
+
+compose.strip_ansi:
+	@# Pipe-friendly helper for stripping ansi.
+	@# (Probably won't work everywhere, but has no deps)
+	@#
+	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
+
+compose.wait/%:
+	@# Pauses for the given amount of seconds.
+	@#
+	@# USAGE: 
+	@#   compose.wait/<int>
+	@#
+	printf "${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
+	&& sleep ${*}
 
 docker.init:
-	@# Check if docker is available, no real setup
+	@# Checks if docker is available, then displays version (no real setup)
+	@#
 	docker --version
 
 docker.panic:
 	@# Debugging only!  Running this from automation will 
 	@# probably quickly hit rate-limiting at dockerhub,
-	@# and obviously this is dangerous for production..
+	@# plus you probably don't want to run this in prod.
+	@#
 	docker rm -f $$(docker ps -qa | tr '\n' ' ')
 	docker network prune -f
 	docker volume prune -f
 	docker system prune -a -f
-
-# NB: looks empty, but don't edit this, it helps make to understand newline literals
-define newline
-
-
-endef

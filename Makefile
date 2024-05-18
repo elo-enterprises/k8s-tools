@@ -3,8 +3,8 @@
 # Typical usage: `make clean build test`
 ##
 SHELL := bash
-MAKEFLAGS += --warn-undefined-variables
-.SHELLFLAGS := -euo pipefail -c
+MAKEFLAGS += -s --warn-undefined-variables
+.SHELLFLAGS?=-euo pipefail -c
 THIS_MAKEFILE := $(abspath $(firstword $(MAKEFILE_LIST)))
 THIS_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${THIS_MAKEFILE}`
 
@@ -14,52 +14,72 @@ export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 export FAKE_KUBECONF:=/tmp/fake-kubeconf.conf
 export KUBECONFIG?=${FAKE_KUBECONF}
 _:=$(shell touch ${KUBECONFIG})
-export DOCKER_UID:=$(shell id -u)
-export DOCKER_GID:=$(shell getent group docker | cut -d: -f3 || id -g)
-export DOCKER_UGNAME:=user
+
 
 export KN_CLI_VERSION?=v1.14.0
 export HELMIFY_CLI_VERSION?=v0.4.12
-#export K3D_VERSION?=v5.6.3
-export K3D_VERSION?=v5.5.0
+export K3D_VERSION?=v5.6.3
 
 # Creates dynamic targets
 include Makefile.k8s.mk
 include Makefile.compose.mk
-$(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/docker-compose.yml))
+$(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
+
+.DEFAULT_GOAL :=  all 
+all: clean build test docs
 
 bash: compose.bash
 
 init: docker.init
 
-build: docker-compose/__build__
+# NB: only used during development; normal usage involves build-on-demand 
+clean: k8s-tools/__clean__
+build: k8s-tools/__build__
+test: integration-test smoke-test e2e-test
 
-clean: docker-compose/__clean__
-
-docs:
-	pynchon jinja render README.md.j2 \
+docs: 
+	set -x && pynchon jinja render README.md.j2 \
 	&& pynchon markdown preview README.md
 
-vhs:
-	rm -f img/*.gif 
-	ls img/*.tape | xargs -n1 -I% bash -x -c "vhs %"
-	firefox img/*gif
+# NB: `vhs.*` targets are for docs/img generation, using terminal-recording
+vhs: vhs.e2e vhs.demo
+vhs.demo:
+	@# FIXME: zip this up
+	rm -f img/demo-*.gif
+	cd tests && bash ./bootstrap.sh && cp Makefile.itest.mk Makefile \
+	&& vhs ../img/demo-bridge-shell.tape \
+	&& vhs ../img/demo-bridge-stream.tape \
+	&& vhs ../img/demo-dispatch.tape \
+	&& vhs ../img/demo-double-dispatch.tape \
+	&& mv img/* ../img
+vhs.e2e:
+	@# NB: order matters here
+	rm -f img/e2e-*.gif
+	cd tests && bash ./bootstrap.sh && cp Makefile.etest.mk Makefile \
+	&& ls ../img/e2e*tape|sort \
+	| xargs -n1 -I% bash -x -c "vhs %" \
+	&& mv img/* ../img
 
-test: itest stest
-stest:
+smoke-test:
+	make compose.divider label="${@}"
 	@# Smoke test the containers we built
-	docker compose run fission --help \
-	&& docker compose run helmify --version \
-	&& docker compose run kn --help \
-	&& docker compose run k9s version \
-	&& docker compose run kubectl --help \
-	&& docker compose run kompose version \
-	&& docker compose run k3d --help \
-	&& docker compose run helm --help \
-	&& docker compose run argo --help \
-	&& docker compose run kubefwd --help
+	bash -x -c "docker compose -f k8s-tools.yml run fission --help \
+	&& docker compose -f k8s-tools.yml run helmify --version \
+	&& docker compose -f k8s-tools.yml run kn --help \
+	&& docker compose -f k8s-tools.yml run k9s version \
+	&& docker compose -f k8s-tools.yml run kubectl --help \
+	&& docker compose -f k8s-tools.yml run kompose version \
+	&& docker compose -f k8s-tools.yml run k3d --help \
+	&& docker compose -f k8s-tools.yml run helm --help \
+	&& docker compose -f k8s-tools.yml run argo --help \
+	&& docker compose -f k8s-tools.yml run kubefwd --help" 2>&1 >/dev/null
+stest: smoke-test 
 
-itest:
-	bash -x -c "cd tests && bash ./bootstrap.sh && cp -fv Makefile.itest.mk Makefile && make -s test"
-etest:
-	bash -x -c "cd tests && bash ./bootstrap.sh && cp -fv Makefile.etest.mk Makefile && make -s e2e"
+integration-test:
+	cd tests && bash ./bootstrap.sh && cp Makefile.itest.mk Makefile && make
+itest: integration-test
+
+e2e-test:
+	cd tests && bash -x ./bootstrap.sh && cp Makefile.etest.mk Makefile && make
+etest: e2e-test 
+
