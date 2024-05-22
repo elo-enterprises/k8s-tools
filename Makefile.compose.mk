@@ -143,7 +143,7 @@ $(eval __services__:=$(call compose.get_services, ${compose_file}))
 	@pipe=yes make ${compose_file_stem}/$${*}
 
 ${compose_file_stem}/__services__:
-	@echo $(__services__)
+	@echo $(__services__) | sed -e 's/ /\n/g'
 ${compose_file_stem}/__build__:
 	set -x && docker compose -f $${compose_file} build
 ${compose_file_stem}/__stop__:
@@ -174,7 +174,7 @@ ${compose_file_stem}/%:
 	
 	@trap "rm -f $${tmpf2}" EXIT \
 	&& if [ -z "$${pipe}" ]; then \
-		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${epdisp}$${cmddisp}${GREEN_FLOW_LEFT} ${CYAN}[${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}]${NO_ANSI}${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
+		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${epdisp}$${cmddisp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
 		&& eval $${base} ; \
 	else \
 		cat /dev/stdin > $${tmpf2} \

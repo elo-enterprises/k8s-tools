@@ -18,10 +18,10 @@ export CLUSTER_NAME:=k8s-tools-e2e
 export KUBECONFIG:=./fake.profile.yaml
 
 # Chart & Pod details that we'll use later during provision
-HELM_REPO:=https://helm.github.io/examples
-HELM_CHART:=examples/hello-world
-POD_NAME:=test-harness
-POD_NAMESPACE:=default
+export HELM_REPO:=https://helm.github.io/examples
+export HELM_CHART:=examples/hello-world
+export POD_NAME:=test-harness
+export POD_NAMESPACE:=default
 
 # Include and invoke the `compose.import` macro 
 # so we have targets for k8s-tools.yml services
@@ -56,9 +56,10 @@ self.cluster.clean:
 
 ###############################################################################
 
-#  You can expand this to include usage of `kustomize`, etc.
+# You can expand this to include usage of `kustomize`, etc.
+# Volumes are already setup, so you can `kubectl appply` from the filesystem.
 provision: provision.helm provision.test_harness 
-provision.helm:	▰/helm/self.cluster.provision_helm_example
+provision.helm:	▰/helm/self.cluster.provision_helm_example compose.wait/5
 provision.test_harness: ▰/k8s/self.test_harness.provision
 self.cluster.provision_helm_example: 
 	@# Idempotent version of a helm install
@@ -66,7 +67,7 @@ self.cluster.provision_helm_example:
 		|| helm repo add examples ${HELM_REPO}
 	helm list | grep hello-world \
 		|| helm install ahoy ${HELM_CHART}
-	make compose.wait/5
+
 self.test_harness.provision: \
 	k8s.kubens.create/${POD_NAMESPACE} \
 	k8s.test_pod_in_namespace/${POD_NAMESPACE}/${POD_NAME}/alpine/k8s
@@ -82,24 +83,23 @@ test.contexts: get.host.ctx get.compose.ctx get.pod.ctx
 self.cluster.test: k8s.namespace.wait/default k8s.cluster_info
 	@# Waits for anything in the default namespace to finish and show cluster info
 
-# Displays the platform info for the current host,
-# for a container described in a compose-service,
-# and for a live pod on the test-cluster, respectively.
+# Helpers for displaying platform info 
 get.host.ctx:
-	uname -a 
+	@# Runs on the docker host
+	echo -n; set -x; uname -n
+	printf "\n\n"
 get.compose.ctx:
-	echo uname -a | make k8s-tools/k8s/shell/pipe
+	@# Runs on the container defined by compose service
+	echo uname -n | make k8s-tools/k8s/shell/pipe
 get.pod.ctx:
-	echo uname -a | make k8s.shell/default/test-harness/pipe
+	@# Runs inside the kubernetes cluster
+	echo uname -n | make k8s.shell/default/test-harness/pipe
 
 ###############################################################################
 
-cluster.shell: 
+cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
 	@# Interactive shell for the test-harness pod 
 	@# (See also'provision' steps for the setup of same)
-	make k8s.shell/${POD_NAMESPACE}/${POD_NAME}
-cluster.show: 
+cluster.show: k9s/${POD_NAMESPACE}
 	@# TUI for browsing the cluster 
-	make k9s/${POD_NAMESPACE}
-
 

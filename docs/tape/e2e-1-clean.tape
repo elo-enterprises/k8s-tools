@@ -1,12 +1,15 @@
 # This file describes terminal videos with the `vhs` tool (https://github.com/charmbracelet/vhs)
-Output img/demo-double-dispatch.gif 
+Output img/e2e-clean.gif 
 Require "make"
 Require "docker"
 Set Shell "bash"
 Set FontSize 18
 Set Width 1000
-Set Height 390
-Set TypingSpeed 60ms
-Type "make demo-double-dispatch"
+Set Height 360
+Set TypingSpeed .32
+Set PlaybackSpeed 4
+Set CursorBlink false
+Type "make clean"
 Enter
-Sleep 4s
+Sleep 15
+

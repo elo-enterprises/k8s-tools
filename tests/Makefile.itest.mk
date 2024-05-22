@@ -10,7 +10,7 @@
 ##
 SHELL := bash
 MAKEFLAGS += -s --warn-undefined-variables
-.SHELLFLAGS := -euo pipefail -c
+.SHELLFLAGS := -eu -c
 
 export KUBECONFIG:=./fake.profile.yaml
 
@@ -45,9 +45,8 @@ demo: ▰/debian/self.demo
 # Since this target is intended to be private, we will 
 # prefix "self" to indicate it should not run on host.
 self.demo:
-	source /etc/os-release && printf "$${PRETTY_NAME}\n"
+	. /etc/os-release && printf "$${PRETTY_NAME}\n"
 	uname -n -v
-
 demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 print_divider: compose.print_divider

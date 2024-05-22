@@ -5,14 +5,16 @@ Require "docker"
 Set Shell "bash"
 Set FontSize 20
 Set Width 1000
-Set Height 350
-Set TypingSpeed 70ms
+Set Height 400
+Set TypingSpeed .21
+Set PlaybackSpeed 3.3
+Set CursorBlink false
 Type "make debian/shell"
 Enter
-Sleep 3s
+Sleep 6s
 Ctrl+D
-Sleep 1 
+Sleep 3 
 Type "make alpine/shell"
 Enter
-Sleep 3s
+Sleep 6s
 Ctrl+D

@@ -36,29 +36,30 @@ init: docker.init
 clean: k8s-tools/__clean__
 build: k8s-tools/__build__
 test: integration-test smoke-test e2e-test
-
-docs: 
+.PHONY: docs
+docs:
+	@# Render docs twice to use includes, then get the ToC 
 	set -x && pynchon jinja render README.md.j2 \
+	&& pynchon jinja render README.md -o .tmp.R.md && mv .tmp.R.md README.md \
 	&& pynchon markdown preview README.md
 
 # NB: `vhs.*` targets are for docs/img generation, using terminal-recording
 vhs: vhs.e2e vhs.demo
 vhs.demo:
-	@# FIXME: zip this up
 	rm -f img/demo-*.gif
-	cd tests && bash ./bootstrap.sh && cp Makefile.itest.mk Makefile \
-	&& vhs ../img/demo-bridge-shell.tape \
-	&& vhs ../img/demo-bridge-stream.tape \
-	&& vhs ../img/demo-dispatch.tape \
-	&& vhs ../img/demo-double-dispatch.tape \
-	&& mv img/* ../img
+	pushd tests \
+		&& bash ./bootstrap.sh && cp Makefile.itest.mk Makefile \
+		&& ls ../docs/tape/demo*.tape \
+		| xargs -I% -n1 sh -x -c "vhs %" \
+		&& mv img/* ../img
 vhs.e2e:
 	@# NB: order matters here
 	rm -f img/e2e-*.gif
-	cd tests && bash ./bootstrap.sh && cp Makefile.etest.mk Makefile \
-	&& ls ../img/e2e*tape|sort \
-	| xargs -n1 -I% bash -x -c "vhs %" \
-	&& mv img/* ../img
+	pushd tests \
+		&& bash ./bootstrap.sh && cp Makefile.e2e.mk Makefile \
+		&& ls ../docs/tape/e2e*.tape \
+		| xargs -I% -n1 sh -x -c "vhs %" \
+		&& mv img/* ../img
 
 smoke-test:
 	make compose.divider label="${@}"
@@ -76,10 +77,12 @@ smoke-test:
 stest: smoke-test 
 
 integration-test:
-	cd tests && bash ./bootstrap.sh && cp Makefile.itest.mk Makefile && make
+	cd tests && bash ./bootstrap.sh\
+	 && cp Makefile.itest.mk Makefile && make
 itest: integration-test
 
 e2e-test:
-	cd tests && bash -x ./bootstrap.sh && cp Makefile.etest.mk Makefile && make
+	cd tests && bash -x ./bootstrap.sh \
+	&& cp Makefile.e2e.mk Makefile && make
 etest: e2e-test 
 

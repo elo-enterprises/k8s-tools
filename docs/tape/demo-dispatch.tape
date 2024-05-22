@@ -6,7 +6,9 @@ Set Shell "bash"
 Set FontSize 18
 Set Width 1000
 Set Height 280
-Set TypingSpeed 70ms
+Set TypingSpeed .21
+Set PlaybackSpeed 3.3
+Set CursorBlink false
 Type "make demo"
 Enter
-Sleep 5s
+Sleep 15s

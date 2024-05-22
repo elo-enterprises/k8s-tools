@@ -11,5 +11,5 @@ Set PlaybackSpeed 5
 Set CursorBlink false
 Type "make test"
 Enter
-Sleep 50
+Sleep 65
 

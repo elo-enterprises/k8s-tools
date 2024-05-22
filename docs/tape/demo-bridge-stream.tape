@@ -4,13 +4,15 @@ Require "make"
 Require "docker"
 Set Shell "bash"
 Set FontSize 20
-Set Width 1000
-Set Height 330
-Set TypingSpeed 70ms
+Set Width 1100
+Set Height 400
+Set TypingSpeed .35
+Set PlaybackSpeed 3.3
+Set CursorBlink false
 Type "echo uname -n -v | make debian/shell/pipe"
 Enter
-Sleep 3s
-Sleep 1 
+Sleep 6s
+Sleep 3 
 Type "echo echo echo hello-world | make alpine/pipe | make debian/pipe"
 Enter
-Sleep 3s
+Sleep 6s

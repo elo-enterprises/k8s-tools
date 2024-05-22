@@ -34,7 +34,7 @@ export K8S_POLL_DELTA?=23
 ## BEGIN: convenience targets (api-stable)
 
 k3d.ps:
-	@# Container names for everything that's k3d related
+	@# Container names for everything that is k3d related
 	@# 
 	@# USAGE:  
 	@#   make k3d.ps
@@ -58,7 +58,7 @@ k8s.commander/%:
 	tmux new-session \; set-option -g default-command "exec /bin/bash -x" \; split-window -h \; send-keys "make lazydocker; tmux kill-session" C-m \; select-pane -t 0 \; send-keys "make k9s/${*}; tmux kill-session" C-m
 
 k3d.panic:
-	@# Non-graceful stop for everything that's k3d related
+	@# Non-graceful stop for everything that is k3d related
 	@# 
 	@# USAGE:  
 	@#   make k3d.panic
@@ -199,11 +199,11 @@ k8s.pods.wait_until_ready:
 	make k8s.namespace.wait/all
 	
 k8s.test_pod_in_namespace/%:
-	@# Starts a test-pod in the given namespace, thenblocks until it's ready.
+	@# Starts a test-pod in the given namespace, then blocks until it's ready.
 	@#
 	@# USAGE: 
-	@#	 `k8s.test_pod_in_namespace/<namespace>/<pod_name>` or 
-	@#   `k8s.test_pod_in_namespace/<namespace>/<pod_name>/<image>` 
+	@#	`k8s.test_pod_in_namespace/<namespace>/<pod_name>` or 
+	@#	`k8s.test_pod_in_namespace/<namespace>/<pod_name>/<image>` 
 	@#
 	$(eval export pathcomp:=$(shell echo ${*}| sed -e 's/\// /g'))
 	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}'))) \
