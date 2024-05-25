@@ -48,3 +48,14 @@ $ make k3d cmd='cluster list -o json'
 
 For more details on other targets available, how this works in general, and what else you can do with it.. read on in [this section](#makecompose-bridge).
 
+## Docs & Examples
+
+This repository includes lots examples for Make/Compose integration, including:
+
+* [A simple demo](#makecompose-bridge), 
+* [A dispatch-demo](#container-dispatch), 
+* A more [involved tutorial](#demo-cluster-automation), 
+* Plus the [integration tests](tests/Makefile.itest.mk), 
+* And [end-to-end tests](tests/Makefile.e2e.mk)
+
+For a complete, external project that uses this approach to for cluster automation, see [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas)

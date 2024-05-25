@@ -20,38 +20,41 @@ services:
         ARG DOCKER_UID=${DOCKER_UID:-1000}
         ARG DOCKER_GID=${DOCKER_UGNAME:-user}
         ARG DOCKER_UGNAME=${DOCKER_UGNAME:-user}
-        FROM alpine/k8s:1.30.0 as builder
+        FROM ${ALPINE_K8S_VERSION:-alpine/k8s:1.30.0} as builder
         RUN apk --no-cache add procps make 
         RUN cp /krew-* /usr/bin/krew
-        RUN KREW_ROOT=/tmp krew install ctx
-        RUN KREW_ROOT=/tmp krew install ns
-        RUN mv /tmp/bin/kubectl-ns /bin/kubens
-        RUN mv /tmp/bin/kubectl-ctx /bin/kubectx
         FROM ghcr.io/charmbracelet/gum as gum
-        FROM alpine/k8s:1.30.0 
+        FROM ${ALPINE_K8S_VERSION:-alpine/k8s:1.30.0} 
         COPY --from=gum /usr/local/bin/gum /usr/bin
-        COPY --from=builder /usr/bin/make /bin/ps /bin/kubens /bin/kubectx /bin
+        COPY --from=builder /usr/bin/make /bin/ps /usr/bin/krew /bin
         RUN apk --no-cache add ncurses shadow
         RUN groupadd --gid ${DOCKER_GID:-1000} docker
         RUN useradd --uid ${DOCKER_UID:-1000} --create-home -g docker ${DOCKER_UGNAME:-user}
         USER ${DOCKER_UGNAME:-user}
+        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-user}/.krew krew install ctx ns sick-pods
+        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-user}/.krew krew install ${KREW_PLUGINS:-ktop}
+        USER root 
+        RUN cp /home/${DOCKER_UGNAME:-user}/.krew/bin/kubectl-ns /usr/bin/kubens
+        RUN cp /home/${DOCKER_UGNAME:-user}/.krew/bin/kubectl-ctx /usr/bin/kubectx
+        USER ${DOCKER_UGNAME:-user}
+        ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/${DOCKER_UGNAME:-user}/.krew/bin
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
     network_mode: host
     working_dir: /workspace
     volumes:
+      # Share the docker sock.  Almost everything will need this
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Share the working directory with containers, plus ~/.kube
+      - ${PWD}:/workspace
+      - ${HOME}/.kube:/home/${DOCKER_UGNAME:-user}/.kube
+      # NB: `.cache` and `.config` as below are used by helm, maybe others?
+      - ${HOME}/.cache:/home/${DOCKER_UGNAME:-user}/.cache
+      - ${HOME}/.config/helm:/home/${DOCKER_UGNAME:-user}/.config/helm
+      - ${HOME}/.local:/home/${DOCKER_UGNAME:-user}/.local:ro
       # NB: something like this if you're working with EKS and need AWS creds
       # - ${HOME}/.aws:/home/user/.aws
       # NB: something like this if you only want to share one file.
       # - "${KUBECONFIG}:/kubeconfig.conf:ro"
-      # NB: `.cache` and `.config` as below are used by helm, maybe others?
-      - ${PWD}:/workspace
-      - ${HOME}/.kube:/home/user/.kube
-      - ${HOME}/.krew:/home/user/.krew
-      # used by helm, maybe others
-      - ${HOME}/.cache:/home/user/.cache
-      - ${HOME}/.config/helm:/home/user/.config/helm
-      - ${HOME}/.local:/home/user/.local:ro
-      - /var/run/docker.sock:/var/run/docker.sock
     tty: true 
 
   # https://helm.sh/docs/
@@ -243,6 +246,20 @@ services:
         USER ${DOCKER_UGNAME:-user}
     entrypoint: lazydocker
   
+
+  # https://github.com/kubernetes-sigs/kind
+  kind: 
+    image: 'k8s:kind'
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM debian
+        RUN apt-get update && apt-get install -y curl
+        RUN [ $(uname -m) = x86_64 ] \
+          && curl -Lo /usr/bin/kind https://kind.sigs.k8s.io/dl/${KIND_CLI_VERSION:-v0.23.0}/kind-$(uname)-amd64 \
+          && chmod o+x /usr/bin/kind
+    entrypoint: /usr/bin/kind
+
   # https://k9scli.io/
   k9s:
     # NB: no inheritance from `base` since `build` conflicts with `image`.

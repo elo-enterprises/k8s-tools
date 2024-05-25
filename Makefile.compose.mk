@@ -64,6 +64,7 @@ export COMPOSE_IGNORE_ORPHANS?=True
 # 1 if dispatched inside container, otherwise 0
 export COMPOSE_MK?=0
 
+export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
 
 ## END: data
 ########################################################################

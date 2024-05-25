@@ -73,7 +73,9 @@ smoke-test:
 	&& docker compose -f k8s-tools.yml run k3d --help \
 	&& docker compose -f k8s-tools.yml run helm --help \
 	&& docker compose -f k8s-tools.yml run argo --help \
+	&& docker compose -f k8s-tools.yml run kind --version \
 	&& docker compose -f k8s-tools.yml run kubefwd --help" 2>&1 >/dev/null
+
 stest: smoke-test 
 
 integration-test:

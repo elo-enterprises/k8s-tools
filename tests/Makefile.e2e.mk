@@ -12,6 +12,7 @@ MAKEFLAGS += -s --warn-undefined-variables
 # Override k8s-tools.yml service-defaults, 
 # explicitly setting the k3d version used
 export K3D_VERSION:=v5.6.3
+export KREW_PLUGINS:=sick-pods
 
 # Cluster details that will be used by k3d.
 export CLUSTER_NAME:=k8s-tools-e2e
@@ -78,12 +79,13 @@ self.test_harness.provision: \
 ###############################################################################
 
 test: test.cluster test.contexts 
-test.cluster: ▰/k8s/self.cluster.test
-test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
-self.cluster.test: k8s.namespace.wait/default k8s.cluster_info
+
+test.cluster: ▰/k8s/k8s.namespace.wait/all ▰/k8s/k8s.stat
 	@# Waits for anything in the default namespace to finish and show cluster info
 
-# Helpers for displaying platform info 
+test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
+	@# Helpers for displaying platform info 
+
 get.host.ctx:
 	@# Runs on the docker host
 	echo -n; set -x; uname -n
