@@ -1,9 +1,14 @@
+##
+# tests/docker-compose.yml: 
+#  A minimal compose file that works with target dispatch
+##
 services:
   debian: &base
+    hostname: debian 
     build:
       context: .
       dockerfile_inline: |
-        FROM python:slim
+        FROM debian
         RUN apt-get update && apt-get install -y make
     entrypoint: bash
     working_dir: /workspace
@@ -11,8 +16,9 @@ services:
       - ${PWD}:/workspace
   alpine:
     <<: *base
+    hostname: alpine
     build:
       context: .
       dockerfile_inline: |
-        FROM python:alpine
+        FROM alpine
         RUN apk add --update --no-cache alpine-sdk bash
