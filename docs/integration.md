@@ -61,8 +61,8 @@ $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 # At this point, targets are defined for whatever services
 # are mentioned in the external compose config, and they are
 # ready to use. Now you can dispatch any task to any container!
-test: ▰/kubectl/test
-.test:
+test: ▰/k8s/self.test
+self.test:
   kubectl --version
   echo hello world from `uname -n -v`
 ```

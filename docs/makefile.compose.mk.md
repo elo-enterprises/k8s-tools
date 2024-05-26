@@ -27,10 +27,10 @@ Enough philosophy, more examples.
 
 *`Makefile.compose.mk`* provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.  
 
-Let's forget about the k8s-tools.yml for now and walk through a more minimal example, starting with a hypothetical the compose file:
+Let's forget about the k8s-tools.yml for now and walk through a more minimal example, starting with a hypothetical compose file:
 
 ```yaml 
-# docker-compose.yml
+# example docker-compose.yml
 services:
   debian:
     image: debian
@@ -241,7 +241,7 @@ $ docker compose -f docker-compose.yml \
 
 Container-dispatch with `Makefile.compose.mk` can also autodetect what shell to use with the container (via the [`<svc_name>/__shell__` target](#target-compose_stemspecial)).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See [docs for `make --reconn`](https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html) to learn more about dry-runs).  If you are thoughtful about the ways that you're using volumes and file state, you can also consider using [`make --jobs` for parallel execution](https://www.gnu.org/software/make/manual/make.html#Parallel-Execution).
 
-To make this work as expected though, we do have to add more stuff to the compose file.  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, **if the subtarget is going to run on the container, the container needs to at least have:**  `make`, `bash` (or whatever shell the Makefile uses), and a volume mount to read the `Makefile`.  
+**To make this work as expected though, we do have to add more stuff to the compose file.**  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, **if the subtarget is going to run on the container, the container needs to at least have:**  `make`, `bash` (or whatever shell the Makefile uses), and a volume mount to read the `Makefile`.  
 
 ```yaml
 {{open('tests/docker-compose.yml','r').read()}}
@@ -253,7 +253,7 @@ The debian/alpine compose file above and most of the interfaces described so far
 
 ### Macro Arguments
 
-Make isn't big on named-arguments, so let's unpack the `compose.import` macro invocation. 
+Make isn't big on named-arguments, so let's unpack the `compose.import` macro invocation.
 
 ```Makefile
 include Makefile.compose.mk

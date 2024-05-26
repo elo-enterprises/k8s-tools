@@ -90,9 +90,11 @@ get.host.ctx:
 	@# Runs on the docker host
 	echo -n; set -x; uname -n
 	printf "\n\n"
+
 get.compose.ctx:
 	@# Runs on the container defined by compose service
 	echo uname -n | make k8s-tools/k8s/shell/pipe
+
 get.pod.ctx:
 	@# Runs inside the kubernetes cluster
 	echo uname -n | make k8s.shell/default/test-harness/pipe
@@ -102,6 +104,7 @@ get.pod.ctx:
 cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
 	@# Interactive shell for the test-harness pod 
 	@# (See also'provision' steps for the setup of same)
-cluster.show: k9s/${POD_NAMESPACE}
+
+cluster.show: k8s.commander
 	@# TUI for browsing the cluster 
 
