@@ -36,6 +36,7 @@
 # ansi color constants
 export NO_ANSI?=\033[0m
 export GREEN?=\033[92m
+export YELLOW?=\033[33m
 export DIM?=\033[2m
 export UNDERLINE?=\033[4m
 export BOLD?=\033[1m
@@ -168,18 +169,18 @@ ${compose_file_stem}/%:
 		run --rm --quiet-pull --env HOME=/tmp --env COMPOSE_MK=1 \
 		$${pipe} $${entrypoint} $${svc_name} $${cmd} )
 	@$$(eval export tmpf2:=$$(shell mktemp))
-	@$$(eval export epdisp:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
+	@$$(eval export entrypoint_display:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
 			if [ -z "$${entrypoint:-}" ]; \
 			then echo "default${NO_ANSI} entrypoint"; else echo "$${entrypoint:-}"; fi)${NO_ANSI_DIM}${CYAN}]${NO_ANSI})
-	@$$(eval export cmddisp:=${NO_ANSI_DIM}${ITAL}`[ -z "$${cmd}" ] && echo " " || echo " $${cmd}\n"`${NO_ANSI})
+	@$$(eval export cmd_disp:=${NO_ANSI_DIM}${ITAL}`[ -z "$${cmd}" ] && echo " " || echo " $${cmd}\n"`${NO_ANSI})
 	
 	@trap "rm -f $${tmpf2}" EXIT \
 	&& if [ -z "$${pipe}" ]; then \
-		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${epdisp}$${cmddisp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
+		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
 		&& eval $${base} ; \
 	else \
 		cat /dev/stdin > $${tmpf2} \
-		&& printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${epdisp}$${cmddisp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
+		&& printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
 		&& cat "$${tmpf2}" | eval $${base} \
 	; fi && printf '\n'
 $(foreach \
@@ -265,7 +266,9 @@ compose.print_divider/%:
 	@#
 	@width=`echo \`tput cols\` / ${*} | bc` \
 	make compose.print_divider
-
+compose.strip:
+	@# Pipe-friendly helper for stripping whitespace.
+	cat /dev/stdin | awk '{gsub(/[\t\n]/, ""); gsub(/ +/, " "); print}' ORS=''
 compose.strip_ansi:
 	@# Pipe-friendly helper for stripping ansi.
 	@# (Probably won't work everywhere, but has no deps)
@@ -278,8 +281,22 @@ compose.wait/%:
 	@# USAGE: 
 	@#   compose.wait/<int>
 	@#
-	printf "${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
+	printf "${GREEN}compose.wait${NO_ANSI} // ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
 	&& sleep ${*}
+
+compose.wait_for_command:
+	@# Runs the given command for the given amount of seconds, then stops it with sigint.
+	@#
+	@# USAGE: (tails docker logs for up to 10s, then stops)
+	@#   make compose.wait_for_command cmd='docker logs -f xxxx' timeout=10
+	@#
+	printf "${GREEN}compose.wait_for_command${NO_ANSI} // ${NO_ANSI_DIM}$${cmd}${NO_ANSI} // ${RED}$${timeout}s${NO_ANSI}\n" >/dev/stderr 
+	trap "pkill -SIGINT -f \"$${cmd}\"" INT \
+	&& eval "$${cmd} &" \
+	&& export command_pid=$$! \
+	&& sleep $${timeout} \
+	&& printf "${DIM}compose.wait_for_command${NO_ANSI} // ${RED}finished${NO_ANSI}\n" >/dev/stderr \
+	&& kill -INT $${command_pid}
 
 docker.init:
 	@# Checks if docker is available, then displays version (no real setup)
@@ -295,3 +312,15 @@ docker.panic:
 	docker network prune -f
 	docker volume prune -f
 	docker system prune -a -f
+
+docker.stop:
+	@# Stops one container, using the given timeout and the given id or name.
+	@#
+	@# USAGE:
+	@#   id=8f350cdf2867 make docker.stop
+	@#   name=my-container make docker.stop
+	@#   name=my-container timeout=99 make docker.stop
+	@#
+	printf "${DIM_GREEN}docker.stop${NO_ANSI} // ${GREEN}${UNDERLINE}$${id:-$${name}}${NO_ANSI}\n"
+	export cid=`[ -z "$${id:-}" ] && docker ps --filter name=$${name} --format json | jq -r .ID || echo $${id}` \
+	&& [ -z "$${cid:-}" ] && printf "$${DIM}docker.stop${NO_ANSI} // ${YELLOW}No containers found${NO_ANSI}\n" || docker stop -t $${timeout:-1} $$cid

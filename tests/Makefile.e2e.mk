@@ -72,9 +72,13 @@ self.cluster.provision_helm_example:
 self.test_harness.provision: \
 	k8s.kubens.create/${POD_NAMESPACE} \
 	k8s.test_pod_in_namespace/${POD_NAMESPACE}/${POD_NAME}/alpine/k8s
-	@# Creates/activates `default` namespace and launches a pod
-	@# named `test-harness` into it, using the 'alpine/k8s:1.30.0'
-	@# image. 
+	@# Prerequisites above create & activate the `default` namespace 
+	@# and then launch a pod named `test-harness` into it, using the 
+	@# image 'alpine/k8s:1.30.0'.
+	@#
+	@# Below, we'll provision a simple nginx service into the default namespace.
+	kubectl apply -f nginx.svc.yml
+	make k8s.namespace.wait/default 
 
 ###############################################################################
 
