@@ -104,9 +104,9 @@ ${compose_file_stem}/$(compose_service_name)/shell:
 		&& make ${compose_file_stem}/$(compose_service_name)
 	
 ${compose_file_stem}/$(compose_service_name)/shell/pipe:
-	@$$(eval export tmpf21:=$$(shell mktemp))
-	@cat /dev/stdin > $${tmpf21} \
-	&& eval "cat $${tmpf21} | pipe=yes \
+	@$$(eval export shellpipe_tempfile:=$$(shell mktemp))
+	@cat /dev/stdin > $${shellpipe_tempfile} \
+	&& eval "cat $${shellpipe_tempfile} | pipe=yes \
 	  entrypoint=`make ${compose_file_stem}/$(compose_service_name)/__shell__` \
 	  make ${compose_file_stem}/$(compose_service_name)"
 
@@ -168,20 +168,20 @@ ${compose_file_stem}/%:
 	@$$(eval export base:=docker compose -f ${compose_file} \
 		run --rm --quiet-pull --env HOME=/tmp --env COMPOSE_MK=1 \
 		$${pipe} $${entrypoint} $${svc_name} $${cmd} )
-	@$$(eval export tmpf2:=$$(shell mktemp))
+	@$$(eval export stdin_tempf:=$$(shell mktemp))
 	@$$(eval export entrypoint_display:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
 			if [ -z "$${entrypoint:-}" ]; \
 			then echo "default${NO_ANSI} entrypoint"; else echo "$${entrypoint:-}"; fi)${NO_ANSI_DIM}${CYAN}]${NO_ANSI})
 	@$$(eval export cmd_disp:=${NO_ANSI_DIM}${ITAL}`[ -z "$${cmd}" ] && echo " " || echo " $${cmd}\n"`${NO_ANSI})
 	
-	@trap "rm -f $${tmpf2}" EXIT \
+	@trap "rm -f $${stdin_tempf}" EXIT \
 	&& if [ -z "$${pipe}" ]; then \
-		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
+		printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
 		&& eval $${base} ; \
 	else \
-		cat /dev/stdin > $${tmpf2} \
-		&& printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${tmpf2} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
-		&& cat "$${tmpf2}" | eval $${base} \
+		cat /dev/stdin > $${stdin_tempf} \
+		&& printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr \
+		&& cat "$${stdin_tempf}" | eval $${base} \
 	; fi && printf '\n'
 $(foreach \
  	compose_service_name, \
@@ -232,9 +232,9 @@ compose.mktemp:
 	@# Helper for working with temp files.  Returns filename, 
 	@# and uses 'trap' to handle at-exit file-deletion automatically
 	@#
-	export tmpf3=`mktemp` \
-	&& trap "rm -f $${tmpf3}" EXIT \
-	&& echo $${tmpf3}
+	export c_tempfile=`mktemp` \
+	&& trap "rm -f $${c_tempfile}" EXIT \
+	&& echo $${c_tempfile}
 
 compose.print_divider:
 	@# Prints a divider on stdout, defaulting to the full terminal width, 

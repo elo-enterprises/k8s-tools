@@ -55,14 +55,16 @@ But we also want operations to be idempotent, and blocking operations where that
 {% for line in sections[2].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
-Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from Makefile.k8s.mk (documented [here](#static-targets-for-makefilek8smk)) do all of the heavy lifting.  Meanwhile helm provisioning looks like this:
+Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from Makefile.k8s.mk (documented [here](#static-targets-for-makefilek8smk)) do all of the heavy lifting.  
+
+Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.
 
 <img src="img/e2e-provision-helm.gif">
 
 
 Helm is just an example.  Volumes for file-sharing with the container are also already setup, so you can `kustomize` or `kubectl apply` referencing the file system directly.
 
-The other part of our provisioning is bootstrapping the test-harness pod, which looks like this:
+The other part of our provisioning is bootstrapping the test-harness pod.  This pod is nothing very special, but we can use it later to inspect the cluster.  Setting it up looks like this:
 
 <img src="img/e2e-provision-test-harness.gif">
 
@@ -78,7 +80,7 @@ With the test-harness in place, there's a block of target definitions for a mini
 {% for line in sections[3].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
-Amongst other things, the section above is using a streaming version of the `k8s.shell/<namespace>/<pod>/pipe` (we'll get to an interative version in later secitons).
+Amongst other things, the section above is using a streaming version of the `k8s.shell/<namespace>/<pod>/pipe` (we'll get to an interative version in later sections).
 
 You can use this to assert things about the application pods you've deployed (basically a smoke test).  It's also useful for quick and easy checks that cover aspects of cluster internal networking, dns, etc.
 
@@ -90,7 +92,7 @@ Running `make test` looks like this:
 
 ### Debugging
 
-The tests are not a bad start for exercising the cluster.  Since we blocked on pods or whole-namespaces being ready, we know that nothing is stuck in crash loop or container-pull.  We also know that there were not errors with the helm charts, and that we can communicate with test-harness pods.  
+The tests are not a bad start for exercising the cluster, and instead of displaying platform info you can imagine tests that check service availability.  Since we blocked on pods or whole-namespaces being ready, we also know that nothing is stuck in crash loop or container-pull.  And we know that there were not errors with the helm charts, and that we can communicate with the test-harness pod.  
 
 What if you want to inspect or interact with things though?  The next block of target definitions provides a few aliases to help with this.
 
