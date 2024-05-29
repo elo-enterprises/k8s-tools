@@ -188,7 +188,7 @@ k8s.namespace.wait/%:
 	@#   k8s.namespace.wait/<namespace>
 	@#
 	@export scope=`[ "${*}" == "all" ] && echo "--all-namespaces" || echo "-n ${*}"` \
-	&& export header="${GREEN}𝕜${DIM}8s.namespace.wait // ${NO_ANSI}" \
+	&& export header="${DIM_GREEN}k8s.namespace.wait // ${NO_ANSI}" \
 	&& export header="$${header}${GREEN}${*}${NO_ANSI}" \
 	&& printf "$${header} :: Looking for pending pods.. \n" \
 		> /dev/stderr \
@@ -198,8 +198,7 @@ k8s.namespace.wait/%:
 		| jq '.[] | halt_error(length)' 2> /dev/null \
 	; do \
 		printf "${DIM}`kubectl sick-pods $${scope} |sed 's/^[ \t]*//'`${NO_ANSI}\n" > /dev/stderr \
-		&& export stamp="${DIM}`date`${NO_ANSI}" \
-		&& printf "$${stamp} ${BOLD}Pods aren't ready yet${NO_ANSI_DIM}(waiting $${K8S_POLL_DELTA}s)${NO_ANSI}\n" > /dev/stderr \
+		&& printf "${DIM}`date`${NO_ANSI} ${BOLD}Pods aren't ready yet${NO_ANSI_DIM} (waiting $${K8S_POLL_DELTA}s)${NO_ANSI}\n" > /dev/stderr \
 		&& sleep $${K8S_POLL_DELTA}; \
 	done \
 	&& printf "${DIM}$${header} :: ${GREEN}Namespace looks ready.${NO_ANSI}\n" > /dev/stderr
@@ -244,14 +243,13 @@ k8s.test_pod_in_namespace/%:
 
 
 k8s.shell/%:
-	@# This drops into a debugging shell for the named pod,
-	@# using `kubectl exec`.  This target is unusual because
-	@# it MUST run from the host + also uses containers, and it 
-	@# assumes `compose.import` created the 'k8s' service target
+	@# This drops into a debugging shell for the named pod using `kubectl exec`,
+	@# plus a streaming version of the same which allows for working with pipes.
 	@#
-	@# WARNING: 
-	@#   This target assumes that k8s-tools.yml is imported
-	@#   to the root namespace, and using the default syntax.  
+	@# NB: This target may run from the docker host or the k8s.  In the former case, 
+	@# we assume that k8s-tools.yml is present with that filename and `compose.import` 
+	@# was used as usual. Port-mapping with '-m' arguments to kubefwd and similar 
+	@# are not supported.. other usage should invoke kubefwd directly.
 	@#
 	@# USAGE: Interactive shell in pod:
 	@#   make k8s.shell/<namespace>/<pod_name>
@@ -262,13 +260,60 @@ k8s.shell/%:
 	$(eval export namespace:=$(shell echo ${*}|awk -F/ '{print $$1}'))
 	$(eval export pod_name:=$(shell echo ${*}|awk -F/ '{print $$2}'))
 	$(eval export rest:=$(shell echo ${*}|awk -F/ '{print $$3}'))
-	export cmd=`\
-		[ "$${rest}" == "pipe" ] && echo "exec -n $${namespace} -i $${pod_name} -- bash -x" || echo "exec -n $${namespace} -it ${pod_name} -- bash" \
-	` \
+	$(eval export cmd:=$(shell [ "${rest}" == "pipe" ] \
+			&& echo "exec -n ${namespace} -i ${pod_name} -- bash" \
+			|| echo "exec -n ${namespace} -it ${pod_name} -- bash" ))
+	$(eval export tmpf2:=$$(shell mktemp))
+	cat /dev/stdin > $${tmpf2} \
 	&& ([ "$${rest}" == "pipe" ] && \
-		([ "$${COMPOSE_MK:-0}" = "0" ] && cat /dev/stdin | pipe=yes cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s || kubectl $${cmd}) \
+		([ "$${COMPOSE_MK:-0}" = "0" ] \
+			&& (cat $${tmpf2} | pipe=yes cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s) \
+			|| ( printf "${GREEN}⑆ ${DIM}k8s.shell${NO_ANSI_DIM} // ${NO_ANSI}${GREEN}$${namespace}${NO_ANSI_DIM} // ${NO_ANSI}${GREEN}${UNDERLINE}$${pod_name}${NO_ANSI_DIM} \n${CYAN}[${NO_ANSI}${BOLD}kubectl${NO_ANSI_DIM}${CYAN}]${NO_ANSI} ${NO_ANSI_DIM}${ITAL}${cmd}${NO_ANSI}\n${CYAN_FLOW_LEFT} ${DIM_ITAL}`cat $${tmpf2}|make compose.strip`${NO_ANSI}\n" > /dev/stderr && cat $${tmpf2} | kubectl $${cmd}) ) \
 	|| (\
-		[ "$${COMPOSE_MK:-0}" = "0" ] && cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s || kubectl $${cmd}))
+		[ "$${COMPOSE_MK:-0}" = "0" ] \
+			&& (cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s) \
+			|| kubectl $${cmd}))
+
+kubefwd.panic:
+	@# Non-graceful stop for everything that is kubefwd related.
+	@# 
+	@# NB: this can clutter up your /etc/hosts file if kubefwd doesn't clean up things.
+	@# 
+	@# USAGE:  
+	@#   make kubefwd.panic
+	(make kubefwd.ps || echo -n) | xargs -I% bash -x -c "docker stop -t 1 %"
+
+kubefwd.ps:
+	@# Container names for everything that is kubefwd related
+	@# 
+	@# USAGE:  
+	@#   make kubefwd.ps
+	@# 
+	set -x \
+	&& (docker ps --format json \
+	| jq -r '.Names' \
+	| grep kubefwd \
+	|| printf "${RED}No containers found.${NO_ANSI}\n" > /dev/stderr )
+
+kubefwd.namespace/%:
+	@# Runs kubefwd for the provided namespace, finding and forwarding ports/DNS for all services.
+	@#
+	@# NB: This target should only run from the docker host (not from the kubefwd container),  
+	@# i.e. it assumes k8s-tools.yml is present with that filename. Port-mapping and such is
+	@# not supported.. any other usage should invoke kubefwd directly.
+	@#
+	@# USAGE: 
+	@#   kubefwd/<namespace>
+	@#
+	$(eval export pathcomp:=$(shell echo ${*}| sed -e 's/\// /g'))
+	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
+	set -x \
+	&& export cname=kubefwd.`basename ${PWD}`.$${namespace} \
+	&& (timeout=30 name=$${cname} make docker.stop || true) \
+	&& export cid=`docker compose -f k8s-tools.yml run --name $${cname} --rm -d kubefwd svc -n $${namespace} -v` \
+	&& export cid=$${cid:0:8} \
+	&& cmd="docker logs -f $${cid}" timeout=3 make compose.wait_for_command 
+
 
 k8s.ktop: k8s.ktop/all
 	@# Launches ktop tool.  
@@ -276,7 +321,9 @@ k8s.ktop: k8s.ktop/all
 
 k8s.ktop/%:
 	@# Launches ktop tool for the given namespace.
-	@# (This assumes 'ktop' is mentioned in 'KREW_PLUGINS')
+	@# This works from inside a container or from the host.
+	@#
+	@# NB: It's the default, but this does assume 'ktop' is mentioned in 'KREW_PLUGINS'
 	@#
 	@# USAGE:
 	@#   k8s.ktop/<namespace>
@@ -288,8 +335,7 @@ k8s.ktop/%:
 
 
 k9s/%:
-	@# Starts the k9s pod-browser TUI, 
-	@# opened by default to the given namespace
+	@# Starts the k9s pod-browser TUI, opened by default to the given namespace.
 	@# 
 	@# NB: This assumes the `compose.import` macro has 
 	@# already been used to import the k8s-tools services
@@ -300,9 +346,7 @@ k9s/%:
 	make k9s cmd="-n ${*}"
 
 k9: k9s
-	@# Starts the k9s pod-browser TUI, 
-	@# opened by default to whatever 
-	@# namespace is currently activated
+	@# Starts the k9s pod-browser TUI, using whatever namespace is currently activated.
 	@# 
 	@# NB: This assumes the `compose.import` macro has 
 	@# already been used to import the k8s-tools services

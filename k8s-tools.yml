@@ -207,13 +207,23 @@ services:
     <<: *base 
     depends_on: ['k8s']
     image: k8s:kubefwd 
+    user: root 
     build:
       context: . 
       dockerfile_inline: |
         FROM txn2/kubefwd as builder 
         FROM k8s:base
-        COPY --from=builder /kubefwd /bin/kubefwd
+        COPY --from=builder /kubefwd /usr/bin/kubefwd
     entrypoint: kubefwd
+    volumes: 
+      # Same as the base volumes, plus /etc/hosts for kubefwd to sync DNS
+      - /etc/hosts:/etc/hosts:rw
+      - ${PWD}:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.kube:/home/${DOCKER_UGNAME:-user}/.kube
+      - ${HOME}/.cache:/home/${DOCKER_UGNAME:-user}/.cache
+      - ${HOME}/.config/helm:/home/${DOCKER_UGNAME:-user}/.config/helm
+      - ${HOME}/.local:/home/${DOCKER_UGNAME:-user}/.local:ro
 
   # https://k3d.io/
   k3d:
