@@ -13,7 +13,8 @@ MAKEFLAGS += -s --warn-undefined-variables
 .SHELLFLAGS := -eu -c
 
 export KUBECONFIG:=./fake.profile.yaml
-export _:=$(shell touch $${KUBECONFIG})
+export _:=$(shell umask 066;touch ${KUBECONFIG})
+
 
 # testing the compose integration
 include Makefile.compose.mk

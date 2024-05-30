@@ -19,7 +19,7 @@ export CLUSTER_NAME:=k8s-tools-e2e
 
 # Ensure KUBECONFIG exists
 export KUBECONFIG:=./fake.profile.yaml
-export _:=$(shell touch $${KUBECONFIG})
+export _:=$(shell umask 066;touch ${KUBECONFIG})
 
 # Chart & Pod details that we'll use later during provision
 export HELM_REPO:=https://helm.github.io/examples
@@ -68,8 +68,9 @@ provision.helm:	▰/helm/self.cluster.provision_helm_example io.wait/5
 provision.test_harness: ▰/k8s/self.test_harness.provision
 self.cluster.provision_helm_example: 
 	@# Idempotent version of a helm install
-	helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO}
-	helm list | grep hello-world || helm install ahoy ${HELM_CHART}
+	set -x \
+	&& (helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO} ) \
+	&& (helm list | grep hello-world || helm install ahoy ${HELM_CHART})
 
 self.test_harness.provision: \
 	k8s.kubens.create/${POD_NAMESPACE} \

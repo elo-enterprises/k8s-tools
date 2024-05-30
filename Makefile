@@ -12,7 +12,7 @@ export SRC_ROOT := $(shell git rev-parse --show-toplevel)
 export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 
 export KUBECONFIG?=./fake.profile.yaml
-export _:=$(shell touch $${KUBECONFIG})
+export _:=$(shell umask 066;touch ${KUBECONFIG})
 
 export KN_CLI_VERSION?=v1.14.0
 export HELMIFY_CLI_VERSION?=v0.4.12
