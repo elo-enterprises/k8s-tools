@@ -63,9 +63,9 @@ services:
       - ${PWD}:/workspace
       
       # NB: `.cache` and `.config` as below are used by helm, maybe others?
-      - ${HOME}/.cache:/home/${DOCKER_UGNAME:-root}/.cache
+      # - ${HOME}/.cache:/home/${DOCKER_UGNAME:-root}/.cache
       # - ${HOME}/.config/helm:/home/${DOCKER_UGNAME:-root}/.config/helm
-      - ${HOME}/.local:/home/${DOCKER_UGNAME:-root}/.local:ro
+      # - ${HOME}/.local:/home/${DOCKER_UGNAME:-root}/.local:ro
       
       # NB: Recommended approach for kubeconfig.  
       # Use something like this if you only want to share one file.
