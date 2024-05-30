@@ -16,7 +16,10 @@ export KREW_PLUGINS:=sick-pods
 
 # Cluster details that will be used by k3d.
 export CLUSTER_NAME:=k8s-tools-e2e
+
+# Ensure KUBECONFIG exists
 export KUBECONFIG:=./fake.profile.yaml
+export _:=$(shell touch $${KUBECONFIG})
 
 # Chart & Pod details that we'll use later during provision
 export HELM_REPO:=https://helm.github.io/examples
@@ -32,7 +35,8 @@ $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 # Default target should do everything, end to end.
 all: k8s-tools/__build__ clean init provision test
-
+bash: 
+	env bash -l
 ###############################################################################
 
 # Top level public targets for cluster operations.
@@ -60,7 +64,7 @@ self.cluster.clean:
 # You can expand this to include usage of `kustomize`, etc.
 # Volumes are already setup, so you can `kubectl appply` from the filesystem.
 provision: provision.helm provision.test_harness 
-provision.helm:	▰/helm/self.cluster.provision_helm_example compose.wait/5
+provision.helm:	▰/helm/self.cluster.provision_helm_example io.wait/5
 provision.test_harness: ▰/k8s/self.test_harness.provision
 self.cluster.provision_helm_example: 
 	@# Idempotent version of a helm install
