@@ -55,6 +55,7 @@
 <li><a href="#testing">Testing</a></li>
 <li><a href="#debugging">Debugging</a></li>
 <li><a href="#development">Development</a></li>
+<li><a href="#alternate-deployment">Alternate Deployment</a></li>
 <li><a href="#next-steps">Next Steps</a></li>
 <li><a href="#conclusion">Conclusion</a></li>
 </ul>
@@ -64,6 +65,7 @@
 <li><a href="#working-directories">Working Directories</a></li>
 <li><a href="#general-argument-passing">General Argument Passing</a></li>
 <li><a href="#docker-and-file-permissions">Docker and File Permissions</a></li>
+<li><a href="#macos-docker-sockets-and-dind">MacOS, Docker Sockets, and DinD</a></li>
 <li><a href="#pipes-temp-files">Pipes &amp; Temp Files</a></li>
 </ul>
 </li>
@@ -93,7 +95,7 @@ Besides bundling some tooling, this repository is the reference implementation o
 **[k8s-tools.yml](k8s-tools.yml)**, a compose file.
 
 * **Local parts of the tool bundle** ([See the latest here](k8s-tools.yml))
-  * [kind](https://github.com/kubernetes-sigs/kind), [argocli](https://argo-workflows.readthedocs.io/en/latest/walk-through/argo-cli/), [kn](https://knative.dev/docs/client/install-kn/), [k3d](https://k3d.io/), [k9s](https://k9scli.io/), [fission](https://fission.io/docs/installation/), [helmify](https://github.com/arttor/helmify), [kompose](https://kompose.io/), [kubefwd](https://github.com/txn2/kubefwd), [lazydocker](https://github.com/jesseduffield/lazydocker)
+  * [kind](https://github.com/kubernetes-sigs/kind), [argocli](https://argo-workflows.readthedocs.io/en/latest/walk-through/argo-cli/), [kn](https://knative.dev/docs/client/install-kn/), [k3d](https://k3d.io/), [k9s](https://k9scli.io/), [fission](https://fission.io/docs/installation/), [helmify](https://github.com/arttor/helmify), [kompose](https://kompose.io/), [kubefwd](https://github.com/txn2/kubefwd), [rancher](https://github.com/rancher/cli), [lazydocker](https://github.com/jesseduffield/lazydocker)
 * **Upstream part of the tool bundle** ([See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details on that.)
   * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/), [kustomize](https://github.com/kubernetes-sigs/kustomize), [helm](https://github.com/helm/helm), [helm-diff](https://github.com/databus23/helm-diff), [helm-unittest](https://github.com/helm-unittest/helm-unittest), [helm-push](https://github.com/chartmuseum/helm-push), [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator), [eksctl](https://github.com/weaveworks/eksctl), [awscli v1](https://github.com/aws/aws-cli), [kubeseal](https://github.com/bitnami-labs/sealed-secrets), [krew](https://github.com/kubernetes-sigs/krew), [vals](https://github.com/helmfile/vals), [kubeconform](https://github.com/yannh/kubeconform).  Plus general tools, such as bash, curl, jq, yq, etc
 * As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.  **Having these declared in case of eventual use won't saddle you with an enormous boostrap process.**
@@ -151,6 +153,7 @@ $ docker compose run -f k8s-tools.yml k3d ...
 $ docker compose run -f k8s-tools.yml lazydocker ...
 $ docker compose run -f k8s-tools.yml kind ...
 $ docker compose run -f k8s-tools.yml k9s ...
+$ docker compose run -f k8s-tools.yml rancher ...
 $ docker compose run -f k8s-tools.yml yq ...
 $ docker compose run -f k8s-tools.yml jq ...
 ```
@@ -538,6 +541,17 @@ Container-dispatch with `Makefile.compose.mk` can also autodetect what shell to 
 #  A minimal compose file that works with target dispatch
 ##
 services:
+  docker:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM docker
+        RUN apk add --update --no-cache alpine-sdk bash
+    entrypoint: bash
+    working_dir: /workspace
+    volumes:
+      - ${PWD}:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
   debian: &base
     hostname: debian 
     build:
@@ -655,27 +669,6 @@ Besides the `compose.import` macro and the auto-generated targets per service, t
 
 
 
-#### **`compose.bash`**
-
-```bash 
-Drops into an interactive shell with the en vars 
- that have been set by the parent environment, 
- plus those set by this Makefile context.
-```
-
-#### **`compose.divider`**
-
-```bash 
-Alias for print_divider
-```
-
-#### **`compose.indent`**
-
-```bash 
-Pipe-friendly helper for indenting, 
- reading from stdin and returning it to stdout.
-```
-
 #### **`compose.init`**
 
 ```bash 
@@ -684,76 +677,57 @@ Ensures compose is available.  Note that
  for that, see instead targets like '<compose_file_stem>/__build__'
 ```
 
-#### **`compose.mktemp`**
+#### **`docker.context`**
 
 ```bash 
-Helper for working with temp files.  Returns filename, 
- and uses 'trap' to handle at-exit file-deletion automatically
+Returns all of the available docker context. Pipe-friendly.
 ```
 
-#### **`compose.print_divider`**
+#### **`docker.context/<arg>`**
 
 ```bash 
-Prints a divider on stdout, defaulting to the full terminal width, 
- with optional label.  This automatically detects console width, but
- it requires 'tput', which is usually part of an ncurses package.
+Returns docker-context details for the given context-name.  
+ Pipe-friendly; outputs JSON from 'docker context inspect'
 
- USAGE: 
-  make compose.print_divider label=".." filler=".." width="..."
-```
+ USAGE: (shortcut for the current context name)
+  make docker.context/current 
 
-#### **`compose.print_divider/<arg>`**
-
-```bash 
-Print a divider with a width of `term_width / <arg>`
-
- USAGE: 
-  make compose.print_divider/<int>
-```
-
-#### **`compose.strip`**
-
-```bash 
-Pipe-friendly helper for stripping whitespace.
-```
-
-#### **`compose.strip_ansi`**
-
-```bash 
-Pipe-friendly helper for stripping ansi.
- (Probably won't work everywhere, but has no deps)
-```
-
-#### **`compose.wait/<arg>`**
-
-```bash 
-Pauses for the given amount of seconds.
-
- USAGE: 
-   compose.wait/<int>
-```
-
-#### **`compose.wait_for_command`**
-
-```bash 
-Runs the given command for the given amount of seconds, then stops it with sigint.
-
- USAGE: (tails docker logs for up to 10s, then stops)
-   make compose.wait_for_command cmd='docker logs -f xxxx' timeout=10
+ USAGE: (with given named context)
+  docker.context/<context_name>
 ```
 
 #### **`docker.init`**
 
 ```bash 
-Checks if docker is available, then displays version (no real setup)
+Checks if docker is available, then displays version/context (no real setup)
 ```
 
 #### **`docker.panic`**
 
 ```bash 
-Debugging only!  Running this from automation will 
- probably quickly hit rate-limiting at dockerhub,
- plus you probably don't want to run this in prod.
+Debugging only!  This is good for ensuring a clean environment, 
+ but running this from automation will nix your cache of downloaded
+ images, and so you will probably quickly hit rate-limiting at dockerhub.  
+ It tears down volumes and networks also, so you don't want to run this in prod.
+```
+
+#### **`docker.socket`**
+
+```bash 
+Returns the docker socket in use for the current docker context.
+ No arguments; Pipe-friendly.
+```
+
+#### **`docker.stat`**
+
+```bash 
+Show information about docker-status.  No arguments.
+ This is pipe-friendly, although it also displays additional 
+ information on stderr for humans, specifically an abbreviated
+ table for 'docker ps'.  Machine-friendly JSON is also output 
+ with the following schema:
+
+   { "version": .., "container_count": .., "socket": .., "context_name": .. }
 ```
 
 #### **`docker.stop`**
@@ -762,9 +736,9 @@ Debugging only!  Running this from automation will
 Stops one container, using the given timeout and the given id or name.
 
  USAGE:
-   id=8f350cdf2867 make docker.stop
-   name=my-container make docker.stop
-   name=my-container timeout=99 make docker.stop
+   make docker.stop id=8f350cdf2867 
+   make docker.stop name=my-container 
+   make docker.stop name=my-container timeout=99
 ```
 
 #### **`help`**
@@ -773,6 +747,96 @@ Stops one container, using the given timeout and the given id or name.
 Attempts to autodetect the targets defined in this Makefile context.  
  Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
  See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
+```
+
+#### **`io.bash`**
+
+```bash 
+Drops into an interactive shell with the en vars 
+ that have been set by the parent environment, 
+ plus those set by this Makefile context.
+```
+
+#### **`io.divider`**
+
+```bash 
+Alias for print_divider
+```
+
+#### **`io.indent`**
+
+```bash 
+Pipe-friendly helper for indenting, 
+ reading from stdin and returning it to stdout.
+```
+
+#### **`io.json_builder`**
+
+```bash 
+Appends the given key/val to the input object.
+ This is usually used to build JSON objects from scratch.
+
+ USAGE: 
+	 echo {} | key=foo val=bar make io.json_builder 
+   {"foo":"bar"}
+```
+
+#### **`io.mktemp`**
+
+```bash 
+Helper for working with temp files.  Returns filename, 
+ and uses 'trap' to handle at-exit file-deletion automatically
+```
+
+#### **`io.print_divider`**
+
+```bash 
+Prints a divider on stdout, defaulting to the full terminal width, 
+ with optional label.  This automatically detects console width, but
+ it requires 'tput', which is usually part of an ncurses package.
+
+ USAGE: 
+  make io.print_divider label=".." filler=".." width="..."
+```
+
+#### **`io.print_divider/<arg>`**
+
+```bash 
+Print a divider with a width of `term_width / <arg>`
+
+ USAGE: 
+  make io.print_divider/<int>
+```
+
+#### **`io.strip`**
+
+```bash 
+Pipe-friendly helper for stripping whitespace.
+```
+
+#### **`io.strip_ansi`**
+
+```bash 
+Pipe-friendly helper for stripping ansi.
+ (Probably won't work everywhere, but has no deps)
+```
+
+#### **`io.wait/<arg>`**
+
+```bash 
+Pauses for the given amount of seconds.
+
+ USAGE: 
+   io.wait/<int>
+```
+
+#### **`io.wait_for_command`**
+
+```bash 
+Runs the given command for the given amount of seconds, then stops it with sigint.
+
+ USAGE: (tails docker logs for up to 10s, then stops)
+   make io.wait_for_command cmd='docker logs -f xxxx' timeout=10
 ```
 
 
@@ -1011,8 +1075,7 @@ Starts a test-pod in the given namespace, then blocks until it's ready.
 ```bash 
 Starts the k9s pod-browser TUI, using whatever namespace is currently activated.
  
- NB: This assumes the `compose.import` macro has 
- already been used to import the k8s-tools services
+ NB: This assumes the `compose.import` macro has already imported k8s-tools services
 
  USAGE:  
    make k9
@@ -1029,8 +1092,7 @@ Starts the k9s pod-browser TUI, using whatever namespace is currently activated.
 ```bash 
 Starts the k9s pod-browser TUI, opened by default to the given namespace.
  
- NB: This assumes the `compose.import` macro has 
- already been used to import the k8s-tools services
+ NB: This assumes the `compose.import` macro has already imported k8s-tools services
  
  USAGE:  
    make k9s/<namespace>
@@ -1102,6 +1164,8 @@ include Makefile.k8s.mk
 include Makefile.compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 all: k8s-tools/__build__ clean init provision test
+bash: 
+	env bash -l
 
 ```
 
@@ -1155,7 +1219,7 @@ But we also want operations to be idempotent, and blocking operations where that
 # tests/Makefile.e2e.mk
 
 provision: provision.helm provision.test_harness 
-provision.helm:	▰/helm/self.cluster.provision_helm_example compose.wait/5
+provision.helm:	▰/helm/self.cluster.provision_helm_example io.wait/5
 provision.test_harness: ▰/k8s/self.test_harness.provision
 self.cluster.provision_helm_example: 
 	@# Idempotent version of a helm install
@@ -1257,7 +1321,7 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 ### Development 
 
-Finally, what about the nginx server we deployed?  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful inside the cluster, which is too inconvenient for development.  For doing real application development, you'll probably want to get into some port-forwarding.
+For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
 The [**`kubefwd.namespace/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
 
@@ -1267,11 +1331,25 @@ Note the weird DNS in the test above, where `nginx-service` resolves as expected
 
 ----------------------------------------------
 
+### Alternate Deployment
+
+Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for `KUBECONFIG`.
+
+For example, if you're using rancher desktop, you might do something like this:
+
+```bash 
+$ rdctl shell sudo k3s kubectl config view --raw > rancher-desktop.yml
+
+$ KUBECONFIG=rancher-desktop.yml make deploy test
+```
+
+----------------------------------------------
+
 ### Next Steps
 
 From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.
 
-**Experimenting with a different k8s distro than k3d should be easy,** since both `kind` and `eksctl` are already part of k8s-tools.yml.  Once you add a new setup/teardown/auth process for another backend, the rest of your automation stays the same.  Really, a static or local kubernetes backend isn't required; you can change this pattern to honor KUBECONFIG from the environment instead of generating one at cluster creation time.
+**Experimenting with a different k8s distro than k3d should be easy,** since both `kind` and `eksctl` are already part of k8s-tools.yml.  Once you add a new setup/teardown/auth process for another backend, the rest of your automation stays the same.  
 
 **Experimenting with extra cluster platforming probably begins with mirroring manifests or helm-charts.**  Container volumes are already setup to accomodate local files transparently.
 
@@ -1315,7 +1393,7 @@ Unfortunately, there's not a good way to convince `make` to just proxy arguments
 
 The usual problem with root-user-in-containers vs normal-user on host and file permissions.  The alpine base is a container using root, as are many other things.  And there is a long-standing [known bug in the compose spec](https://github.com/compose-spec/compose-go/pull/299) that makes fixing this from the compose file hard.  
 
-Invoking compose exclusively from a Makefile actually helps with this though.  By default with [Makefile.compose.mk](#makefilecomposemk), these variables are set and available for use in [k8s-tools.yml](k8s-tools.yml): 
+Invoking compose exclusively from a Makefile actually helps with this though.  By default with [Makefile.compose.mk](#makefilecomposemk), `DOCKER_UID | DOCKER_GID| DOCKER_UGNAME` variables are set and available for use in [k8s-tools.yml](k8s-tools.yml).  This works slightly differently for Linux and MacOS, based on what messes things up the least, but YMMV.  With Linux, it looks something like this:
 
 ```Makefile
 export DOCKER_UID?=$(shell id -u)
@@ -1323,9 +1401,19 @@ export DOCKER_GID?=$(shell getent group docker | cut -d: -f3 || id -g)
 export DOCKER_UGNAME?=user
 ```
 
-If you're not working with Makefiles, you can export these in .bashrc or .env files you use.
+If you're not working with Makefiles at all, you can export appropriate values in .bashrc or .env files you use.  If none of this is appealing, and you mix host-local and dockerized usage of things like helm, then you may end up with weird file ownership.  You can fix this if it comes up using `sudo chown -R $USER:$USER .`.  
 
-If none of this is appealing, and you mix host-local and dockerized usage of things like helm, then you'll probably end up with weird file ownership.  You can fix this if it comes up using `sudo chown -R $USER:$USER .`.  
+### MacOS, Docker Sockets, and DinD
+
+As long as docker is working, any kind of setup (Docker Desktop, Rancher Desktop, Colima) should work with `Makefile.compose.mk` for container-dispatch.  But for working with `k8s-tools.yml` containers specifically, the docker-socket sharing *must also be working*.  If you're having problems that might be related to this, first make sure that your setup can correctly run this command:
+
+```bash 
+$ docker run -v /var/run/docker.sock:/var/run/docker.sock -ti docker ps
+```
+
+If the volume mount is working correctly, the result here should look the same as `docker ps` from your host.  If your docker socket is in a different place (like `~/.rd/docker.sock` for Rancher Desktop), you may need to symlink the file.
+
+MacOS Docker desktop can be especially annoying here, and it seems likely the same is true for windows.  YMMV, but as of 2024 sharing the socket may mean required changes from the UI preferences, and/or enabling/disabling virtualization backends.  If you want better parity with docker in Linux, you might like to checkout Colima/Rancher.
 
 ### Pipes & Temp Files 
 

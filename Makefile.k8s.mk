@@ -28,6 +28,7 @@ export BOLD?=\033[1m
 export RED?=\033[91m
 
 export K8S_POLL_DELTA?=23
+export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
 
 k3d.panic:
 	@# Non-graceful stop for everything that is k3d related
@@ -121,14 +122,14 @@ k8s.stat:
 	env|grep KUBE 
 	env|grep DOCKER
 	printf "${DIM}⑆ k8s.stat.cluster_info ${NO_ANSI}${NO_ANSI}\n" > /dev/stderr
-	kubectl version | make compose.indent 
-	kubectl cluster-info | grep -v cluster-info | awk NF | make compose.indent
+	kubectl version | make io.indent 
+	kubectl cluster-info | grep -v cluster-info | awk NF | make io.indent
 	printf "${DIM}⑆ k8s.stat.node_info (${NO_ANSI}${GREEN}`kubectl get nodes -oname|wc -l`${NO_ANSI_DIM} total)\n" > /dev/stderr
-	printf "${DIM}`kubectl get nodes | make compose.indent`${NO_ANSI}\n"
+	printf "${DIM}`kubectl get nodes | make io.indent`${NO_ANSI}\n"
 	printf "${DIM}⑆ k8s.stat.auth_info ${NO_ANSI}${NO_ANSI}\n" > /dev/stderr
-	printf "${DIM}`kubectl auth whoami -ojson | make compose.indent`${NO_ANSI}\n"
+	printf "${DIM}`kubectl auth whoami -ojson | make io.indent`${NO_ANSI}\n"
 	printf "${DIM}⑆ k8s.stat.namespace_info ${NO_ANSI}${NO_ANSI}\n" > /dev/stderr
-	printf "`kubens | make compose.indent`\n"
+	printf "`kubens | make io.indent`\n"
 
 k8s.get/%:
 	@# Returns resources under the given namespace, for the given kind.
@@ -197,7 +198,17 @@ k8s.namespace.wait/%:
 		| jq '[.items[].status.containerStatuses[]|select(.state.waiting)]' \
 		| jq '.[] | halt_error(length)' 2> /dev/null \
 	; do \
-		printf "${DIM}`kubectl sick-pods $${scope} |sed 's/^[ \t]*//'`${NO_ANSI}\n" > /dev/stderr \
+		printf "${DIM}`\
+			kubectl sick-pods $${scope} \
+			| sed 's/^[ \t]*//'\
+			| sed "s/Failed/$(shell printf "${RED}Failed${NO_ANSI}")/g" \
+			| sed "s/Scheduled/$(shell printf "${YELLOW}Scheduled${NO_ANSI}")/g" \
+			| sed "s/Pulling/$(shell printf "${GREEN}Pulling${NO_ANSI}")/g" \
+			| sed "s/Warning/$(shell printf "${YELLOW}Warning${NO_ANSI}")/g" \
+			| sed "s/ContainerCreating/$(shell printf "${GREEN}ContainerCreating${NO_ANSI}")/g" \
+			| sed "s/ErrImagePull/$(shell printf "${RED}ErrImagePull${NO_ANSI}")/g" \
+			| sed "s/ImagePullBackOff/$(shell printf "${YELLOW}ImagePullBackOff${NO_ANSI}")/g" \
+		`${NO_ANSI}\n" > /dev/stderr \
 		&& printf "${DIM}`date`${NO_ANSI} ${BOLD}Pods aren't ready yet${NO_ANSI_DIM} (waiting $${K8S_POLL_DELTA}s)${NO_ANSI}\n" > /dev/stderr \
 		&& sleep $${K8S_POLL_DELTA}; \
 	done \
@@ -268,7 +279,7 @@ k8s.shell/%:
 	&& ([ "$${rest}" == "pipe" ] && \
 		([ "$${COMPOSE_MK:-0}" = "0" ] \
 			&& (cat $${tmpf2} | pipe=yes cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s) \
-			|| ( printf "${GREEN}⑆ ${DIM}k8s.shell${NO_ANSI_DIM} // ${NO_ANSI}${GREEN}$${namespace}${NO_ANSI_DIM} // ${NO_ANSI}${GREEN}${UNDERLINE}$${pod_name}${NO_ANSI_DIM} \n${CYAN}[${NO_ANSI}${BOLD}kubectl${NO_ANSI_DIM}${CYAN}]${NO_ANSI} ${NO_ANSI_DIM}${ITAL}${cmd}${NO_ANSI}\n${CYAN_FLOW_LEFT} ${DIM_ITAL}`cat $${tmpf2}|make compose.strip`${NO_ANSI}\n" > /dev/stderr && cat $${tmpf2} | kubectl $${cmd}) ) \
+			|| ( printf "${GREEN}⑆ ${DIM}k8s.shell${NO_ANSI_DIM} // ${NO_ANSI}${GREEN}$${namespace}${NO_ANSI_DIM} // ${NO_ANSI}${GREEN}${UNDERLINE}$${pod_name}${NO_ANSI_DIM} \n${CYAN}[${NO_ANSI}${BOLD}kubectl${NO_ANSI_DIM}${CYAN}]${NO_ANSI} ${NO_ANSI_DIM}${ITAL}${cmd}${NO_ANSI}\n${CYAN_FLOW_LEFT} ${DIM_ITAL}`cat $${tmpf2}|make io.strip`${NO_ANSI}\n" > /dev/stderr && cat $${tmpf2} | kubectl $${cmd}) ) \
 	|| (\
 		[ "$${COMPOSE_MK:-0}" = "0" ] \
 			&& (cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s) \
@@ -312,7 +323,7 @@ kubefwd.namespace/%:
 	&& (timeout=30 name=$${cname} make docker.stop || true) \
 	&& export cid=`docker compose -f k8s-tools.yml run --name $${cname} --rm -d kubefwd svc -n $${namespace} -v` \
 	&& export cid=$${cid:0:8} \
-	&& cmd="docker logs -f $${cid}" timeout=3 make compose.wait_for_command 
+	&& cmd="docker logs -f $${cid}" timeout=3 make io.wait_for_command 
 
 
 k8s.ktop: k8s.ktop/all
@@ -337,8 +348,7 @@ k8s.ktop/%:
 k9s/%:
 	@# Starts the k9s pod-browser TUI, opened by default to the given namespace.
 	@# 
-	@# NB: This assumes the `compose.import` macro has 
-	@# already been used to import the k8s-tools services
+	@# NB: This assumes the `compose.import` macro has already imported k8s-tools services
 	@# 
 	@# USAGE:  
 	@#   make k9s/<namespace>
@@ -348,8 +358,7 @@ k9s/%:
 k9: k9s
 	@# Starts the k9s pod-browser TUI, using whatever namespace is currently activated.
 	@# 
-	@# NB: This assumes the `compose.import` macro has 
-	@# already been used to import the k8s-tools services
+	@# NB: This assumes the `compose.import` macro has already imported k8s-tools services
 	@#
 	@# USAGE:  
 	@#   make k9

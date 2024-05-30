@@ -54,18 +54,24 @@ export NO_ANSI_DIM:=${NO_ANSI}${DIM}
 export CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 export GREEN_FLOW_LEFT:=${BOLD_GREEN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 
-# Hints for k8s-tools.yml to fix DIND permissions
+export OS_NAME:=$(shell uname -s)
+
+# Hints for k8s-tools.yml to fix file permissions
+ifeq (${OS_NAME},Darwin)
+export DOCKER_UID:=0
+export DOCKER_GID:=0
+export DOCKER_UGNAME:=root
+else 
 export DOCKER_UID:=$(shell id -u)
 export DOCKER_GID:=$(shell getent group docker 2> /dev/null | cut -d: -f3 || id -g)
 export DOCKER_UGNAME:=user
+endif
 
 # honored by `docker compose`, this helps to quiet output
 export COMPOSE_IGNORE_ORPHANS?=True
 
 # 1 if dispatched inside container, otherwise 0
 export COMPOSE_MK?=0
-
-export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
 
 ## END: data
 ########################################################################
@@ -166,7 +172,7 @@ ${compose_file_stem}/%:
 		if [ -z "$${entrypoint:-}" ]; \
 		then echo ""; else echo "--entrypoint $${entrypoint:-}"; fi))
 	@$$(eval export base:=docker compose -f ${compose_file} \
-		run --rm --quiet-pull --env HOME=/tmp --env COMPOSE_MK=1 \
+		run --rm --quiet-pull --env COMPOSE_MK=1 \
 		$${pipe} $${entrypoint} $${svc_name} $${cmd} )
 	@$$(eval export stdin_tempf:=$$(shell mktemp))
 	@$$(eval export entrypoint_display:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
@@ -206,21 +212,6 @@ help:
 ## END: meta targets
 ########################################################################
 ## BEGIN: convenience targets (api-stable)
-compose.bash:
-	@# Drops into an interactive shell with the en vars 
-	@# that have been set by the parent environment, 
-	@# plus those set by this Makefile context.
-	@#
-	env bash -l
-compose.divider: compose.print_divider
-	@# Alias for print_divider
-
-compose.indent:
-	@# Pipe-friendly helper for indenting, 
-	@# reading from stdin and returning it to stdout.
-	@#
-	cat /dev/stdin | sed 's/^/  /'
-
 compose.init:
 	@# Ensures compose is available.  Note that 
 	@# build/run/etc cannot happen without a file, 
@@ -228,7 +219,116 @@ compose.init:
 	@#
 	docker compose version >/dev/null
 
-compose.mktemp:
+docker.init:
+	@# Checks if docker is available, then displays version/context (no real setup)
+	@#
+	set -x && docker --version && docker context show
+
+docker.panic:
+	@# Debugging only!  This is good for ensuring a clean environment, 
+	@# but running this from automation will nix your cache of downloaded
+	@# images, and so you will probably quickly hit rate-limiting at dockerhub.  
+	@# It tears down volumes and networks also, so you don't want to run this in prod.
+	@#
+	docker rm -f $$(docker ps -qa | tr '\n' ' ')
+	docker network prune -f
+	docker volume prune -f
+	docker system prune -a -f
+
+docker.stat:
+	@# Show information about docker-status.  No arguments.
+	@# This is pipe-friendly, although it also displays additional 
+	@# information on stderr for humans, specifically an abbreviated
+	@# table for 'docker ps'.  Machine-friendly JSON is also output 
+	@# with the following schema:
+	@#
+	@#   { "version": .., "container_count": .., "socket": .., "context_name": .. }
+	@# 
+	@#
+	$(eval export dstat_tempf:=$$(shell mktemp))
+	trap "rm -f ${dstat_tempf}" EXIT \
+	&& make docker.context/current > ${dstat_tempf} \
+	&& printf "${GREEN}≣ docker.stat${NO_ANSI_DIM}:\n` \
+		docker ps --format "table {{.ID}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Names}}" \
+		| make io.indent \
+	`\n${NO_ANSI}" > /dev/stderr \
+	&& echo {} \
+		| make io.json_builder key=version \
+			val="`docker --version|sed 's/Docker " //'`" \
+		| make io.json_builder key=container_count \
+			val="`docker ps --format json| jq '.Names'|wc -l`" \
+		| make io.json_builder key=socket \
+			val="`cat ${dstat_tempf} | jq -r .Endpoints.docker.Host`" \
+		| make io.json_builder key=context_name \
+			val="`cat ${dstat_tempf} | jq -r .Name`"
+
+docker.context:
+	@# Returns all of the available docker context. Pipe-friendly.
+	@#
+	docker context inspect
+
+docker.context/%:
+	@# Returns docker-context details for the given context-name.  
+	@# Pipe-friendly; outputs JSON from 'docker context inspect'
+	@#
+	@# USAGE: (shortcut for the current context name)
+	@#  make docker.context/current 
+	@#
+	@# USAGE: (with given named context)
+	@#  docker.context/<context_name>
+	@#
+	@case "$(*)" in \
+		current) \
+			make docker.context |  jq ".[]|select(.Name=\"`docker context show`\")" -r; ;; \
+		*) \
+			make docker.context | jq ".[]|select(.Name=\"${*}\")" -r; ;; \
+	esac
+	
+docker.socket:
+	@# Returns the docker socket in use for the current docker context.
+	@# No arguments; Pipe-friendly.
+	@#
+	make docker.context/current | jq -r .Endpoints.docker.Host
+
+docker.stop:
+	@# Stops one container, using the given timeout and the given id or name.
+	@#
+	@# USAGE:
+	@#   make docker.stop id=8f350cdf2867 
+	@#   make docker.stop name=my-container 
+	@#   make docker.stop name=my-container timeout=99
+	@#
+	printf "${DIM_GREEN}≣ docker.stop${NO_ANSI} // ${GREEN}${UNDERLINE}$${id:-$${name}}${NO_ANSI}\n"
+	export cid=`[ -z "$${id:-}" ] && docker ps --filter name=$${name} --format json | jq -r .ID || echo $${id}` \
+	&& [ -z "$${cid:-}" ] && printf "$${DIM}docker.stop${NO_ANSI} // ${YELLOW}No containers found${NO_ANSI}\n" || docker stop -t $${timeout:-1} $$cid
+
+io.bash:
+	@# Drops into an interactive shell with the en vars 
+	@# that have been set by the parent environment, 
+	@# plus those set by this Makefile context.
+	@#
+	env bash -l
+
+io.divider: io.print_divider
+	@# Alias for print_divider
+
+io.indent:
+	@# Pipe-friendly helper for indenting, 
+	@# reading from stdin and returning it to stdout.
+	@#
+	cat /dev/stdin | sed 's/^/  /'
+
+io.json_builder:
+	@# Appends the given key/val to the input object.
+	@# This is usually used to build JSON objects from scratch.
+	@#
+	@# USAGE: 
+	@#	 echo {} | key=foo val=bar make io.json_builder 
+	@#   {"foo":"bar"}
+	@#
+	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
+
+io.mktemp:
 	@# Helper for working with temp files.  Returns filename, 
 	@# and uses 'trap' to handle at-exit file-deletion automatically
 	@#
@@ -236,13 +336,13 @@ compose.mktemp:
 	&& trap "rm -f $${c_tempfile}" EXIT \
 	&& echo $${c_tempfile}
 
-compose.print_divider:
+io.print_divider:
 	@# Prints a divider on stdout, defaulting to the full terminal width, 
 	@# with optional label.  This automatically detects console width, but
 	@# it requires 'tput', which is usually part of an ncurses package.
 	@#
 	@# USAGE: 
-	@#  make compose.print_divider label=".." filler=".." width="..."
+	@#  make io.print_divider label=".." filler=".." width="..."
 	@#
 	@export width=$${width:-`tput cols`} \
 	&& export label=$${label:-} \
@@ -258,69 +358,45 @@ compose.print_divider:
 	    && printf "%*s\n" "$${side_length}" | sed "s/ /$${filler}/g" \
 	; fi
 
-compose.print_divider/%:
+io.print_divider/%:
 	@# Print a divider with a width of `term_width / <arg>`
 	@#
 	@# USAGE: 
-	@#  make compose.print_divider/<int>
+	@#  make io.print_divider/<int>
 	@#
 	@width=`echo \`tput cols\` / ${*} | bc` \
-	make compose.print_divider
-compose.strip:
+	make io.print_divider
+
+io.strip:
 	@# Pipe-friendly helper for stripping whitespace.
+	@#
 	cat /dev/stdin | awk '{gsub(/[\t\n]/, ""); gsub(/ +/, " "); print}' ORS=''
-compose.strip_ansi:
+
+io.strip_ansi:
 	@# Pipe-friendly helper for stripping ansi.
 	@# (Probably won't work everywhere, but has no deps)
 	@#
 	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
 
-compose.wait/%:
+io.wait/%:
 	@# Pauses for the given amount of seconds.
 	@#
 	@# USAGE: 
-	@#   compose.wait/<int>
+	@#   io.wait/<int>
 	@#
-	printf "${GREEN}compose.wait${NO_ANSI} // ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
+	printf "${GREEN}io.wait${NO_ANSI} // ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
 	&& sleep ${*}
 
-compose.wait_for_command:
+io.wait_for_command:
 	@# Runs the given command for the given amount of seconds, then stops it with sigint.
 	@#
 	@# USAGE: (tails docker logs for up to 10s, then stops)
-	@#   make compose.wait_for_command cmd='docker logs -f xxxx' timeout=10
+	@#   make io.wait_for_command cmd='docker logs -f xxxx' timeout=10
 	@#
-	printf "${GREEN}compose.wait_for_command${NO_ANSI} // ${NO_ANSI_DIM}$${cmd}${NO_ANSI} // ${RED}$${timeout}s${NO_ANSI}\n" >/dev/stderr 
+	printf "${GREEN}io.wait_for_command${NO_ANSI} // ${NO_ANSI_DIM}$${cmd}${NO_ANSI} // ${RED}$${timeout}s${NO_ANSI}\n" >/dev/stderr 
 	trap "pkill -SIGINT -f \"$${cmd}\"" INT \
 	&& eval "$${cmd} &" \
 	&& export command_pid=$$! \
 	&& sleep $${timeout} \
-	&& printf "${DIM}compose.wait_for_command${NO_ANSI} // ${RED}finished${NO_ANSI}\n" >/dev/stderr \
+	&& printf "${DIM}io.wait_for_command${NO_ANSI} // ${RED}finished${NO_ANSI}\n" >/dev/stderr \
 	&& kill -INT $${command_pid}
-
-docker.init:
-	@# Checks if docker is available, then displays version (no real setup)
-	@#
-	docker --version
-
-docker.panic:
-	@# Debugging only!  Running this from automation will 
-	@# probably quickly hit rate-limiting at dockerhub,
-	@# plus you probably don't want to run this in prod.
-	@#
-	docker rm -f $$(docker ps -qa | tr '\n' ' ')
-	docker network prune -f
-	docker volume prune -f
-	docker system prune -a -f
-
-docker.stop:
-	@# Stops one container, using the given timeout and the given id or name.
-	@#
-	@# USAGE:
-	@#   id=8f350cdf2867 make docker.stop
-	@#   name=my-container make docker.stop
-	@#   name=my-container timeout=99 make docker.stop
-	@#
-	printf "${DIM_GREEN}docker.stop${NO_ANSI} // ${GREEN}${UNDERLINE}$${id:-$${name}}${NO_ANSI}\n"
-	export cid=`[ -z "$${id:-}" ] && docker ps --filter name=$${name} --format json | jq -r .ID || echo $${id}` \
-	&& [ -z "$${cid:-}" ] && printf "$${DIM}docker.stop${NO_ANSI} // ${YELLOW}No containers found${NO_ANSI}\n" || docker stop -t $${timeout:-1} $$cid

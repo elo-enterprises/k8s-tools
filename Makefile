@@ -11,10 +11,8 @@ THIS_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))'
 export SRC_ROOT := $(shell git rev-parse --show-toplevel)
 export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 
-export FAKE_KUBECONF:=/tmp/fake-kubeconf.conf
-export KUBECONFIG?=${FAKE_KUBECONF}
-_:=$(shell touch ${KUBECONFIG})
-
+export KUBECONFIG?=./fake.profile.yaml
+export _:=$(shell umask 066;touch ${KUBECONFIG})
 
 export KN_CLI_VERSION?=v1.14.0
 export HELMIFY_CLI_VERSION?=v0.4.12
@@ -28,7 +26,7 @@ $(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
 .DEFAULT_GOAL :=  all 
 all: clean build test docs
 
-bash: compose.bash
+bash: io.bash
 
 init: docker.init
 
@@ -62,7 +60,7 @@ vhs.e2e:
 		&& mv img/* ../img
 
 smoke-test:
-	make compose.divider label="${@}"
+	make io.divider label="${@}"
 	@# Smoke test the containers we built
 	bash -x -c "docker compose -f k8s-tools.yml run fission --help \
 	&& docker compose -f k8s-tools.yml run helmify --version \
@@ -74,6 +72,7 @@ smoke-test:
 	&& docker compose -f k8s-tools.yml run helm --help \
 	&& docker compose -f k8s-tools.yml run argo --help \
 	&& docker compose -f k8s-tools.yml run kind --version \
+	&& docker compose -f k8s-tools.yml run rancher --version \
 	&& docker compose -f k8s-tools.yml run kubefwd --help" 2>&1 >/dev/null
 
 stest: smoke-test 

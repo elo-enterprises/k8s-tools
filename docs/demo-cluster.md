@@ -118,7 +118,7 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 ### Development 
 
-Finally, what about the nginx server we deployed?  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful inside the cluster, which is too inconvenient for development.  For doing real application development, you'll probably want to get into some port-forwarding.
+For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
 The [**`kubefwd.namespace/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
 
@@ -128,11 +128,25 @@ Note the weird DNS in the test above, where `nginx-service` resolves as expected
 
 ----------------------------------------------
 
+### Alternate Deployment
+
+Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for `KUBECONFIG`.
+
+For example, if you're using rancher desktop, you might do something like this:
+
+```bash 
+$ rdctl shell sudo k3s kubectl config view --raw > rancher-desktop.yml
+
+$ KUBECONFIG=rancher-desktop.yml make deploy test
+```
+
+----------------------------------------------
+
 ### Next Steps
 
 From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.
 
-**Experimenting with a different k8s distro than k3d should be easy,** since both `kind` and `eksctl` are already part of k8s-tools.yml.  Once you add a new setup/teardown/auth process for another backend, the rest of your automation stays the same.  Really, a static or local kubernetes backend isn't required; you can change this pattern to honor KUBECONFIG from the environment instead of generating one at cluster creation time.
+**Experimenting with a different k8s distro than k3d should be easy,** since both `kind` and `eksctl` are already part of k8s-tools.yml.  Once you add a new setup/teardown/auth process for another backend, the rest of your automation stays the same.  
 
 **Experimenting with extra cluster platforming probably begins with mirroring manifests or helm-charts.**  Container volumes are already setup to accomodate local files transparently.
 

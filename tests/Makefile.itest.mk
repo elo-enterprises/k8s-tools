@@ -13,6 +13,8 @@ MAKEFLAGS += -s --warn-undefined-variables
 .SHELLFLAGS := -eu -c
 
 export KUBECONFIG:=./fake.profile.yaml
+export _:=$(shell umask 066;touch ${KUBECONFIG})
+
 
 # testing the compose integration
 include Makefile.compose.mk
@@ -49,7 +51,7 @@ self.demo:
 	uname -n -v
 demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
-print_divider: compose.print_divider
+print_divider: io.print_divider
 test-import-root:
 	make print_divider label="${BOLD_CYAN}${@}${NO_ANSI}"
 	printf "\n${DIM_CYAN}Test import-to-root argument for compose.import${NO_COLOR}\n"
