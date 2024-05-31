@@ -18,7 +18,7 @@ Unfortunately, there's not a good way to convince `make` to just proxy arguments
 
 The usual problem with root-user-in-containers vs normal-user on host and file permissions.  The alpine base is a container using root, as are many other things.  And there is a long-standing [known bug in the compose spec](https://github.com/compose-spec/compose-go/pull/299) that makes fixing this from the compose file hard.  
 
-Invoking compose exclusively from a Makefile actually helps with this though.  By default with [Makefile.compose.mk](#makefilecomposemk), `DOCKER_UID | DOCKER_GID| DOCKER_UGNAME` variables are set and available for use in [k8s-tools.yml](k8s-tools.yml).  This works slightly differently for Linux and MacOS, based on what messes things up the least, but YMMV.  With Linux, it looks something like this:
+Invoking compose exclusively from a Makefile actually helps with this though.  By default with [compose.mk](#makefilecomposemk), `DOCKER_UID | DOCKER_GID| DOCKER_UGNAME` variables are set and available for use in [k8s-tools.yml](k8s-tools.yml).  This works slightly differently for Linux and MacOS, based on what messes things up the least, but YMMV.  With Linux, it looks something like this:
 
 ```Makefile
 export DOCKER_UID?=$(shell id -u)
@@ -30,7 +30,7 @@ If you're not working with Makefiles at all, you can export appropriate values i
 
 ### MacOS, Docker Sockets, and DinD
 
-As long as docker is working, any kind of setup (Docker Desktop, Rancher Desktop, Colima) should work with `Makefile.compose.mk` for container-dispatch.  But for working with `k8s-tools.yml` containers specifically, the docker-socket sharing *must also be working*.  If you're having problems that might be related to this, first make sure that your setup can correctly run this command:
+As long as docker is working, any kind of setup (Docker Desktop, Rancher Desktop, Colima) should work with `compose.mk` for container-dispatch.  But for working with `k8s-tools.yml` containers specifically, the docker-socket sharing *must also be working*.  If you're having problems that might be related to this, first make sure that your setup can correctly run this command:
 
 ```bash 
 $ docker run -v /var/run/docker.sock:/var/run/docker.sock -ti docker ps

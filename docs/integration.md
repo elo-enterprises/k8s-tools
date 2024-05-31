@@ -25,7 +25,7 @@ Aliases are convenient but rather fragile (obviously this will break if you move
 
 ### Embedding Tools With Makefiles
 
-You'll probably want to read over the [Makefile.compose.mk](#makefilecomposemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff for using the `compose.import` macro with your projects.
+You'll probably want to read over the [compose.mk](#makefilecomposemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff for using the `compose.import` macro with your projects.
 
 {% set integration_block %}
 First, copy the files from this repo into your project:
@@ -38,24 +38,24 @@ $ curl -sL \
   {{github.raw_url}}/master/k8s-tools.yml \
     > k8s-tools.yml
 $ curl -sL \
-  {{github.raw_url}}/master/Makefile.compose.mk \
-    > Makefile.compose.mk
+  {{github.raw_url}}/master/compose.mk \
+    > compose.mk
 
 # optional.  this can also just be appended to
-# Makefile.compose.mk if you want less clutter
+# compose.mk if you want less clutter
 $ curl -sL \
-  {{github.raw_url}}/master/Makefile.k8s.mk \
-    > Makefile.k8s.mk
+  {{github.raw_url}}/master/k8s.mk \
+    > k8s.mk
 ```
 
-Now include `Makefile.compose.mk` inside your main project Makefile and call the `compose.import` macro.
+Now include `compose.mk` inside your main project Makefile and call the `compose.import` macro.
 
 ```Makefile
 # myproject/Makefile (Make sure you have real tabs, not spaces!)
  
 # Include/invoke the target-building macros 
 # somewhere near the top of your existing boilerplate
-include Makefile.compose.mk
+include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 # At this point, targets are defined for whatever services

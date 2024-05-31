@@ -1,14 +1,14 @@
 ##
-# Makefile.compose.mk
+# compose.mk
 #
 # This is designed to be used as an `include` from your project's main Makefile.
 #
-# DOCS: https://github.com/elo-enterprises/k8s-tools#Makefile.compose.mk
+# DOCS: https://github.com/elo-enterprises/k8s-tools#compose.mk
 #
-# LATEST: https://github.com/elo-enterprises/k8s-tools/tree/master/Makefile.compose.mk
+# LATEST: https://github.com/elo-enterprises/k8s-tools/tree/master/compose.mk
 #
 # USAGE: (Add this to your project Makefile)
-#      include Makefile.compose.mk
+#      include compose.mk
 #      $(eval $(call compose.import, ▰, ., docker-compose.yml))
 #
 #      # example for target dispatch:
@@ -33,30 +33,35 @@
 ########################################################################
 ## BEGIN: data
 
-# ansi color constants
-export NO_ANSI?=\033[0m
-export GREEN?=\033[92m
-export YELLOW?=\033[33m
-export DIM?=\033[2m
-export UNDERLINE?=\033[4m
-export BOLD?=\033[1m
-export ITAL?=\033[3m
-export NO_COLOR?=\e[39m
-export RED?=\033[91m
-export DIM_RED?=${DIM}${RED}
-export CYAN?=\033[96m
-export DIM_CYAN?=${DIM}${CYAN}
-export BOLD_CYAN?=${BOLD}${CYAN}
-export BOLD_GREEN?=${BOLD}${GREEN}
-export DIM_GREEN:=${DIM}${GREEN}
-export DIM_ITAL:=${DIM}${ITAL}
-export NO_ANSI_DIM:=${NO_ANSI}${DIM}
-export CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
-export GREEN_FLOW_LEFT:=${BOLD_GREEN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
+# Color constants and other stuff for formatting user-messages
+NO_ANSI=\033[0m
+GREEN=\033[92m
+YELLOW=\033[33m
+DIM=\033[2m
+UNDERLINE=\033[4m
+BOLD=\033[1m
+ITAL=\033[3m
+NO_COLOR=\e[39m
+RED=\033[91m
+CYAN=\033[96m
+DIM_RED:=${DIM}${RED}
+DIM_CYAN:=${DIM}${CYAN}
+BOLD_CYAN:=${BOLD}${CYAN}
+BOLD_GREEN:=${BOLD}${GREEN}
+DIM_GREEN:=${DIM}${GREEN}
+DIM_ITAL:=${DIM}${ITAL}
+NO_ANSI_DIM:=${NO_ANSI}${DIM}
+CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
+GREEN_FLOW_LEFT:=${BOLD_GREEN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
+SEP:=${NO_ANSI}//
 
-export OS_NAME:=$(shell uname -s)
+# Glyphs used in log messages
+GLYPH_DOCKER=${GREEN}≣${DIM_GREEN}
+GLYPH_IO=${GREEN}⇄${DIM_GREEN}
+
 
 # Hints for k8s-tools.yml to fix file permissions
+OS_NAME:=$(shell uname -s)
 ifeq (${OS_NAME},Darwin)
 export DOCKER_UID:=0
 export DOCKER_GID:=0
@@ -70,7 +75,7 @@ endif
 # honored by `docker compose`, this helps to quiet output
 export COMPOSE_IGNORE_ORPHANS?=True
 
-# 1 if dispatched inside container, otherwise 0
+# Used internally.  This is 1 if dispatched inside container, otherwise 0
 export COMPOSE_MK?=0
 
 ## END: data
@@ -84,7 +89,10 @@ export COMPOSE_MK?=0
 # env-var is checked, so that inside containers `compose.get_services` always 
 # returns nothing.
 define compose.get_services
-	$(shell if [ "${COMPOSE_MK}" = "0" ]; then cat ${1} | python3 -c 'import yaml, sys; data=yaml.safe_load(sys.stdin.read()); svc=data["services"].keys(); print(" ".join(svc))'; else echo -n ""; fi)
+	$(shell if [ "${COMPOSE_MK}" = "0" ]; then \
+		cat ${1} | python3 -c 'import yaml, sys; data=yaml.safe_load(sys.stdin.read()); svc=data["services"].keys(); print(" ".join(svc))'; \
+	else \
+		echo -n ""; fi)
 endef
 
 # Macro to create all the targets for a given compose-service
@@ -96,24 +104,25 @@ $(eval compose_file := $(strip $4))
 $(eval namespaced_service:=${target_namespace}/$(compose_service_name))
 $(eval compose_file_stem:=$(shell basename -s .yml $(compose_file)))
 
-# Detects the shell
-${compose_file_stem}/$(compose_service_name)/__shell__:
+
+${compose_file_stem}/$(compose_service_name)/get_shell:
+	@# Detects the best shell to use with ${compose_file_stem}/$(compose_service_name)
 	docker compose -f $(compose_file) \
 		run --entrypoint sh $$(shell echo $$@|awk -F/ '{print $$$$2}') \
 		-c "which bash || which sh" \
-		|| printf "$${RED}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n$${NO_ANSI}" > /dev/stderr
+		|| printf "${YELLOW}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n${NO_ANSI}" > /dev/stderr
 
 # Invokes the shell
 ${compose_file_stem}/$(compose_service_name)/shell:
-	@export entrypoint=`make ${compose_file_stem}/$(compose_service_name)/__shell__` \
-	&& printf "$${GREEN}⇒${NO_ANSI}${DIM} ${compose_file_stem}/$(compose_service_name)/shell (${GREEN}`env|grep entrypoint\=`${NO_ANSI}${DIM})${NO_ANSI}\n" \
+	@export entrypoint=`make ${compose_file_stem}/$(compose_service_name)/get_shell` \
+	&& printf "${GREEN}⇒${NO_ANSI}${DIM} ${compose_file_stem}/$(compose_service_name)/shell (${GREEN}`env|grep entrypoint\=`${NO_ANSI}${DIM})${NO_ANSI}\n" \
 		&& make ${compose_file_stem}/$(compose_service_name)
 	
 ${compose_file_stem}/$(compose_service_name)/shell/pipe:
 	@$$(eval export shellpipe_tempfile:=$$(shell mktemp))
 	@cat /dev/stdin > $${shellpipe_tempfile} \
 	&& eval "cat $${shellpipe_tempfile} | pipe=yes \
-	  entrypoint=`make ${compose_file_stem}/$(compose_service_name)/__shell__` \
+	  entrypoint=`make ${compose_file_stem}/$(compose_service_name)/get_shell` \
 	  make ${compose_file_stem}/$(compose_service_name)"
 
 ${compose_file_stem}/$(compose_service_name)/pipe:
@@ -123,7 +132,7 @@ $(eval ifeq ($$(import_to_root), TRUE)
 $(compose_service_name): $(target_namespace)/$(compose_service_name)
 $(compose_service_name)/pipe: ⟂/${compose_file_stem}/$(compose_service_name)
 $(compose_service_name)/shell: ${compose_file_stem}/$(compose_service_name)/shell
-$(compose_service_name)/__shell__:  ${compose_file_stem}/$(compose_service_name)/__shell__
+$(compose_service_name)/get_shell:  ${compose_file_stem}/$(compose_service_name)/get_shell
 $(compose_service_name)/shell/pipe: ${compose_file_stem}/$(compose_service_name)/shell/pipe
 endif)
 
@@ -135,8 +144,7 @@ ${target_namespace}/$(compose_service_name)/%:
 	@# A subtarget for each docker-compose service.
 	@# This allows invocation of *another* make-target
 	@# that runs inside the container
-	@echo COMPOSE_MK=1 make $${*} \
-		| entrypoint=bash pipe=yes make ${compose_file_stem}/$(compose_service_name)
+	@entrypoint=make cmd="$${*}" make ${compose_file_stem}/$(compose_service_name)
 endef
 
 # Main macro to import services from an entire compose file
@@ -150,24 +158,24 @@ $(eval __services__:=$(call compose.get_services, ${compose_file}))
 ⟂/${compose_file_stem}/%:
 	@pipe=yes make ${compose_file_stem}/$${*}
 
-${compose_file_stem}/__services__:
+${compose_file_stem}.services:
 	@echo $(__services__) | sed -e 's/ /\n/g'
-${compose_file_stem}/__build__:
+${compose_file_stem}.build:
 	set -x && docker compose -f $${compose_file} build
-${compose_file_stem}/__stop__:
+${compose_file_stem}.stop:
 	docker compose -f $${compose_file} stop -t 1
-${compose_file_stem}/__up__:
+${compose_file_stem}.up:
 	docker compose -f $${compose_file} up
-${compose_file_stem}/__clean__:
+${compose_file_stem}.down: ${compose_file_stem}.clean
+${compose_file_stem}.clean:
 	set -x && docker compose -f $${compose_file} --progress quiet down -t 1 --remove-orphans
-
 ${compose_file_stem}/%:
 	@$$(eval export svc_name:=$$(shell echo $$@|awk -F/ '{print $$$$2}'))
 	@$$(eval export cmd:=$(shell echo $${cmd:-}))
 	@$$(eval export pipe:=$(shell \
 		if [ -z "$${pipe:-}" ]; then echo ""; else echo "-T"; fi))
 	@$$(eval export nsdisp:=${BOLD}$${target_namespace}${NO_ANSI})
-	@$$(eval export header:=${GREEN}$${nsdisp}${DIM} // ${BOLD}${DIM_GREEN}$${compose_file_stem}${NO_ANSI_DIM} // ${BOLD}${GREEN}${UNDERLINE}$${svc_name}${NO_ANSI_DIM} container${NO_ANSI}\n)
+	@$$(eval export header:=${GREEN}$${nsdisp}${DIM} ${SEP} ${BOLD}${DIM_GREEN}$${compose_file_stem}${NO_ANSI_DIM} ${SEP} ${BOLD}${GREEN}${UNDERLINE}$${svc_name}${NO_ANSI_DIM} container${NO_ANSI}\n)
 	@$$(eval export entrypoint:=$(shell \
 		if [ -z "$${entrypoint:-}" ]; \
 		then echo ""; else echo "--entrypoint $${entrypoint:-}"; fi))
@@ -198,10 +206,6 @@ $(foreach \
 			${target_namespace}, ${import_to_root}, ${compose_file}, )))
 endef
 
-## END: macros
-########################################################################
-## BEGIN: meta targets (api-stable)
-
 help:
 	@# Attempts to autodetect the targets defined in this Makefile context.  
 	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
@@ -209,13 +213,10 @@ help:
 	@#
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true
 
-## END: meta targets
-########################################################################
-## BEGIN: convenience targets (api-stable)
 compose.init:
 	@# Ensures compose is available.  Note that 
 	@# build/run/etc cannot happen without a file, 
-	@# for that, see instead targets like '<compose_file_stem>/__build__'
+	@# for that, see instead targets like '<compose_file_stem>.build'
 	@#
 	docker compose version >/dev/null
 
@@ -248,18 +249,18 @@ docker.stat:
 	$(eval export dstat_tempf:=$$(shell mktemp))
 	trap "rm -f ${dstat_tempf}" EXIT \
 	&& make docker.context/current > ${dstat_tempf} \
-	&& printf "${GREEN}≣ docker.stat${NO_ANSI_DIM}:\n` \
+	&& printf "${GLYPH_DOCKER} docker.stat${NO_ANSI_DIM}:\n` \
 		docker ps --format "table {{.ID}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Names}}" \
-		| make io.indent \
+		| make io.print.ident \
 	`\n${NO_ANSI}" > /dev/stderr \
 	&& echo {} \
-		| make io.json_builder key=version \
+		| make io.json.builder key=version \
 			val="`docker --version|sed 's/Docker " //'`" \
-		| make io.json_builder key=container_count \
+		| make io.json.builder key=container_count \
 			val="`docker ps --format json| jq '.Names'|wc -l`" \
-		| make io.json_builder key=socket \
+		| make io.json.builder key=socket \
 			val="`cat ${dstat_tempf} | jq -r .Endpoints.docker.Host`" \
-		| make io.json_builder key=context_name \
+		| make io.json.builder key=context_name \
 			val="`cat ${dstat_tempf} | jq -r .Name`"
 
 docker.context:
@@ -298,105 +299,183 @@ docker.stop:
 	@#   make docker.stop name=my-container 
 	@#   make docker.stop name=my-container timeout=99
 	@#
-	printf "${DIM_GREEN}≣ docker.stop${NO_ANSI} // ${GREEN}${UNDERLINE}$${id:-$${name}}${NO_ANSI}\n"
+	printf "${GLYPH_DOCKER} docker.stop${NO_ANSI_DIM} ${SEP} ${GREEN}$${id:-$${name}}${NO_ANSI}\n"
 	export cid=`[ -z "$${id:-}" ] && docker ps --filter name=$${name} --format json | jq -r .ID || echo $${id}` \
-	&& [ -z "$${cid:-}" ] && printf "$${DIM}docker.stop${NO_ANSI} // ${YELLOW}No containers found${NO_ANSI}\n" || docker stop -t $${timeout:-1} $$cid
+	&& case "$${cid:-}" in \
+		"") \
+			printf "$${DIM}${GLYPH_DOCKER} docker.stop${NO_ANSI} // ${YELLOW}No containers found${NO_ANSI}\n"; ;; \
+		*) \
+			docker stop -t $${timeout:-1} $${cid}; ;; \
+	esac
 
 io.bash:
-	@# Drops into an interactive shell with the en vars 
-	@# that have been set by the parent environment, 
-	@# plus those set by this Makefile context.
+	@# Starts an interactive shell with all the environment variables set 
+	@# by the parent environment, plus those set by this Makefile context.
 	@#
 	env bash -l
 
-io.divider: io.print_divider
-	@# Alias for print_divider
-
-io.indent:
-	@# Pipe-friendly helper for indenting, 
-	@# reading from stdin and returning it to stdout.
-	@#
-	cat /dev/stdin | sed 's/^/  /'
-
-io.json_builder:
-	@# Appends the given key/val to the input object.
-	@# This is usually used to build JSON objects from scratch.
-	@#
-	@# USAGE: 
-	@#	 echo {} | key=foo val=bar make io.json_builder 
-	@#   {"foo":"bar"}
-	@#
-	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
-
-io.mktemp:
-	@# Helper for working with temp files.  Returns filename, 
-	@# and uses 'trap' to handle at-exit file-deletion automatically
-	@#
-	export c_tempfile=`mktemp` \
-	&& trap "rm -f $${c_tempfile}" EXIT \
-	&& echo $${c_tempfile}
-
-io.print_divider:
-	@# Prints a divider on stdout, defaulting to the full terminal width, 
-	@# with optional label.  This automatically detects console width, but
-	@# it requires 'tput', which is usually part of an ncurses package.
-	@#
-	@# USAGE: 
-	@#  make io.print_divider label=".." filler=".." width="..."
-	@#
-	@export width=$${width:-`tput cols`} \
-	&& export label=$${label:-} \
-	&& if [ -z "$${label}" ]; then \
-	    export filler=$${filler:-¯} && printf "%*s$${NO_ANSI}\n" "$${width}" '' | sed "s/ /$${filler}/g"; \
-	else \
-		export label=" $${label//-/ } " \
-	    && export default="#" \
-		&& export filler=$${filler:-$${default}} && label_length=$${#label} \
-	    && side_length=$$(( ($${width} - $${label_length} - 2) / 2 )) \
-	    && printf "%*s" "$${side_length}" | sed "s/ /$${filler}/g" \
-		&& printf "$${label}" \
-	    && printf "%*s\n" "$${side_length}" | sed "s/ /$${filler}/g" \
-	; fi
-
-io.print_divider/%:
-	@# Print a divider with a width of `term_width / <arg>`
-	@#
-	@# USAGE: 
-	@#  make io.print_divider/<int>
-	@#
-	@width=`echo \`tput cols\` / ${*} | bc` \
-	make io.print_divider
-
-io.strip:
+io.fmt.strip:
 	@# Pipe-friendly helper for stripping whitespace.
 	@#
 	cat /dev/stdin | awk '{gsub(/[\t\n]/, ""); gsub(/ +/, " "); print}' ORS=''
 
-io.strip_ansi:
+io.fmt.strip_ansi:
 	@# Pipe-friendly helper for stripping ansi.
 	@# (Probably won't work everywhere, but has no deps)
 	@#
 	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
 
-io.wait/%:
+io.json.builder:
+	@# Appends the given key/val to the input object.
+	@# This is usually used to build JSON objects from scratch.
+	@#
+	@# USAGE: 
+	@#	 echo {} | key=foo val=bar make io.json.builder 
+	@#   {"foo":"bar"}
+	@#
+	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
+
+io.loop/%:
+	@# Helper for repeatedly running the named target a given number of times.
+	@# This requires the 'pv' tool for progress visualization, which is available 
+	@# in most k8s-tools base-containers.  By default, stdout for targets is 
+	@# supressed because it messes up the visualization, but stderr is left alone. 
+	@#
+	@# USAGE:
+	@#	make io.loop/<target_name>/<times>
+	@#
+	$(eval export pathcomp:=$(shell echo ${*}| sed -e 's/\// /g'))
+	$(eval export target:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
+	$(eval export times:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
+	printf "${GLYPH_IO} io.loop${NO_ANSI_DIM} ${SEP} ${GREEN}$${target}${NO_ANSI} ($${times}x)\n"
+	(for i in `seq $${times}`; \
+        do \
+			make $${target} > /dev/null; echo $${i}; \
+        done) | pv -s $${times} -l -i 1 --name "$${target}" -t -e -C -p > /dev/null
+io.mktemp:
+	@# Helper for working with temp files.  Returns filename, 
+	@# and uses 'trap' to handle at-exit file-deletion automatically
+	@#
+	export c_tempfile=`mktemp` \
+	&& trap "echo removing $${c_tempfile}; rm -f $${c_tempfile}" EXIT \
+	&& echo $${c_tempfile}
+
+io.print.dim: 
+	@# Pipe-friendly helper for dimming the input text
+	@#
+	printf "${DIM}`cat /dev/stdin`${NO_ANSI}\n"
+
+io.print.dim.indent:
+	@# Like 'io.print.ident' except it also dims the text.
+	@#
+	cat /dev/stdin | make io.print.dim | make io.print.ident
+
+io.print.divider:
+	@# Prints a divider on stdout, defaulting to the full terminal width, 
+	@# with optional label.  This automatically detects console width, but
+	@# it requires 'tput' (usually part of a 'ncurses' package).
+	@#
+	@# USAGE: 
+	@#  make io.print.divider label=".." filler=".." width="..."
+	@#
+	@export width=$${width:-`tput cols`} \
+	&& label=$${label:-} \
+	&& label=$${label/./-} \
+	&& if [ -z "$${label}" ]; then \
+	    filler=$${filler:-¯} && printf "%*s${NO_ANSI}\n" "$${width}" '' | sed "s/ /$${filler}/g"; \
+	else \
+		label=" $${label//-/ } " \
+	    && default="#" \
+		&& filler=$${filler:-$${default}} && label_length=$${#label} \
+	    && side_length=$$(( ($${width} - $${label_length} - 2) / 2 )) \
+	    && printf "%*s" "$${side_length}" | sed "s/ /$${filler}/g" \
+		&& printf "$${label}" \
+	    && printf "%*s\n\n" "$${side_length}" | sed "s/ /$${filler}/g" \
+	; fi
+
+io.print.divider/%:
+	@# Print a divider with a width of `term_width / <arg>`
+	@#
+	@# USAGE: 
+	@#  make io.print.divider/<int>
+	@#
+	@width=`echo \`tput cols\` / ${*} | bc` \
+	make io.print.divider
+
+io.print.ident:
+	@# Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
+	@#
+	cat /dev/stdin | sed 's/^/  /'
+
+io.tee:
+	@# Helper for constructing a parallel process pipeline with `tee` and command substitution.
+	@# Pipe-friendly, this works directly with stdin.  This exists mostly to enable `io.tee.targets`.
+	@# Using this is easier than the alternative pure-shell version for simple commands, but it's 
+	@# also pretty naive, and splits commands on semicolons, so don't try and load other pipelines
+	@# as individual commands with this approach.  
+	@#
+	@# USAGE: (pipes the same input to jq and yq commands)
+	@#   echo {} | make io.tee cmds="jq;yq" 
+	@#
+	src="`\
+		echo $${cmds} \
+		| tr ';' '\n' \
+		| xargs -n1 -I% \
+			printf  ">($${tee_pre:-}%$${tee_post:-}) "`" \
+	&& header="${GLYPH_IO} io.tee${NO_ANSI} ${SEP}${DIM} starting pipe" \
+	&& cmd="cat /dev/stdin | tee $${src} " \
+	&& printf "$${header} (${NO_ANSI}${BOLD}`echo $${cmds} | grep -o ';' | wc -l`${NO_ANSI_DIM} components)\n" > /dev/stderr \
+	&& printf "${NO_ANSI_DIM}${GLYPH_IO} ${NO_ANSI_DIM}io.tee${NO_ANSI} ${SEP} ${NO_ANSI_DIM}$${cmd}${NO_ANSI}\n" > /dev/stderr \
+	&& eval $${cmd} | cat
+
+io.tee.targets:
+	@# Like `io.tee` but expects destination pipes are make targets.
+	@# Pipe-friendly, this works directly with stdin.
+	@#
+	@# USAGE: (pipes the same input to target1 and target2)
+	@#   echo {} | make io.tee.targets targets="target1,target2" 
+	@#
+	# cat /dev/stdin | tee_pre="make " cmds="${*}" make io.tee
+	cat /dev/stdin \
+	| make io.tee \
+		cmds="`\
+			printf $${targets} \
+			| tr ';' '\n' \
+			| xargs -n1 -I% echo make % \
+			| tr '\n' ';'`"
+
+io.time.wait/%:
 	@# Pauses for the given amount of seconds.
 	@#
 	@# USAGE: 
-	@#   io.wait/<int>
+	@#   io.time.wait/<int>
 	@#
-	printf "${GREEN}io.wait${NO_ANSI} // ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
+	printf "${GLYPH_IO} io.wait${NO_ANSI} ${SEP} ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
 	&& sleep ${*}
 
-io.wait_for_command:
-	@# Runs the given command for the given amount of seconds, then stops it with sigint.
+io.time.target/%:
+	@# Emits run time for the given make-target in seconds.
+	@# Pipe safe; target's stdout is sent to stderr.
+	@#
+	@# USAGE:
+	@#   io.time.target/<target_to_run>
+	@#
+	start_time=$$(date +%s%N) \
+	&& make ${*} >&2 \
+	&& end_time=$$(date +%s%N) \
+	&& time_diff_ns=$$((end_time - start_time)) \
+	&& echo $$(echo "scale=9; $$time_diff_ns / 1000000000" | bc)
+io.time.wait_for_command:
+	@# Runs the given command for the given amount of seconds, then stops it with SIGINT.
 	@#
 	@# USAGE: (tails docker logs for up to 10s, then stops)
-	@#   make io.wait_for_command cmd='docker logs -f xxxx' timeout=10
+	@#   make io.time.wait_for_command cmd='docker logs -f xxxx' timeout=10
 	@#
-	printf "${GREEN}io.wait_for_command${NO_ANSI} // ${NO_ANSI_DIM}$${cmd}${NO_ANSI} // ${RED}$${timeout}s${NO_ANSI}\n" >/dev/stderr 
+	printf "${GLYPH_IO} io.time.wait_for_command${NO_ANSI_DIM} (${YELLOW}$${timeout}s${NO_ANSI_DIM}) ${SEP} ${NO_ANSI_DIM}$${cmd}${NO_ANSI} ${NO_ANSI}\n" >/dev/stderr 
 	trap "pkill -SIGINT -f \"$${cmd}\"" INT \
 	&& eval "$${cmd} &" \
 	&& export command_pid=$$! \
 	&& sleep $${timeout} \
-	&& printf "${DIM}io.wait_for_command${NO_ANSI} // ${RED}finished${NO_ANSI}\n" >/dev/stderr \
+	&& printf "${DIM}${GLYPH_IO} io.time.wait_for_command${NO_ANSI_DIM} (${YELLOW}$${timeout}s${NO_ANSI_DIM}) ${SEP} ${NO_ANSI}${YELLOW}finished${NO_ANSI}\n" >/dev/stderr \
 	&& kill -INT $${command_pid}
+

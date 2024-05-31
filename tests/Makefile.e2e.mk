@@ -1,6 +1,6 @@
 ##
 # k8s-tools.git End-to-end tests, 
-# exercising Makefile.compose.mk, Makefile.k8s.mk, 
+# exercising compose.mk, k8s.mk, 
 # plus the k8s-tools.yml services to create & interact 
 # with a small k3d cluster.
 ##
@@ -29,14 +29,15 @@ export POD_NAMESPACE:=default
 
 # Include and invoke the `compose.import` macro 
 # so we have targets for k8s-tools.yml services
-include Makefile.k8s.mk
-include Makefile.compose.mk
+include k8s.mk
+include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 # Default target should do everything, end to end.
-all: k8s-tools/__build__ clean init provision test
-bash: 
-	env bash -l
+all: build clean init provision test
+
+# Alias.  Forces rebuild on tools containers
+build: k8s-tools.build
 ###############################################################################
 
 # Top level public targets for cluster operations.
@@ -64,17 +65,17 @@ self.cluster.clean:
 # You can expand this to include usage of `kustomize`, etc.
 # Volumes are already setup, so you can `kubectl appply` from the filesystem.
 provision: provision.helm provision.test_harness 
-provision.helm:	▰/helm/self.cluster.provision_helm_example io.wait/5
+provision.helm:	▰/helm/self.cluster.provision_helm_example io.time.wait/5
 provision.test_harness: ▰/k8s/self.test_harness.provision
 self.cluster.provision_helm_example: 
 	@# Idempotent version of a helm install
+	@# Commands are inlined below, but see 'helm.repo.add' 
+	@# and 'helm.chart.install' for built-in helpers.
 	set -x \
 	&& (helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO} ) \
 	&& (helm list | grep hello-world || helm install ahoy ${HELM_CHART})
 
-self.test_harness.provision: \
-	k8s.kubens.create/${POD_NAMESPACE} \
-	k8s.test_pod_in_namespace/${POD_NAMESPACE}/${POD_NAME}/alpine/k8s
+self.test_harness.provision: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${POD_NAMESPACE}/${POD_NAME}
 	@# Prerequisites above create & activate the `default` namespace 
 	@# and then launch a pod named `test-harness` into it, using the 
 	@# image 'alpine/k8s:1.30.0'.
@@ -112,6 +113,6 @@ cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
 	@# Interactive shell for the test-harness pod 
 	@# (See also'provision' steps for the setup of same)
 
-cluster.show: k8s.commander
+cluster.show: k3d.tui
 	@# TUI for browsing the cluster 
 

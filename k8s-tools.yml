@@ -37,18 +37,20 @@ services:
         FROM ${ALPINE_K8S_VERSION:-alpine/k8s:1.30.0} 
         COPY --from=gum /usr/local/bin/gum /usr/bin
         COPY --from=builder /usr/bin/make /bin/ps /usr/bin/krew /bin
-        RUN apk --no-cache add ncurses shadow
+        RUN apk --no-cache add ncurses shadow coreutils pv
         RUN echo ${DOCKER_GID:-1000} && getent group ${DOCKER_GID:-1000} \
           || groupadd --gid ${DOCKER_GID:-1000} docker
         RUN getent passwd ${DOCKER_UGNAME:-root} || \
           useradd --uid ${DOCKER_UID:-1000} --create-home \
           -g ${DOCKER_GID:-1000} ${DOCKER_UGNAME:-root}
-        RUN ls /home/${DOCKER_UGNAME:-root} || mkdir /home/${DOCKER_UGNAME:-root}
-        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ctx ns sick-pods
-        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ${KREW_PLUGINS:-ktop}
+        RUN mkdir -p /home/${DOCKER_UGNAME:-root}/.kube
+        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ctx ns sick-pods ktop
+        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ${KREW_PLUGINS:-sick-pods}
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/kubectl-ns /usr/bin/kubens
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/kubectl-ctx /usr/bin/kubectx
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/* /usr/bin
+        RUN chown -R ${DOCKER_UID:-1000}:${DOCKER_GID:-1000} /home/${DOCKER_UGNAME:-root}/
+        RUN curl https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/bin/spark && chmod +x /usr/bin/spark
         USER ${DOCKER_UGNAME:-root}
         ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/${DOCKER_UGNAME:-root}/.krew/bin
     # NB: Left for reference, and possibly required by older versions of docker or certain configurations?  
@@ -58,8 +60,9 @@ services:
     volumes:
       # Share the docker sock.  Almost everything will need this
       - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
-      
-      # Share the working directory with containers, plus ~/.kube
+      # Share /etc/hosts, so tool containers have access to any custom or kubefwd'd DNS
+      - /etc/hosts:/etc/hosts:ro
+      # Share the working directory with containers
       - ${PWD}:/workspace
       
       # NB: `.cache` and `.config` as below are used by helm, maybe others?
@@ -79,6 +82,13 @@ services:
       # NB: Add this if you're working with EKS and need AWS creds, similar for azure
       # - ${HOME}/.aws:/home/${DOCKER_UGNAME:-root}/.aws
     tty: true 
+
+  # https://github.com/charmbracelet/gum
+  gum:
+    <<: *base
+    image: k8s:gum
+    entrypoint: gum
+    tty: false
 
   # https://helm.sh/docs/
   helm:
@@ -205,7 +215,7 @@ services:
       dockerfile_inline: |
         FROM k8s:base
         USER root 
-        RUN curl -L https://github.com/kubernetes/kompose/releases/download/v1.33.0/kompose-linux-amd64 -o /usr/bin/kompose
+        RUN curl -L https://github.com/kubernetes/kompose/releases/download/${KOMPOSE_CLI_VERSION:-v1.33.0}/kompose-linux-amd64 -o /usr/bin/kompose
         RUN chmod ugo+x /usr/bin/kompose
         USER ${DOCKER_UGNAME:-root}
     entrypoint: kompose
@@ -319,7 +329,22 @@ services:
         FROM k8s:base 
         COPY --from=rancher /usr/bin/rancher /usr/bin/
     entrypoint: /usr/bin/rancher 
-  
+
+  # promtool: https://prometheus.io/docs/prometheus/latest/command-line/promtool/
+  promtool:
+    <<: *base 
+    depends_on: ['k8s']
+    image: k8s:promtool
+    build:
+      context: . 
+      dockerfile_inline: |
+        FROM prom/prometheus:${PROMETHEUS_CLI_VERSION:-v2.52.0} as prom
+        FROM k8s:base 
+        COPY --from=prom /bin/promtool /usr/bin/
+        USER root 
+        USER ${DOCKER_UGNAME:-root}
+    entrypoint: promtool
+
   yq:
     # NB: included in base, but this option is slimmer
     image: mikefarah/yq:4.43.1
@@ -327,3 +352,5 @@ services:
   jq:
     # NB: included in base, but this option is slimmer
     image: ghcr.io/jqlang/jq:1.7.1
+    
+  

@@ -9,7 +9,7 @@ Set Height 800
 Set TypingSpeed .1
 Set PlaybackSpeed 2
 Set CursorBlink false
-Type "make kubefwd.namespace/default"
+Type "make kubefwd.start/default"
 Enter
 Sleep 6
 Type "curl http://nginx-service:12000"
