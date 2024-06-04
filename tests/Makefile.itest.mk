@@ -57,8 +57,10 @@ self.test-containerized-tty-output:
 	@# some TUI elements require that docker compose run with -it but NOT -T
 	@# this exercises those
 	make io.print.divider label="${BOLD_CYAN}${@}${NO_ANSI}"
-	gum spin --title 'testing gum' -- sleep 2
-	printf seq 100|spark
+	env|grep GITHUB_ACTIONS && true || (\
+		gum spin --title 'testing gum' -- sleep 2; \
+		printf seq 100|spark \
+	)
 
 test-import-root:
 	make io.print.divider label="${BOLD_CYAN}${@}${NO_ANSI}"

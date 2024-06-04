@@ -29,7 +29,7 @@ Documentation per-target is included in the next section, but these tools aren't
 
 ----------------------------------------------------
 
-### API for k8s.mk
+### k8s.mk API 
 
 You'll need to have setup KUBECONFIG before running most of these targets.
 
