@@ -29,7 +29,7 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 .DEFAULT_GOAL := all 
 all: 
 	printf '\n' && set -x \
-	&& make test-containerized-tty-output \
+	&& make test-flow-lib test-containerized-tty-output \
 	&& make demo \
 	&& make demo-double-dispatch \
 	&& make \
@@ -112,3 +112,18 @@ test-dispatch:
 	make ▰/k3d/self.container.dispatch
 self.container.dispatch:
 	printf "in container `hostname`, platform info: `uname`\n"
+
+
+test-flow-lib: test-flow-mux test-flow-dmux test-flow-loop
+	make io.print.divider label="${CYAN}${@}${NO_ANSI}"
+test-flow-loop:
+	make flow.loop/io.time.wait/2
+
+test-flow-dmux:
+	echo {} | make flow.dmux/yq,jq
+	echo {} | make flow.split/yq,jq
+
+test-flow-mux:
+	make flow.mux targets="io.time.wait,io.time.wait,io.time.wait/2" | jq .
+	make flow.join targets="io.time.wait,io.time.wait,io.time.wait/2" | jq .
+	make flow.mux/io.time.wait

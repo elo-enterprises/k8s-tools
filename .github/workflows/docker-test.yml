@@ -10,7 +10,9 @@ on:
     paths-ignore:
       - '**.md'
       - '**.md.j2'
+      - '**.mmd'
       - '**.png'
+      - '**.svg'
       - '**.gif'
 permissions:
   contents: read

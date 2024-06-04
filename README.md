@@ -110,15 +110,15 @@ Besides bundling some tooling, this repository is the reference implementation o
   * **Lower level helpers:** [helmify](https://github.com/arttor/helmify), [kompose](https://kompose.io/), [kubefwd](https://github.com/txn2/kubefwd), 
   * **Monitoring and metrics tools:** [promtool](https://prometheus.io/docs/prometheus/latest/command-line/promtool/), [k9s](https://k9scli.io/), [lazydocker](https://github.com/jesseduffield/lazydocker)
   * **Krew plugins:** [sick-pods](https://github.com/alecjacobs5401/kubectl-sick-pods), [ktop](https://github.com/vladimirvivien/ktop), [kubectx, and kubens](https://github.com/ahmetb/kubectx) available by default, and more on demand.
-  * **TUI and user-messaging elements**: [gum](https://github.com/charmbracelet/gum), [pv](https://www.ivarch.com/programs/pv.shtml), [spark](https://raw.githubusercontent.com/holman/spark/)
+  * **TUI and user-messaging utilities**: [gum](https://github.com/charmbracelet/gum), [pv](https://www.ivarch.com/programs/pv.shtml), [spark](https://raw.githubusercontent.com/holman/spark/)
+  * **General Utilities:** Fixed (i.e. non-busybox) versions of things like date, ps, etc
 
 * **Upstream part of the tool bundle** ([See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details on that.)
-  * **Core Utilities:** [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/), [kustomize](https://github.com/kubernetes-sigs/kustomize), [helm](https://github.com/helm/helm), [krew](https://github.com/kubernetes-sigs/krew)
-  * **Other Utilities:** [helm-diff](https://github.com/databus23/helm-diff), [helm-unittest](https://github.com/helm-unittest/helm-unittest), [helm-push](https://github.com/chartmuseum/helm-push), [kubeseal](https://github.com/bitnami-labs/sealed-secrets), [vals](https://github.com/helmfile/vals), [kubeconform](https://github.com/yannh/kubeconform)
-  * **Cloud Utilities:** [awscli v1](https://github.com/aws/aws-cli), [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator)
   * **Cluster management:** [eksctl](https://github.com/weaveworks/eksctl)
+  * **Core Utilities:** [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/), [kustomize](https://github.com/kubernetes-sigs/kustomize), [helm](https://github.com/helm/helm), [krew](https://github.com/kubernetes-sigs/krew)
+  * **Misc Utilities:** [helm-diff](https://github.com/databus23/helm-diff), [helm-unittest](https://github.com/helm-unittest/helm-unittest), [helm-push](https://github.com/chartmuseum/helm-push), [kubeseal](https://github.com/bitnami-labs/sealed-secrets), [vals](https://github.com/helmfile/vals), [kubeconform](https://github.com/yannh/kubeconform)
+  * **Cloud Utilities:** [awscli v1](https://github.com/aws/aws-cli), [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator)
   * **General Utilities:** Such as bash, curl, jq, yq, etc
-
 
 As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.  **Having these declared in case of eventual use won't saddle you with an enormous boostrap process.**  For the local parts of this bundle, tools are versioned independently, with defaults provided, but overrides allowed from environment vars (no need to edit the compose-file directly).  Upstream components are essentially assigned a single version number (that of the alpine-k8s base), but the compose-file provides service-stubs where that can be easily changed if you need something specific.
 
@@ -523,35 +523,8 @@ jq
 
 ```bash 
 $ echo k3d --version | make k8s-tools/k3d/shell/pipe 
-k8s
-gum
-helm
-kubectl
-kustomize
-helm-diff
-helm-unittest
-helm-push
-aws-iam-authenticator
-eksctl
-awscli
-kubeseal
-krew
-vals
-kubeconform
-kn
-helmify
-fission
-kompose
-argo
-kubefwd
-k3d
-lazydocker
-kind
-k9s
-rancher
-promtool
-yq
-jq
+k3d version v5.6.3
+k3s version v1.28.8-k3s1 (default)
 ```
 
 ```bash 
@@ -704,6 +677,7 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 **The last argument for `compose.import` is the compose-file to load services from.**  It will be tempting to quote this and the other arguments, but that won't work, so resist the urge!
 
+
 ----------------------------------------------------
 
 ### Container Dispatch Syntax/Semantics
@@ -783,18 +757,16 @@ Consider this hypothetical snippet:
 #   2. application is configured by the ansible container,
 #   3. we assume both emit json events (simulating terraform state output, etc)
 
-platform.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
-
+platform1.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
 self.infra.setup:
     echo '{"event":"doing things in terraform container", "log":"infra setup done", "metric":123}'
-
 self.app.setup:
     echo '{"event":"doing things in ansible container", "log":"app setup done", "metric":123}'
 ```
 
-It's powerful, concise, expressive, and already orchestrating tasks across two containers.  The syntax is configurable, and it's even starting to look object-oriented.  
+It's powerful, concise, expressive, and already orchestrating tasks across two containers defined in some external compose-file.  The syntax is configurable, and it's even starting to look object-oriented.  Typically app-setup and infra-setup might further split into stages, but you get the idea.  The infrastructure/app split always comes up but it might look different.. for example you might replace `terraform` with `eksctl`, and `ansible` with `helm`.
 
-Let's consider an extension.  Suppose `platform.setup` output needs to be used separately by subsequent bootstrap, like using the platform info to configure separate backends for `logging`, `metrics`, and `events`.  
+Let's consider an extension of this.  Suppose `platform.setup` output needs to be used separately by subsequent bootstrap processes.  For example, using the platform output to configure separate backends for each of `logging`, `metrics`, and `events`.  
 
 For this kind of thing it's most natural to think in terms of process algebra, and you can express it like this:
 
@@ -807,31 +779,77 @@ For this kind of thing it's most natural to think in terms of process algebra, a
 
 logging: ▰/elk/self.logging
 self.logging:
+    # pretending to push data somewhere with curl
     cat /dev/stdin | jq .log
 
 metrics: ▰/prometheus/self.metrics
 self.metrics:
+    # pretending to do stuff with the promtool CLI
     cat /dev/stdin | jq .metric
 
-events:▰/datadog/self.events
+events: ▰/datadog/self.events
 self.events:
+    echo 'pretending to do stuff with the datadog CLI'
     cat /dev/stdin | jq .event
 
-# pipes the platform.setup output to a handler for each LME backend
 bootstrap:
-    make platform.setup | make io.tee.targets targets="logging,metrics,events"
+    # pipes all the platform.setup output into a handler-target for each LME backend
+    make platform1.setup | make flow.dmux/logging,metrics,events
 ```
 
-Above, the builtin [io.tee.target](#) target is used to send data to our three backends, and each backend pulls out the piece of the input it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  It's flexible, and so easy to read that it's easy to forget: we just orchestrated a few tasks across 5 containers.
+Above, the builtin [flow.dmux target](#flowdmux) is used to send platform-setup's output into our three backend handlers.  This is just syntactic sugar fora 1-to-many pipe, aka a demultiplexer, or "dmux").  Then each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
+
+This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
+
+<img src=img/example-platform-1.png>
+
+Whew.  We know what happens next is probably *more* platforms, more tools/containers, and more flows.  Not to belabor the point but let's watch how it blows up:
+
+<img src=img/example-platform-2.png>
+
+The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weights in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
+
+```Makefile 
+include compose.mk
+$(eval $(call compose.import, ▰, TRUE, my-containers.yml))
+
+all: bootstrap 
+bootstrap:
+    make platform1.setup | make flow.dmux/logging,metrics,events
+platform1.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
+logging: ▰/elk/self.logging
+metrics: ▰/prometheus/self.metrics
+events: ▰/datadog/self.events
+self.infra.setup:
+    echo '{"event":"doing things in terraform container", "log":"infra setup done", "metric":123}'
+self.app.setup:
+    echo '{"event":"doing things in ansible container", "log":"app setup done", "metric":123}'
+self.logging:
+    cat /dev/stdin | jq .log
+self.metrics:
+    cat /dev/stdin | jq .metric
+self.events:
+    cat /dev/stdin | jq .event
+```
+
+There's other `flow.*` targets ([see the API docs](#apicomposemkflow)), and while it's not recommended to go crazy with this stuff, when you need it you need it.  
+
+This kind of really elegant expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF crowds.  **But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless.**  At the same time, it neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔
+
+It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but  act like This example pretty much works as written, although we're missing the *actual* containers just because this stuff is out of scope for k8s-tools.yml.  
+
+If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).  
+
+For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and apps phases.
 
 ---------------------------------------------------------------
 
 ### compose.mk API
 
-Besides the `compose.import` macro and [the auto-generated targets per service], there are several static targets you might find useful.  These are divided up into two main namespaces:
+Besides the `compose.import` macro and [the auto-generated targets per service], there are several static targets you might find useful.  They are divided up into two main namespaces:
 
-* *`io.*`* targets: Including IO helpers, text-formatters, and other utilities
-* *`docker.*`* targets: Helpers for working with docker.
+* [*`io.*`*](#apicomposemkio) targets: Including IO helpers, text-formatters, and other utilities
+* [*`docker.*`]*(#apicomposemkdocker) targets: Helpers for working with docker.
 
 
 #### API::compose.mk::io
@@ -862,36 +880,6 @@ Pipe-friendly helper for stripping ansi.
  (Probably won't work everywhere, but has no deps)
 ```
 
-#### **`io.json.builder`**
-
-```bash 
-Appends the given key/val to the input object.
- This is usually used to build JSON objects from scratch.
-
- USAGE: 
-	 echo {} | key=foo val=bar make io.json.builder 
-   {"foo":"bar"}
-```
-
-#### **`io.loop/<arg>`**
-
-```bash 
-Helper for repeatedly running the named target a given number of times.
- This requires the 'pv' tool for progress visualization, which is available 
- in most k8s-tools base-containers.  By default, stdout for targets is 
- supressed because it messes up the visualization, but stderr is left alone. 
-
- USAGE:
-	make io.loop/<target_name>/<times>
-```
-
-#### **`io.mktemp`**
-
-```bash 
-Helper for working with temp files.  Returns filename, 
- and uses 'trap' to handle at-exit file-deletion automatically
-```
-
 #### **`io.print.dim`**
 
 ```bash 
@@ -901,7 +889,13 @@ Pipe-friendly helper for dimming the input text
 #### **`io.print.dim.indent`**
 
 ```bash 
-Like 'io.print.ident' except it also dims the text.
+Like 'io.print.indent' except it also dims the text.
+```
+
+#### **`io.print.dim.indent.stderr`**
+
+```bash 
+
 ```
 
 #### **`io.print.divider`**
@@ -924,33 +918,16 @@ Print a divider with a width of `term_width / <arg>`
   make io.print.divider/<int>
 ```
 
-#### **`io.print.ident`**
+#### **`io.print.indent`**
 
 ```bash 
 Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
 ```
 
-#### **`io.tee`**
+#### **`io.print.indent.stderr`**
 
 ```bash 
-Helper for constructing a parallel process pipeline with `tee` and command substitution.
- Pipe-friendly, this works directly with stdin.  This exists mostly to enable `io.tee.targets`.
- Using this is easier than the alternative pure-shell version for simple commands, but it's 
- also pretty naive, and splits commands on semicolons, so don't try and load other pipelines
- as individual commands with this approach.  
 
- USAGE: (pipes the same input to jq and yq commands)
-   echo {} | make io.tee cmds="jq;yq"
-```
-
-#### **`io.tee.targets`**
-
-```bash 
-Like `io.tee` but expects destination pipes are make targets.
- Pipe-friendly, this works directly with stdin.
-
- USAGE: (pipes the same input to target1 and target2)
-   echo {} | make io.tee.targets targets="target1,target2"
 ```
 
 #### **`io.time.target/<arg>`**
@@ -963,6 +940,12 @@ Emits run time for the given make-target in seconds.
    io.time.target/<target_to_run>
 ```
 
+#### **`io.time.wait`**
+
+```bash 
+
+```
+
 #### **`io.time.wait/<arg>`**
 
 ```bash 
@@ -970,6 +953,12 @@ Pauses for the given amount of seconds.
 
  USAGE: 
    io.time.wait/<int>
+```
+
+#### **`io.time.wait/1`**
+
+```bash 
+
 ```
 
 #### **`io.time.wait_for_command`**
@@ -1035,12 +1024,14 @@ Returns the docker socket in use for the current docker context.
 
 ```bash 
 Show information about docker-status.  No arguments.
+
  This is pipe-friendly, although it also displays additional 
  information on stderr for humans, specifically an abbreviated
  table for 'docker ps'.  Machine-friendly JSON is also output 
  with the following schema:
 
-   { "version": .., "container_count": .., "socket": .., "context_name": .. }
+   { "version": .., "container_count": ..,
+     "socket": .., "context_name": .. }
 ```
 
 #### **`docker.stop`**

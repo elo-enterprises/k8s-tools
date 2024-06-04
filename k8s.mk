@@ -1,3 +1,4 @@
+#!/usr/bin/env -S make -f
 ##
 # k8s.mk
 #
@@ -35,6 +36,19 @@ GLYPH_K8S=${GREEN}⑆${DIM}
 GUM_SPIN_DEFAULTS=--spinner.foreground=231 --spinner meter
 GUM_STYLE_DEFAULT:=--border double --foreground 139 --border-foreground 109
 GUM_STYLE_DIV:=--border double --align center --width `echo \`tput cols\` - 3 | bc`
+
+# Define 'help' target iff it's not already defined.  This should be inlined for all files 
+# that want to be simultaneously usable in stand-alone mode + library mode (with 'include')
+ifeq ($(MAKELEVEL), 0)
+_help_id:=$(shell uuidgen | head -c 8 || date +%s | tail -c 8)
+_help_${_help_id}:
+	@# Attempts to autodetect the targets defined in this Makefile context.  
+	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
+	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
+	@#
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true
+$(eval help: _help_${_help_id})
+endif
 
 # How long to wait when checking if namespaces/pods are ready (yes, 'export' is required.)
 export K8S_POLL_DELTA?=23
@@ -275,14 +289,14 @@ k8s.stat:
 	env|grep KUBE 
 	env|grep DOCKER
 	printf "${DIM}⑆ k8s.stat.cluster_info ${NO_ANSI}${NO_ANSI}\n" > /dev/stderr
-	kubectl version | make io.print.ident 
-	kubectl cluster-info | grep -v cluster-info | awk NF | make io.print.ident
+	kubectl version | make io.print.indent 
+	kubectl cluster-info | grep -v cluster-info | awk NF | make io.print.indent
 	printf "${DIM}⑆ k8s.stat.node_info (${NO_ANSI}${GREEN}`kubectl get nodes -oname|wc -l`${NO_ANSI_DIM} total)\n" > /dev/stderr
-	printf "${DIM}`kubectl get nodes | make io.print.ident`${NO_ANSI}\n"
+	printf "${DIM}`kubectl get nodes | make io.print.indent`${NO_ANSI}\n"
 	printf "${DIM}⑆ k8s.stat.auth_info ${NO_ANSI}${NO_ANSI}\n" > /dev/stderr
-	printf "${DIM}`kubectl auth whoami -ojson | make io.print.ident`${NO_ANSI}\n"
+	printf "${DIM}`kubectl auth whoami -ojson | make io.print.indent`${NO_ANSI}\n"
 	printf "${DIM}⑆ k8s.stat.namespace_info ${NO_ANSI}${NO_ANSI}\n" > /dev/stderr
-	printf "`kubens | make io.print.ident`\n"
+	printf "`kubens | make io.print.indent`\n"
 
 k8s.test_harness/%:
 	@# Starts a test-pod in the given namespace, then blocks until it's ready.

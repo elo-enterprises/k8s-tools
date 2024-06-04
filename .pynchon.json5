@@ -1,6 +1,9 @@
 // configuration for pynchon (a docs-generation tool )
 {
-  "plugins": ["vhs"],
+  "plugins": ["vhs","mermaid"],
+  "mermaid":{
+    docker_args: ['--configFile','docs/.mermaid.conf'],
+  },
   "markdown": {
     "apply_hooks": [],
     "goals": [],

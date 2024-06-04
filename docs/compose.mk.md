@@ -26,47 +26,11 @@ If you're interested in the gory details of the longer-format answer, there's mo
 
 ----------------------------------------------------
 
-### Macro Arguments
-
-Make isn't big on named-arguments, so let's unpack the `compose.import` macro invocation.
-
-```Makefile
-include compose.mk
-$(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
-```
-
- **The 1st argument for `compose.import` is called `target_namespace`**.  You can swap the unicode for `▰` out, opting instead for different symbols, path-like prefixes, whatever.  If you're bringing in services from several compose files, one way to control syntax and namespacing is to use different symbols for different calls to `compose.import`.  (For a 2-file example, see the [Multiple Compose Files](#multiple-compose-files) section.)
-
-**The 2nd argument for `compose.import` controls whether service names are available as top-level Makefile targets.**  The only value that means True is *`TRUE`*, because Make isn't big on bool types.  Regardless of the value here, service targets are always under `<compose_file_stem>/<compose_service_name>`. 
-
-**The last argument for `compose.import` is the compose-file to load services from.**  It will be tempting to quote this and the other arguments, but that won't work, so resist the urge!
+{% include "macro-arguments.md" %}
 
 ----------------------------------------------------
 
-### Container Dispatch Syntax/Semantics
-
-Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  
-
-```Makefile
-# A target that runs stuff inside the `debian` container, runs from host using `make demo`
-demo: ▰/debian/self.demo
-
-# Dispatching 1 target to 2 containers looks like this
-demo-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
-
-# Displays platform info to show where target is running.
-self.demo:
-	source /etc/os-release && printf "$${PRETTY_NAME}\n"
-	uname -n -v
-```
-
-The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the *`self`* prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: *`self`* hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.
-
-But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `self.demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `self.demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  
-
-Look, no `docker run ..` clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
-
-Under the hood, dispatch is implemented by building on the [default targets that are provided by the bridge](#makecompose-bridge).
+{% include "dispatch-syntax.md" %}
 
 ----------------------------------------------------
 
@@ -80,10 +44,10 @@ Under the hood, dispatch is implemented by building on the [default targets that
 
 ### compose.mk API
 
-Besides the `compose.import` macro and [the auto-generated targets per service], there are several static targets you might find useful.  These are divided up into two main namespaces:
+Besides the `compose.import` macro and [the auto-generated targets per service], there are several static targets you might find useful.  They are divided up into two main namespaces:
 
-* *`io.*`* targets: Including IO helpers, text-formatters, and other utilities
-* *`docker.*`* targets: Helpers for working with docker.
+* [*`io.*`*](#apicomposemkio) targets: Including IO helpers, text-formatters, and other utilities
+* [*`docker.*`]*(#apicomposemkdocker) targets: Helpers for working with docker.
 
 
 #### API::compose.mk::io

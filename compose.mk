@@ -1,3 +1,4 @@
+#!/usr/bin/env -S make -f
 ##
 # compose.mk
 #
@@ -58,9 +59,9 @@ SEP:=${NO_ANSI}//
 # Glyphs used in log messages
 GLYPH_DOCKER=${GREEN}≣${DIM_GREEN}
 GLYPH_IO=${GREEN}⇄${DIM_GREEN}
+GLYPH_FLOW=${GREEN}⋔${DIM_GREEN}
 
-
-# Hints for k8s-tools.yml to fix file permissions
+# Hints for compose files to fix file permissions (see k8s-tools.yml for an example of how this is used)
 OS_NAME:=$(shell uname -s)
 ifeq (${OS_NAME},Darwin)
 export DOCKER_UID:=0
@@ -72,14 +73,13 @@ export DOCKER_GID:=$(shell getent group docker 2> /dev/null | cut -d: -f3 || id 
 export DOCKER_UGNAME:=user
 endif
 
-# honored by `docker compose`, this helps to quiet output
+# Honored by `docker compose`, this helps to quiet output
 export COMPOSE_IGNORE_ORPHANS?=True
 
 # Used internally.  This is 1 if dispatched inside container, otherwise 0
 export COMPOSE_MK?=0
 
 ## END: data
-########################################################################
 ## BEGIN: macros
 
 # Macro to yank all the compose-services out of YAML.  
@@ -87,7 +87,9 @@ export COMPOSE_MK?=0
 # But bash or awk would be a nightmare, and even perl requires packages to be
 # installed before it can parse YAML.  To work around this, the COMPOSE_MK 
 # env-var is checked, so that inside containers `compose.get_services` always 
-# returns nothing.
+# returns nothing.  As a side-effect, this prevents targets-in-containers from 
+# calling other targets-in-containers (which won't work anyway unless those 
+# containers also have docker).
 define compose.get_services
 	$(shell if [ "${COMPOSE_MK}" = "0" ]; then \
 		cat ${1} | python3 -c 'import yaml, sys; data=yaml.safe_load(sys.stdin.read()); svc=data["services"].keys(); print(" ".join(svc))'; \
@@ -95,7 +97,8 @@ define compose.get_services
 		echo -n ""; fi)
 endef
 
-# Macro to create all the targets for a given compose-service
+# Macro to create all the targets for a given compose-service.
+# See docs @ https://github.com/elo-enterprises/k8s-tools/#composemk-api-dynamic
 define compose.create_make_targets
 $(eval compose_service_name := $1)
 $(eval target_namespace := $2)
@@ -112,13 +115,14 @@ ${compose_file_stem}/$(compose_service_name)/get_shell:
 		-c "which bash || which sh" \
 		|| printf "${YELLOW}Neither 'bash' nor 'sh' are available!\n(service=${compose_service_name} @ ${compose_file})\n${NO_ANSI}" > /dev/stderr
 
-# Invokes the shell
 ${compose_file_stem}/$(compose_service_name)/shell:
+	@# Invokes the shell
 	@export entrypoint=`make ${compose_file_stem}/$(compose_service_name)/get_shell` \
 	&& printf "${GREEN}⇒${NO_ANSI}${DIM} ${compose_file_stem}/$(compose_service_name)/shell (${GREEN}`env|grep entrypoint\=`${NO_ANSI}${DIM})${NO_ANSI}\n" \
 		&& make ${compose_file_stem}/$(compose_service_name)
 	
 ${compose_file_stem}/$(compose_service_name)/shell/pipe:
+	@# Pipes data into the shell, using stdin directly.
 	@$$(eval export shellpipe_tempfile:=$$(shell mktemp))
 	@cat /dev/stdin > $${shellpipe_tempfile} \
 	&& eval "cat $${shellpipe_tempfile} | pipe=yes \
@@ -205,25 +209,32 @@ $(foreach \
 			$${compose_service_name}, \
 			${target_namespace}, ${import_to_root}, ${compose_file}, )))
 endef
-
-help:
+# Define 'help' target iff it's not already defined.  This should be inlined for all files 
+# that want to be simultaneously usable in stand-alone mode + library mode (with 'include')
+ifeq ($(MAKELEVEL), 0)
+_help_id:=$(shell uuidgen | head -c 8 || date +%s | tail -c 8)
+_help_${_help_id}:
 	@# Attempts to autodetect the targets defined in this Makefile context.  
 	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
 	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
 	@#
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true
+$(eval help: _help_${_help_id})
+endif
 
 compose.init:
 	@# Ensures compose is available.  Note that 
 	@# build/run/etc cannot happen without a file, 
 	@# for that, see instead targets like '<compose_file_stem>.build'
 	@#
-	docker compose version >/dev/null
+	docker compose version |make io.print.dim > /dev/stderr
 
 docker.init:
 	@# Checks if docker is available, then displays version/context (no real setup)
 	@#
-	set -x && docker --version && docker context show
+	( printf "Docker Context: `docker context show`\n" \
+	  && docker --version ) \
+	| make io.print.dim > /dev/stderr
 
 docker.panic:
 	@# Debugging only!  This is good for ensuring a clean environment, 
@@ -236,32 +247,32 @@ docker.panic:
 	docker volume prune -f
 	docker system prune -a -f
 
-docker.stat:
+docker.stat: 
 	@# Show information about docker-status.  No arguments.
+	@#
 	@# This is pipe-friendly, although it also displays additional 
 	@# information on stderr for humans, specifically an abbreviated
 	@# table for 'docker ps'.  Machine-friendly JSON is also output 
 	@# with the following schema:
 	@#
-	@#   { "version": .., "container_count": .., "socket": .., "context_name": .. }
-	@# 
+	@#   { "version": .., "container_count": ..,
+	@#     "socket": .., "context_name": .. }
 	@#
-	$(eval export dstat_tempf:=$$(shell mktemp))
-	trap "rm -f ${dstat_tempf}" EXIT \
-	&& make docker.context/current > ${dstat_tempf} \
-	&& printf "${GLYPH_DOCKER} docker.stat${NO_ANSI_DIM}:\n` \
-		docker ps --format "table {{.ID}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Names}}" \
-		| make io.print.ident \
-	`\n${NO_ANSI}" > /dev/stderr \
+	$(call io.mktemp) && \
+	make docker.context/current > $${tmpf} \
+	&& printf "${GLYPH_DOCKER} docker.stat${NO_ANSI_DIM}:\n" > /dev/stderr \
+	&& make docker.init compose.init \
+	&& docker ps --format "table {{.ID}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Names}}" \
+	| make io.print.dim > /dev/stderr \
 	&& echo {} \
-		| make io.json.builder key=version \
+		| make stream.json.builder key=version \
 			val="`docker --version|sed 's/Docker " //'`" \
-		| make io.json.builder key=container_count \
+		| make stream.json.builder key=container_count \
 			val="`docker ps --format json| jq '.Names'|wc -l`" \
-		| make io.json.builder key=socket \
-			val="`cat ${dstat_tempf} | jq -r .Endpoints.docker.Host`" \
-		| make io.json.builder key=context_name \
-			val="`cat ${dstat_tempf} | jq -r .Name`"
+		| make stream.json.builder key=socket \
+			val="`cat $${tmpf} | jq -r .Endpoints.docker.Host`" \
+		| make stream.json.builder key=context_name \
+			val="`cat $${tmpf} | jq -r .Name`"
 
 docker.context:
 	@# Returns all of the available docker context. Pipe-friendly.
@@ -325,50 +336,21 @@ io.fmt.strip_ansi:
 	@#
 	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
 
-io.json.builder:
-	@# Appends the given key/val to the input object.
-	@# This is usually used to build JSON objects from scratch.
-	@#
-	@# USAGE: 
-	@#	 echo {} | key=foo val=bar make io.json.builder 
-	@#   {"foo":"bar"}
-	@#
-	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
-
-io.loop/%:
-	@# Helper for repeatedly running the named target a given number of times.
-	@# This requires the 'pv' tool for progress visualization, which is available 
-	@# in most k8s-tools base-containers.  By default, stdout for targets is 
-	@# supressed because it messes up the visualization, but stderr is left alone. 
-	@#
-	@# USAGE:
-	@#	make io.loop/<target_name>/<times>
-	@#
-	$(eval export pathcomp:=$(shell echo ${*}| sed -e 's/\// /g'))
-	$(eval export target:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
-	$(eval export times:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
-	printf "${GLYPH_IO} io.loop${NO_ANSI_DIM} ${SEP} ${GREEN}$${target}${NO_ANSI} ($${times}x)\n"
-	(for i in `seq $${times}`; \
-        do \
-			make $${target} > /dev/null; echo $${i}; \
-        done) | pv -s $${times} -l -i 1 --name "$${target}" -t -e -C -p > /dev/null
-io.mktemp:
-	@# Helper for working with temp files.  Returns filename, 
-	@# and uses 'trap' to handle at-exit file-deletion automatically
-	@#
-	export c_tempfile=`mktemp` \
-	&& trap "echo removing $${c_tempfile}; rm -f $${c_tempfile}" EXIT \
-	&& echo $${c_tempfile}
-
+# Helper for working with temp files.  Returns filename, 
+# and uses 'trap' to handle at-exit file-deletion automatically
+#
+define io.mktemp
+	tmpf=$$(mktemp) && trap "rm -f $${tmpf}" EXIT 
+endef
 io.print.dim: 
 	@# Pipe-friendly helper for dimming the input text
 	@#
 	printf "${DIM}`cat /dev/stdin`${NO_ANSI}\n"
 
 io.print.dim.indent:
-	@# Like 'io.print.ident' except it also dims the text.
+	@# Like 'io.print.indent' except it also dims the text.
 	@#
-	cat /dev/stdin | make io.print.dim | make io.print.ident
+	cat /dev/stdin | make io.print.dim | make io.print.indent
 
 io.print.divider:
 	@# Prints a divider on stdout, defaulting to the full terminal width, 
@@ -402,47 +384,68 @@ io.print.divider/%:
 	@width=`echo \`tput cols\` / ${*} | bc` \
 	make io.print.divider
 
-io.print.ident:
+io.print.indent:
 	@# Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
 	@#
 	cat /dev/stdin | sed 's/^/  /'
+io.print.indent.stderr:
+	cat /dev/stdin | make io.print.indent > /dev/stderr
+io.print.dim.indent.stderr:
+	cat /dev/stdin | make io.print.dim | make io.print.indent > /dev/stderr
 
-io.tee:
-	@# Helper for constructing a parallel process pipeline with `tee` and command substitution.
-	@# Pipe-friendly, this works directly with stdin.  This exists mostly to enable `io.tee.targets`.
-	@# Using this is easier than the alternative pure-shell version for simple commands, but it's 
-	@# also pretty naive, and splits commands on semicolons, so don't try and load other pipelines
-	@# as individual commands with this approach.  
+stream.peek:
+	@# Prints the entire input stream as indented/dimmed text on stderr,
+	@# Then passes-through the entire stream to stdout.
 	@#
-	@# USAGE: (pipes the same input to jq and yq commands)
-	@#   echo {} | make io.tee cmds="jq;yq" 
+	@# USAGE:
+	@#   echo hello-world | make stream.peek | cat
 	@#
-	src="`\
-		echo $${cmds} \
-		| tr ';' '\n' \
-		| xargs -n1 -I% \
-			printf  ">($${tee_pre:-}%$${tee_post:-}) "`" \
-	&& header="${GLYPH_IO} io.tee${NO_ANSI} ${SEP}${DIM} starting pipe" \
-	&& cmd="cat /dev/stdin | tee $${src} " \
-	&& printf "$${header} (${NO_ANSI}${BOLD}`echo $${cmds} | grep -o ';' | wc -l`${NO_ANSI_DIM} components)\n" > /dev/stderr \
-	&& printf "${NO_ANSI_DIM}${GLYPH_IO} ${NO_ANSI_DIM}io.tee${NO_ANSI} ${SEP} ${NO_ANSI_DIM}$${cmd}${NO_ANSI}\n" > /dev/stderr \
-	&& eval $${cmd} | cat
+	$(call io.mktemp) && \
+	cat /dev/stdin > $${tmpf} \
+	&& cat $${tmpf} | make io.print.dim.indent.stderr \
+	&& cat $${tmpf}
 
-io.tee.targets:
-	@# Like `io.tee` but expects destination pipes are make targets.
-	@# Pipe-friendly, this works directly with stdin.
+stream.json.builder:
+	@# Appends the given key/val to the input object.
+	@# This is usually used to build JSON objects from scratch.
 	@#
-	@# USAGE: (pipes the same input to target1 and target2)
-	@#   echo {} | make io.tee.targets targets="target1,target2" 
+	@# USAGE: 
+	@#	 echo {} | key=foo val=bar make stream.json.builder 
+	@#   {"foo":"bar"}
 	@#
-	# cat /dev/stdin | tee_pre="make " cmds="${*}" make io.tee
-	cat /dev/stdin \
-	| make io.tee \
-		cmds="`\
-			printf $${targets} \
-			| tr ';' '\n' \
-			| xargs -n1 -I% echo make % \
-			| tr '\n' ';'`"
+	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
+stream.space.enum:
+	@# Enumerates the space-delimited input list, zipping indexes with values.
+	@#
+	@# USAGE:
+	@#   printf one two | make io.enum
+	@# 		0	one
+	@# 		1	two
+	@#
+	cat /dev/stdin | xargs -n1 echo | make stream.nl.enum
+stream.nl.enum:
+	@# Enumerates the newline-delimited input stream, zipping index with values
+	@#
+	@# USAGE:
+	@#   printf "one\ntwo" | make stream.nl.enum
+	@# 		0	one
+	@# 		1	two
+	@#
+	cat /dev/stdin | nl -v0 -w1 -nln
+stream.nl.first:
+	@# Gets the first element, or the "car" of newline-delimited input
+	cat /dev/stdin | awk 'NR==1'
+stream.nl.rest:
+	@# Gets the "rest", aka the tail or the cdr, of newline-delimited input
+	cat /dev/stdin | awk 'NR>1'
+stream.space.first:
+	@# Gets the first element, or the "car" of space-delimited input
+	cat /dev/stdin | awk '{print $$1}'
+stream.space.rest:
+	@# Gets the "rest", aka the tail or the cdr, of space-delimited input
+	cat /dev/stdin |  awk '{$$1=""; print $$0}'
+
+io.time.wait: io.time.wait/1
 
 io.time.wait/%:
 	@# Pauses for the given amount of seconds.
@@ -479,3 +482,113 @@ io.time.wait_for_command:
 	&& printf "${DIM}${GLYPH_IO} io.time.wait_for_command${NO_ANSI_DIM} (${YELLOW}$${timeout}s${NO_ANSI_DIM}) ${SEP} ${NO_ANSI}${YELLOW}finished${NO_ANSI}\n" >/dev/stderr \
 	&& kill -INT $${command_pid}
 
+flow.dmux:
+	@# Demultiplex / fan-out operator that sends stdin to each of the named targets in parallel.
+	@# (This is like `flow.tee` but works with make-target names instead of shell commands)
+	@#
+	@# USAGE: (pipes the same input to target1 and target2)
+	@#   echo {} | make flow.dmux targets=",target2" 
+	@#
+	printf "${GLYPH_FLOW} flow.dmux${NO_ANSI_DIM} ${SEP} ${DIM}$${targets//,/ ; }${NO_ANSI}\n" > /dev/stderr
+	cat /dev/stdin \
+	| make flow.tee \
+		cmds="`\
+			printf $${targets} \
+			| tr ',' '\n' \
+			| xargs -n1 -I% echo make % \
+			| tr '\n' ','`"
+
+flow.dmux/%:
+	@# Same as.dmux flow, but accepts arguments directly (no variable)
+	@#
+	@# USAGE: ( pipes the same input to yq and jq )
+	@#   echo {} | make flow.dmux/yq,jq
+	@#
+	cat /dev/stdin | targets="${*}" make flow.dmux
+
+flow.loop/%:
+	@# Helper for repeatedly running the named target a given number of times.
+	@# This requires the 'pv' tool for progress visualization, which is available
+	@# by default in k8s-tools containers.   By default, stdout for targets is 
+	@# supressed because it messes up the progress bar, but stderr is left alone. 
+	@#
+	@# USAGE:
+	@#   make flow.loop/<target_name>/<times>
+	@#
+	@# NB: This requires "flat" targets with no '/' !
+	$(eval export pathcomp:=$(shell echo ${*}| sed -e 's/\// /g'))
+	$(eval export target:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
+	$(eval export times:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
+	printf "${GLYPH_FLOW} flow.loop${NO_ANSI_DIM} ${SEP} ${GREEN}$${target}${NO_ANSI} ($${times}x)\n" > /dev/stderr
+	(for i in `seq $${times}`; \
+	do \
+		make $${target} > /dev/null; echo $${i}; \
+	done) | pv -s $${times} -l -i 1 --name "$${target}" -t -e -C -p > /dev/null
+flow.mux:
+	@# Runs the comma-separated named targets in parallel, then waits for all of them to finish.
+	@# For stdout and stderr, this is a many-to-one mashup of whatever writes first, and nothing   
+	@# about output ordering is guaranteed.  This works by creating a small script, displaying it, 
+	@# and then running it.  It's not very sophisticated!  The script just tracks pids of 
+	@# launched processes, then waits on all pids.
+	@# 
+	@# If the named targets are all well-behaved, this *might* be pipe-safe, but in 
+	@# general it's possible for the subprocess output to be out of order.  If you do
+	@# want legible structured output that *prints* in ways that are concurrency-safe,
+	@# here's a hint: emit nothing, or emit minified JSON output with printf and 'jq -c',
+	@# and there is a good chance you can consume it.  Printf should be atomic on most 
+	@# platforms with JSON of practical size? And crucially, 'jq .' handles object input, 
+	@# empty input, and streamed objects with no wrapper (like '{}<newline>{}').
+	@#
+	@# USAGE: (runs 3 commands in parallel)
+	@#   make flow.mux targets="io.time.wait/3,io.time.wait/1,io.time.wait/2" | jq .
+	@#
+	printf "${GLYPH_FLOW} flow.mux${NO_ANSI_DIM} ${SEP} ${NO_ANSI_DIM}$${targets//,/ ; }${NO_ANSI}\n" > /dev/stderr
+	$(call io.mktemp) && \
+	mcmds=`printf $${targets} \
+	| tr ',' '\n' \
+	| xargs -d'\n' -I% printf "make % & pids+=\"$$\n" \
+	| xargs -d'\n' -I% printf "%! \"\n" \
+	` \
+	&& (printf 'pids=""\n' \
+		&& printf "$${mcmds}\n" \
+		&& printf 'wait $${pids}\n') > $${tmpf} \
+	&& printf "${CYAN_FLOW_LEFT} script \n${DIM}`cat $${tmpf}|make io.print.dim.indent`${NO_ANSI}\n" > /dev/stderr \
+	&& bash $${tmpf}
+
+flow.mux/%:
+	@# Alias for flow.mux, but accepts arguments directly
+	targets="${*}" make flow.mux 
+
+flow.split: flow.dmux
+	@# Alias for flow.dmux
+
+flow.split/%: 
+	@# Alias for flow.split, but accepts arguments directly
+	export targets="${*}" && make flow.split
+
+flow.join: 
+	@# Alias for flow.mux
+	make flow.mux
+
+flow.tee:
+	@# USAGE: ( pipes the same input to jq and yq commands )
+	@#   echo {} | make flow.tee cmds="jq,yq" 
+	@#
+	@# Helper for constructing a parallel process pipeline with `tee` and command substitution.
+	@# Pipe-friendly, this works directly with stdin.  This exists mostly to enable `flow.dmux`
+	@# but it can be used directly.
+	@#
+	@# Using this is easier than the alternative pure-shell version for simple commands, but it's 
+	@# also pretty naive, and splits commands on commas; probably better to avoid loading other
+	@# pipelines as individual commands with this approach.  
+	@#
+	src="`\
+		echo $${cmds} \
+		| tr ',' '\n' \
+		| xargs -n1 -I% \
+			printf  ">($${tee_pre:-}%$${tee_post:-}) "`" \
+	&& header="${GLYPH_FLOW} flow.tee${NO_ANSI} ${SEP}${DIM} starting pipe" \
+	&& cmd="cat /dev/stdin | tee $${src} " \
+	&& printf "$${header} (${NO_ANSI}${BOLD}`echo $${cmds} | grep -o ',' | wc -l`${NO_ANSI_DIM} components)\n" > /dev/stderr \
+	&& printf "${NO_ANSI_DIM}${GLYPH_FLOW} ${NO_ANSI_DIM}flow.tee${NO_ANSI} ${SEP} ${NO_ANSI_DIM}$${cmd}${NO_ANSI}\n" > /dev/stderr \
+	&& eval $${cmd} | cat

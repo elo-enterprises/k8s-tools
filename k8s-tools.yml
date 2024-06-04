@@ -37,7 +37,7 @@ services:
         FROM ${ALPINE_K8S_VERSION:-alpine/k8s:1.30.0} 
         COPY --from=gum /usr/local/bin/gum /usr/bin
         COPY --from=builder /usr/bin/make /bin/ps /usr/bin/krew /bin
-        RUN apk --no-cache add ncurses shadow coreutils pv
+        RUN apk --no-cache add ncurses shadow coreutils pv uuidgen
         RUN echo ${DOCKER_GID:-1000} && getent group ${DOCKER_GID:-1000} \
           || groupadd --gid ${DOCKER_GID:-1000} docker
         RUN getent passwd ${DOCKER_UGNAME:-root} || \

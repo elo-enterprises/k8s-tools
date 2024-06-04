@@ -163,7 +163,7 @@ $ make k8s-tools.services
 
 ```bash 
 $ echo k3d --version | make k8s-tools/k3d/shell/pipe 
-{{bash('make k8s-tools.services').strip()}}
+{{bash('echo k3d --version | make k8s-tools/k3d/shell/pipe').strip()}}
 ```
 
 ```bash 
