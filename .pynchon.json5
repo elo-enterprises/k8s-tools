@@ -2,7 +2,11 @@
 {
   "plugins": ["vhs","mermaid"],
   "mermaid":{
-    docker_args: ['--configFile','docs/.mermaid.conf'],
+    output_mode: "png",
+    mermaid_args: [
+      "--configFile", "docs/.mermaid.conf",
+      //"--backgroundColor","efefef"
+      ],
   },
   "markdown": {
     "apply_hooks": [],

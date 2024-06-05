@@ -69,7 +69,8 @@ docs: docs.jinja docs.mermaid
 	@# Builds all the docs
 docs.jinja:
 	@# Render docs twice to use includes, then get the ToC 
-	set -x && pynchon jinja render README.md.j2 \
+	set -x && pynchon jinja render docs/README.md.j2 \
+	&& mv docs/README.md . \
 	&& pynchon jinja render README.md -o .tmp.R.md && mv .tmp.R.md README.md \
 	&& pynchon markdown preview README.md
 docs.mermaid:
@@ -96,17 +97,3 @@ vhs.e2e:
 		&& ls ../docs/tape/e2e*.tape \
 		| xargs -I% -n1 sh -x -c "vhs %" \
 		&& mv img/* ../img
-
-# Define 'help' target iff it's not already defined.  This should be inlined for all files 
-# that want to be simultaneously usable in stand-alone mode + library mode (with 'include')
-ifeq ($(MAKELEVEL), 0)
-_help_id:=$(shell uuidgen | head -c 8 || date +%s | tail -c 8)
-_help_${_help_id}:
-	@# Attempts to autodetect the targets defined in this Makefile context.  
-	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
-	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
-	@#
-	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true
-$(eval help: _help_${_help_id})
-endif
-

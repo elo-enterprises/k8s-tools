@@ -1,9 +1,5 @@
-##
-# k8s-tools.git End-to-end tests, 
-# exercising compose.mk, k8s.mk, 
-# plus the k8s-tools.yml services to create & interact 
-# with a small k3d cluster.
-##
+# k8s-tools.git End-to-end tests
+# Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services to create & interact  with a small k3d cluster.
 SHELL := bash
 MAKEFLAGS += -s --warn-undefined-variables
 .SHELLFLAGS := -euo pipefail -c
@@ -12,7 +8,7 @@ MAKEFLAGS += -s --warn-undefined-variables
 # Override k8s-tools.yml service-defaults, 
 # explicitly setting the k3d version used
 export K3D_VERSION:=v5.6.3
-export KREW_PLUGINS:=sick-pods
+export KREW_PLUGINS:=graph
 
 # Cluster details that will be used by k3d.
 export CLUSTER_NAME:=k8s-tools-e2e
@@ -88,8 +84,9 @@ self.test_harness.provision: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness
 
 test: test.cluster test.contexts 
 
-test.cluster: ▰/k8s/k8s.namespace.wait/all ▰/k8s/k8s.stat
+test.cluster: ▰/k8s/k8s.namespace.wait/all ▰/k8s/k8s.stat 
 	@# Waits for anything in the default namespace to finish and show cluster info
+	make k8s.graph.tui/default/pod
 
 test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
 	@# Helpers for displaying platform info 

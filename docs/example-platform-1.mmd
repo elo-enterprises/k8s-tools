@@ -2,7 +2,7 @@
 title: Data/Control Flow for Platform Bootstrap
 ---
 graph LR
-  M[make boostrap] -->  |require| p1(platform1) -->|require| platform1.app
+  M[make bootstrap] -->  |require| p1(platform1) -->|require| platform1.app
   p1 -->|require| platform1.infrastructure
 platform1.app{{platform1.app}} -.->|push data| logging((logging))
 platform1.infrastructure[/platform1.infrastructure/] -.-> logging

@@ -1,3 +1,4 @@
+#!/usr/bin/env -S docker compose -f
 # k8s-tools: 
 #  Collect, pin & customize versions for your whole k8s toolchain in one place
 #
@@ -18,14 +19,13 @@
 services:
   k8s: &base
     image: k8s:base
-    # privileged: true
     hostname: k8s-base
     environment:
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
       DOCKER_UID: ${DOCKER_UID:-1000}
       DOCKER_GID: ${DOCKER_GID:-1000}
       DOCKER_UGNAME: ${DOCKER_UGNAME:-root}
-      KREW_ROOT: /home/${DOCKER_UGNAME:-root}/.krew
+      DOCKER_HOST_WORKSPACE: ${DOCKER_HOST_WORKSPACE:-${PWD}}
       TERM: ${TERM:-xterm-256color}
     build:
       context: .
@@ -43,14 +43,15 @@ services:
         RUN getent passwd ${DOCKER_UGNAME:-root} || \
           useradd --uid ${DOCKER_UID:-1000} --create-home \
           -g ${DOCKER_GID:-1000} ${DOCKER_UGNAME:-root}
-        RUN mkdir -p /home/${DOCKER_UGNAME:-root}/.kube
-        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ctx ns sick-pods ktop
+        RUN mkdir -p /home/${DOCKER_UGNAME:-root}/.kube /home/${DOCKER_UGNAME:-root}/.krew /home/${DOCKER_UGNAME:-root}/.config
+        RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ctx ns graph sick-pods ktop
         RUN KREW_ROOT=/home/${DOCKER_UGNAME:-root}/.krew krew install ${KREW_PLUGINS:-sick-pods}
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/kubectl-ns /usr/bin/kubens
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/kubectl-ctx /usr/bin/kubectx
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/* /usr/bin
         RUN chown -R ${DOCKER_UID:-1000}:${DOCKER_GID:-1000} /home/${DOCKER_UGNAME:-root}/
-        RUN curl https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/bin/spark && chmod +x /usr/bin/spark
+        RUN curl https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/bin/spark \
+          && chmod +x /usr/bin/spark
         USER ${DOCKER_UGNAME:-root}
         ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/${DOCKER_UGNAME:-root}/.krew/bin
     # NB: Left for reference, and possibly required by older versions of docker or certain configurations?  
@@ -62,9 +63,9 @@ services:
       - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       # Share /etc/hosts, so tool containers have access to any custom or kubefwd'd DNS
       - /etc/hosts:/etc/hosts:ro
-      # Share the working directory with containers
-      - ${PWD}:/workspace
-      
+      # Share the working directory with containers.  
+      # Overrides are allowed for the workspace, which is occasionally useful with DIND
+      - ${workspace:-${PWD}}:/workspace
       # NB: `.cache` and `.config` as below are used by helm, maybe others?
       # - ${HOME}/.cache:/home/${DOCKER_UGNAME:-root}/.cache
       # - ${HOME}/.config/helm:/home/${DOCKER_UGNAME:-root}/.config/helm
@@ -251,7 +252,7 @@ services:
     volumes: 
       # Same as the base volumes, plus /etc/hosts for kubefwd to sync DNS
       - /etc/hosts:/etc/hosts:rw
-      - ${PWD}:/workspace
+      - ${PWD}:${workspace:-/workspace}
       - ${DOCKER_SOCKET:-/var/run/docker.sock}:${DOCKER_SOCKET:-/var/run/docker.sock}
       - ${HOME}/.kube:/home/${DOCKER_UGNAME:-root}/.kube
       - ${HOME}/.cache:/home/${DOCKER_UGNAME:-root}/.cache
@@ -354,3 +355,55 @@ services:
     image: ghcr.io/jqlang/jq:1.7.1
     
   
+  # https://github.com/tsub/docker-graph-easy
+  graph-easy:
+    image: tsub/graph-easy
+    working_dir: ${workspace:-/workspace} 
+    volumes: 
+      - ${PWD}:${workspace:-/workspace}
+
+  # https://github.com/efrecon/docker-images/tree/master/chafa
+  dind: &dind
+    <<: *base 
+    depends_on: ['k8s']
+    image: k8s:dind
+    privileged: true 
+    build:
+      context: . 
+      dockerfile_inline: |
+        FROM k8s:base
+        USER root 
+        RUN apk add docker docker-compose
+    entrypoint: bash 
+
+  # https://github.com/hpjansson/chafa
+  # https://github.com/efrecon/docker-images/tree/master/chafa
+  tui:
+    <<: *dind 
+    image: k8s:tui
+    hostname: k8s:tui
+    working_dir: /workspace
+    build:
+      context: . 
+      dockerfile_inline: |
+        FROM k8s:base as base 
+        FROM debian
+        RUN apt-get update && apt-get install -y graphviz imagemagick
+        RUN apt-get install -y curl uuid-runtime tmux python3-pip
+        RUN pip3 install tmuxp --break-system-packages
+        RUN apt-get install -y chafa ruby ruby-dev jq
+        RUN gem install tmuxinator
+        RUN curl -fsSL https://get.docker.com -o get-docker.sh && bash get-docker.sh
+        COPY --from=base \
+          /usr/bin/kube* \
+          /usr/bin 
+        RUN apt-get install -y pv
+        RUN pip install --break-system-packages imgcat Pillow
+        USER ${DOCKER_UGNAME:-root}
+    volumes:
+      # Share the docker sock.  Almost everything will need this
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      # Share /etc/hosts, so tool containers have access to any custom or kubefwd'd DNS
+      - /etc/hosts:/etc/hosts:ro
+      # Share the working directory with containers
+      - ${PWD}:/workspace

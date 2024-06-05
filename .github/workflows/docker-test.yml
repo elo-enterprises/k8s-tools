@@ -1,5 +1,4 @@
-# See also: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
+# See also: https://docs.github.com/en/actions
 name: Project Tests
 on:
   workflow_call: {}

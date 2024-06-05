@@ -23,7 +23,7 @@ The short version is this:
 
 k8s.mk, especially combined with k8s-tools.yml and compose.mk, is aimed at fixing this stuff.  Less fighting with tools, more building things.
 
-If you're interested in the gory details of the longer-format answer, there's more detailed discussion in the [Design Philosophy section](#why-makefilek8smk).
+If you're interested in the gory details of the longer-format answer, there's more detailed discussion in the [Design Philosophy section](#why-k8smk).
 
 Documentation per-target is included in the next section, but these tools aren't that interesting in isolation.  See the [Cluster Automation Demo](#demo-cluster-automation) for an example of how you can put all this stuff together.
 
@@ -31,13 +31,28 @@ Documentation per-target is included in the next section, but these tools aren't
 
 ### k8s.mk API 
 
-You'll need to have setup KUBECONFIG before running most of these targets.
+This is the complete list of namespaces & targets available from k8s.mk, along with their documentation.  All documentation is pulled automatically from [the latest source](k8s.mk).
 
-*This documentation is pulled automatically from [source](compose.mk)*
+First, some important notes about how these targets work.
 
-#### API::k8s.mk::k8s
+1. You'll need to have setup KUBECONFIG before running most of these
+1. Targets are usable interactively from your shell as `make <target>` or `k8s.mk <target>`
+1. Targets are usable as an API, either as target prereqs or as part of the body in your targets
 
-The *`k8s.*`* targets cover .....
+The best way to use these targets is in combination with `compose.mk` and `k8s-tools.yml`, following the [makefile integration docs](#embedding-tools-with-makefiles).  See also the docs for the [Make/Compose Bridge](#makecompose-bridge) and [Container Dispatch](#container-dispatch).
+
+Still, many of these targets can run "natively" if your host already has the relevant tools, and some targets like `k8s.shell` can default to using containers if present, then fall-back to using kubectl directly.
+
+Target names are reserved names after declaration, but collisions aren't likely because things are organized into a few namespaces:
+
+* [k8s.* targets:](#api-k8s) Default namespace with general helpers.  These targets only use things available in the [k8s:base container](k8s.yml).
+* [k3d.* targets:](#api-k3d):  Helpers for working with the `k3d` tool / container
+* [kubefwd.* targets:](#api-kubefwd) Helpers for working with `kubefwd` tool / container
+* [helm.* targets:](#api-helm) Helpers for working with `helm` tool / container
+
+#### API: k8s
+
+This is the default target-namespace for `k8s.mk`.  It covers general helpers, and generally assumes the only requirements are things that are available in the [k8s:base container](k8s.yml).
 
 {% set targets=bash('pynchon makefile parse k8s.mk| jq \'with_entries(select(.key | startswith("k8s")))\'', load_json=True) %}
 {% for tname in targets %}
@@ -48,9 +63,9 @@ The *`k8s.*`* targets cover .....
 ```
 {% endfor %}
 
-#### API::k8s.mk::kubefwd
+#### API: kubefwd
 
-The *`kubefwd.*`* targets cover .....
+The *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It just aims to cleanly background/foreground kubefwd in an unobtrusive way.  Safe to use from host, these targets always use [the kubefwd container](https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+kubefwd&type=code).
 
 {% set targets=bash('pynchon makefile parse k8s.mk| jq \'with_entries(select(.key | startswith("kubefwd")))\'', load_json=True) %}
 {% for tname in targets %}
@@ -61,9 +76,9 @@ The *`kubefwd.*`* targets cover .....
 ```
 {% endfor %}
 
-#### API::k8s.mk::k3d
+#### API k3d
 
-The *`k3d.*`* targets cover .....
+The *`k3d.*`* targets describe a small interface for working with `k3d`, just to make the common tasks idempotent.  These targets use k3d directly, so are usually **dispatched**, and not run from the host.  (See also the demos & examples for more usage info).  Uses the [k3d container](https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+k3d&type=code)
 
 {% set targets=bash('pynchon makefile parse k8s.mk| jq \'with_entries(select(.key | startswith("k3d")))\'', load_json=True) %}
 {% for tname in targets %}
@@ -74,9 +89,9 @@ The *`k3d.*`* targets cover .....
 ```
 {% endfor %}
 
-#### API::k8s.mk::helm
+#### API: helm
 
-The *`helm.*`* targets cover .....
+A very small interface for idempotent operations with `helm`.
 
 {% set targets=bash('pynchon makefile parse k8s.mk| jq \'with_entries(select(.key | startswith("helm")))\'', load_json=True) %}
 {% for tname in targets %}

@@ -2,7 +2,7 @@
 title: Data/Control Flow for Multi-Platform Bootstrap
 ---
 graph LR
-  M[make boostrap] -->  |require| p1(platform1) -->|require| platform1.app
+  M[make bootstrap] -->  |require| p1(platform1) -->|require| platform1.app
   M -->  |require| p2(platform2) -->|require| platform2.app
   p1 -->|require| platform1.infrastructure
   p2 -->|require| platform2.infrastructure
