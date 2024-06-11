@@ -56,10 +56,6 @@ CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 GREEN_FLOW_LEFT:=${BOLD_GREEN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 SEP:=${NO_ANSI}//
 
-# Glyphs used in log messages
-GLYPH_DOCKER=${GREEN}${BOLD}≣${NO_ANSI}${DIM_GREEN}
-GLYPH_IO=${GREEN}${BOLD}⇄${NO_ANSI}${DIM_GREEN}
-GLYPH_FLUX=${GREEN}${BOLD}⋇${NO_ANSI}${DIM_GREEN}
 
 # Hints for compose files to fix file permissions (see k8s-tools.yml for an example of how this is used)
 OS_NAME:=$(shell uname -s)
@@ -76,10 +72,20 @@ endif
 # Honored by `docker compose`, this helps to quiet output
 export COMPOSE_IGNORE_ORPHANS?=True
 
-# Used internally.  This is 1 if dispatched inside container, otherwise 0
-export COMPOSE_MK_DIND?=0
+# Variables used internally.  
+# COMPOSE_MK: 1 if dispatched inside container, otherwise 0
+# COMPOSE_MK_DIND: determines whether docker-in-docker is allowed
+# DOCKER_HOST_WORKSPACE: needs override for correctly working with DIND volumes
 export COMPOSE_MK?=0
+export COMPOSE_MK_DIND?=0
+export COMPOSE_MK_DEBUG?=1
 export DOCKER_HOST_WORKSPACE?=$(shell pwd)
+
+# Glyphs used in log messages 📢 🤐
+GLYPH_DOCKER=${GREEN}${BOLD}≣${NO_ANSI}${DIM_GREEN}
+GLYPH_IO=${GREEN}${BOLD}⇄${NO_ANSI}${DIM_GREEN}
+GLYPH_FLUX=${GREEN}${BOLD}⋇${NO_ANSI}${DIM_GREEN}
+export GLYPH_DEBUG=${DIM}(debug=${NO_ANSI}${COMPOSE_MK_DEBUG}${DIM})${NO_ANSI} 
 
 # Used internally.  If this is container-dispatch and DIND, 
 # then DOCKER_HOST_WORKSPACE should be treated carefully
@@ -120,12 +126,19 @@ $(eval compose_file_stem:=$(shell basename -s .yml $(compose_file)))
 
 
 ${compose_file_stem}.dispatch/%:
-	@# dispatch helper
-	entrypoint=make cmd="`printf $${*}|cut -d/ -f2-`" \
+	@# Dispatch helper
+	@#
+	entrypoint=make \
+	cmd="`printf $${*}|cut -d/ -f2-`" \
 	make ${compose_file_stem}/`printf $${*}|cut -d/ -f1`
+
+${compose_file_stem}.qdispatch/%:; COMPOSE_MK_DEBUG=0 make ${compose_file_stem}.dispatch/$${*}
+	@# Quiet version of dispatch
+	@#
 
 ${compose_file_stem}/$(compose_service_name)/get_shell:
 	@# Detects the best shell to use with ${compose_file_stem}/$(compose_service_name)
+	@#
 	docker compose -f $(compose_file) \
 		run --entrypoint sh $$(shell echo $$@|awk -F/ '{print $$$$2}') \
 		-c "which bash || which sh" 2> /dev/null \
@@ -133,6 +146,7 @@ ${compose_file_stem}/$(compose_service_name)/get_shell:
 
 ${compose_file_stem}/$(compose_service_name)/shell:
 	@# Invokes the shell
+	@#
 	@export entrypoint=`make ${compose_file_stem}/$(compose_service_name)/get_shell` \
 	&& printf "${GREEN}⇒${NO_ANSI}${DIM} ${compose_file_stem}/$(compose_service_name)/shell (${GREEN}`env|grep entrypoint\=`${NO_ANSI}${DIM})${NO_ANSI}\n" \
 		&& make ${compose_file_stem}/$(compose_service_name)
@@ -144,7 +158,8 @@ ${compose_file_stem}/$(compose_service_name)/shell/pipe:
 	@$$(eval export shellpipe_tempfile:=$$(shell mktemp))
 	trap "rm -f $${shellpipe_tempfile}" EXIT \
 	&& cat /dev/stdin > $${shellpipe_tempfile} \
-	&& eval "cat $${shellpipe_tempfile} | pipe=yes \
+	&& eval "cat $${shellpipe_tempfile} \
+	| pipe=yes \
 	  entrypoint=`make ${compose_file_stem}/$(compose_service_name)/get_shell` \
 	  make ${compose_file_stem}/$(compose_service_name)"
 
@@ -157,20 +172,25 @@ $(compose_service_name)/pipe: ⟂/${compose_file_stem}/$(compose_service_name)
 $(compose_service_name)/shell: ${compose_file_stem}/$(compose_service_name)/shell
 $(compose_service_name)/get_shell:  ${compose_file_stem}/$(compose_service_name)/get_shell
 $(compose_service_name)/shell/pipe: ${compose_file_stem}/$(compose_service_name)/shell/pipe
+$(compose_service_name)/dispatch/%:; make ${compose_file_stem}.dispatch/$(compose_service_name)/$${*}
+$(compose_service_name)/qdispatch/%:; make ${compose_file_stem}.qdispatch/$(compose_service_name)/$${*}
 endif)
 
 ${target_namespace}/$(compose_service_name):
 	@# A namespaced target for each docker-compose service
+	@#
 	make ${compose_file_stem}/$$(shell echo $$@|awk -F/ '{print $$$$2}')
 
 ${target_namespace}/$(compose_service_name)/%:
 	@# A subtarget for each docker-compose service.
 	@# This allows invocation of *another* make-target
 	@# that runs inside the container
+	@#
 	@entrypoint=make cmd="$${*}" make ${compose_file_stem}/$(compose_service_name)
 endef
 
 # Main macro to import services from an entire compose file
+
 define compose.import
 $(eval target_namespace:=$1)
 $(eval import_to_root := $(if $(2), $(strip $(2)), FALSE))
@@ -188,9 +208,12 @@ ${compose_file_stem}.services:
 	@# NB: (This must remain suitable for use with xargs, etc)
 	@#
 	@echo $(__services__) | sed -e 's/ /\n/g'
-${compose_file_stem}.build:
-	@#
-	set -x && docker compose -f $${compose_file} build
+
+${compose_file_stem}.build:; set -x && docker compose -f $${compose_file} build
+${compose_file_stem}.qbuild:; make ${compose_file_stem}.build 2>/dev/null 
+${compose_file_stem}.qbuild/%:; make ${compose_file_stem}.build/$${*} 2>/dev/null
+${compose_file_stem}.build/%:; echo $${*}|make stream.comma.to.nl| xargs -n1 -I% sh -x -c "docker compose -f $${compose_file} build %"
+
 ${compose_file_stem}.stop:
 	@#
 	docker compose -f $${compose_file} stop -t 1
@@ -202,7 +225,6 @@ ${compose_file_stem}.down: ${compose_file_stem}.clean
 ${compose_file_stem}.clean:
 	@#
 	set -x && docker compose -f $${compose_file} --progress quiet down -t 1 --remove-orphans
-
 ${compose_file_stem}/%:
 	@# Generic dispatch for any service inside this compose-file
 	@# NB: implementation must NOT use 'io.mktemp'!
@@ -211,16 +233,20 @@ ${compose_file_stem}/%:
 	@$$(eval export cmd:=$(shell echo $${cmd:-}))
 	@$$(eval export pipe:=$(shell \
 		if [ -z "$${pipe:-}" ]; then echo ""; else echo "-iT"; fi))
-	@$$(eval export quiet:=$(shell \
-		if [ -z "$${quiet:-}" ]; then echo ""; else echo "1"; fi))
 	@$$(eval export nsdisp:=${BOLD}$${target_namespace}${NO_ANSI})
-	@$$(eval export header:=${GREEN}$${nsdisp}${DIM} ${SEP} ${BOLD}${DIM_GREEN}$${compose_file_stem}${NO_ANSI_DIM} ${SEP} ${BOLD}${GREEN}${UNDERLINE}$${svc_name}${NO_ANSI_DIM} container${NO_ANSI}\n)
+	@$$(eval export header:=${GREEN}$${nsdisp}${DIM} ${SEP} ${BOLD}${DIM_GREEN}$${compose_file_stem}${NO_ANSI_DIM} ${SEP} ${BOLD}${GREEN}${UNDERLINE}$${svc_name}${NO_ANSI_DIM} container $${GLYPH_DEBUG}${NO_ANSI}\n)
 	@$$(eval export entrypoint:=$(shell \
 		if [ -z "$${entrypoint:-}" ]; \
 		then echo ""; else echo "--entrypoint $${entrypoint:-}"; fi))
 	@$$(eval export base:=docker compose -f ${compose_file} \
-		run --rm --quiet-pull --env COMPOSE_MK=1 \
-		$${pipe} $${entrypoint} $${svc_name} $${cmd} )
+		run --rm --quiet-pull \
+		--env COMPOSE_MK=1 \
+		--env COMPOSE_MK_DEBUG=$${COMPOSE_MK_DEBUG} \
+		$${pipe} $${entrypoint} $${svc_name} $${cmd} \
+		2\> \>\(\
+			grep -vE \'.\*Container.\*\(Running\|Recreate\|Created\|Starting\|Started\)\' \>\&2\ \
+			\| grep -vE \'.\*Network.\*\(Creating\|Created\)\' \>\&2\ \
+			\))
 	@$$(eval export stdin_tempf:=$$(shell mktemp))
 	@$$(eval export entrypoint_display:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
 			if [ -z "$${entrypoint:-}" ]; \
@@ -229,11 +255,11 @@ ${compose_file_stem}/%:
 	
 	@trap "rm -f $${stdin_tempf}" EXIT \
 	&& if [ -z "$${pipe}" ]; then \
-		([ -z "$${quiet}" ] && printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr || true) \
+		([ $${COMPOSE_MK_DEBUG} == 1 ] && printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr || true) \
 		&& eval $${base} ; \
 	else \
 		cat /dev/stdin > $${stdin_tempf} \
-		&& ([ -z "$${quiet}" ] && printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr || true) \
+		&& ([ $${COMPOSE_MK_DEBUG} == 1 ] && printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr || true) \
 		&& cat "$${stdin_tempf}" | eval $${base} \
 	; fi && printf '\n'
 $(foreach \
@@ -257,7 +283,7 @@ endef
 # Define 'help' target iff it's not already defined.  This should be inlined 
 # for all files that want to be simultaneously usable in stand-alone 
 # mode + library mode (with 'include')
-_help_id:=$(shell (uuidgen||cat /proc/sys/kernel/random/uuid || date +%s) | head -c 8 | tail -c 8)
+_help_id:=$(shell (uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s) | head -c 8 | tail -c 8)
 define _help_gen
 (LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true)
 endef
@@ -274,22 +300,46 @@ $(eval help: _help_${_help_id})
 $(eval help.namespaces: _help_namespaces_${_help_id})
 
 ## END macros/data
-## BEGIN 'flux.*' targets
-## DOCS: https://github.com/elo-enterprises/k8s-tools/#api-flux
+## BEGIN 'compose.*' and 'docker.*' targets
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-docker
+##   [2] https://github.com/elo-enterprises/k8s-tools/#api-compose
+
+compose.dind.stream:
+	@# Sets context that docker-in-docker is allowed, then streams commands into the given target/container.
+	@# This is not really recommended for external use, but it enables some features of 'k8s.tui.*' targets
+	@# By default, the presence of the COMPOSE_MK var prevents this.  We also need to override  
+	@# the 'workspace' var, which (unintuitively) needs to be a _host_ path, not a container path.
+	@#
+	@# USAGE:
+	@#	target=<target_to_stream_into> script=<script_to_stream> make compose.dind.stream
+	@#
+	export workspace="$${DOCKER_HOST_WORKSPACE}" \
+	&& export stream="`printf "$${script}"`" \
+	&& export stream="\nexport COMPOSE_MK_DIND=1;\n$${stream}" \
+	&& printf "export COMPOSE_MK_DEBUG=$${COMPOSE_MK_DEBUG}; $${stream}" \
+	| COMPOSE_MK_DEBUG=$${COMPOSE_MK_DEBUG} make $${target}
+
+compose.stat/%:
+	# printf "${GLYPH_FLUX} compose.stat${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${NO_ANSI}\n" >/dev/stderr
+	# ( \
+	# 	env | grep COMP || true \
+	# 	; env | grep DOCKER || true \
+	# 	; env|grep workspace || true ) | make stream.dim.indent
 
 docker.init.compose:
 	@# Ensures compose is available.  Note that 
 	@# build/run/etc cannot happen without a file, 
 	@# for that, see instead targets like '<compose_file_stem>.build'
 	@#
-	docker compose version | make io.print.dim > /dev/stderr
+	docker compose version | make stream.dim> /dev/stderr
 
 docker.init:
 	@# Checks if docker is available, then displays version/context (no real setup)
 	@#
 	( printf "Docker Context: `docker context show`\n" \
 	  && docker --version ) \
-	| make io.print.dim > /dev/stderr
+	| make stream.dim> /dev/stderr
 	make docker.init.compose
 
 docker.panic:
@@ -364,51 +414,30 @@ docker.stat:
 	&& printf "${GLYPH_DOCKER} docker.stat${NO_ANSI_DIM}:\n" > /dev/stderr \
 	&& make docker.init  \
 	&& docker ps --format "table {{.ID}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Names}}" \
-	| make io.print.dim > /dev/stderr \
+	| make stream.dim> /dev/stderr \
 	&& echo {} \
-		| make stream.json.builder key=version \
+		| make stream.json.object.append key=version \
 			val="`docker --version|sed 's/Docker " //'`" \
-		| make stream.json.builder key=container_count \
+		| make stream.json.object.append key=container_count \
 			val="`docker ps --format json| jq '.Names'|wc -l`" \
-		| make stream.json.builder key=socket \
+		| make stream.json.object.append key=socket \
 			val="`cat $${tmpf} | jq -r .Endpoints.docker.Host`" \
-		| make stream.json.builder key=context_name \
+		| make stream.json.object.append key=context_name \
 			val="`cat $${tmpf} | jq -r .Name`"
 
 ## END 'docker.*' targets
 ## BEGIN 'io.*' targets
-## DOCS: https://github.com/elo-enterprises/k8s-tools/#api-io
-
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-id
 io.bash:
 	@# Starts an interactive shell with all the environment variables set 
 	@# by the parent environment, plus those set by this Makefile context.
 	@#
 	env bash -l
-io.tmux:
-	@#
-	@#
-	@#
-
 io.fmt.strip:
 	@# Pipe-friendly helper for stripping whitespace.
 	@#
 	cat /dev/stdin | awk '{gsub(/[\t\n]/, ""); gsub(/ +/, " "); print}' ORS=''
-
-io.fmt.strip_ansi:
-	@# Pipe-friendly helper for stripping ansi.
-	@# (Probably won't work everywhere, but has no deps)
-	@#
-	cat /dev/stdin | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"'
-
-io.print.dim: 
-	@# Pipe-friendly helper for dimming the input text
-	@#
-	printf "${DIM}`cat /dev/stdin`${NO_ANSI}\n"
-
-io.print.dim.indent:
-	@# Like 'io.print.indent' except it also dims the text.
-	@#
-	cat /dev/stdin | make io.print.dim | make io.print.indent
 
 io.print.divider:
 	@# Prints a divider on stdout, defaulting to the full terminal width, 
@@ -448,8 +477,8 @@ io.print.indent:
 	cat /dev/stdin | sed 's/^/  /'
 io.print.indent.stderr:
 	cat /dev/stdin | make io.print.indent > /dev/stderr
-io.print.dim.indent.stderr:
-	cat /dev/stdin | make io.print.dim | make io.print.indent > /dev/stderr
+stream.dim.indent.stderr:
+	cat /dev/stdin | make stream.dim| make io.print.indent > /dev/stderr
 
 io.time.wait: io.time.wait/1
 	@# Pauses for 1 second.
@@ -463,26 +492,14 @@ io.time.wait/%:
 	printf "${GLYPH_IO} io.wait${NO_ANSI} ${SEP} ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > /dev/stderr \
 	&& sleep ${*}
 
-io.time.target/%:
-	@# Emits run time for the given make-target in seconds.
-	@# Pipe safe; target's stdout is sent to stderr.
-	@#
-	@# USAGE:
-	@#   io.time.target/<target_to_run>
-	@#
-	start_time=$$(date +%s%N) \
-	&& make ${*} >&2 \
-	&& end_time=$$(date +%s%N) \
-	&& time_diff_ns=$$((end_time - start_time)) \
-	&& echo $$(echo "scale=9; $$time_diff_ns / 1000000000" | bc)
-
-## END '.*' targets
+## END 'io.*' targets
 ## BEGIN 'flux.*' targets
-## DOCS: https://github.com/elo-enterprises/k8s-tools/#api-flux
+## DOCS:
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-io
 
-# NB: Used in 'flux.always' and 'flux.finally'.  For reasons related to ONESHELL,
-# this code can't be target-chained and to make it reusable, it needs to be embedded.
 define _flux.always
+	@# NB: Used in 'flux.always' and 'flux.finally'.  For reasons related to ONESHELL,
+	@# this code can't be target-chained and to make it reusable, it needs to be embedded.
 	printf "${GLYPH_FLUX} flux.always${NO_ANSI_DIM} ${SEP} registering target: ${GREEN}${*}${NO_ANSI}\n" >/dev/stderr 
 	target="${*}" pid="$${PPID}" $(MAKE) .flux.always.bg &
 endef
@@ -525,12 +542,61 @@ flux.dmux:
 			| tr '\n' ','`"
 
 flux.dmux/%:
-	@# Same as.dmux flow, but accepts arguments directly (no variable)
+	@# Same as flux.dmux, but accepts arguments directly (no variable)
+	@# Stream-usage is required (this blocks waiting on stdin).
 	@#
 	@# USAGE: ( pipes the same input to yq and jq )
 	@#   echo {} | make flux.dmux/yq,jq
 	@#
 	cat /dev/stdin | targets="${*}" make flux.dmux
+
+flux.finally/%:
+	@# Alias for 'flux.always'
+	@#
+	$(call _flux.always)
+
+flux.apply/%:
+	@# Applies the given target(s).
+	@# This is mostly used to as a wrapper in case targets are unary.
+	@# 
+	@# USAGE:
+	@#   make flux.timer/flux.apply/io.time.wait,io.time.wait
+	@#
+	printf ${*} \
+	| tr ',' '\n' \
+	| xargs -I% echo make % \
+	| bash -x
+
+flux.apply.later/%:
+	@#
+	time=`printf ${*}| cut -d/ -f1` \
+	&& target=`printf ${*}| cut -d/ -f2-` \
+	&& printf "${GLYPH_FLUX} flux.apply.later${NO_ANSI_DIM} ${SEP} ${GREEN}$${target}${NO_ANSI} (in $${time}s)\n" > /dev/stderr \
+	&& sleep $${time} \
+	&& make flux.apply/$${target}
+
+flux.join: 
+	@# Alias for flux.mux
+	make flux.mux
+
+flux.loop/%:
+	@# Helper for repeatedly running the named target a given number of times.
+	@# This requires the 'pv' tool for progress visualization, which is available
+	@# by default in k8s-tools containers.   By default, stdout for targets is 
+	@# supressed because it messes up the progress bar, but stderr is left alone. 
+	@#
+	@# USAGE:
+	@#   make flux.loop/<times>/<target_name>
+	@#
+	@# NB: This requires "flat" targets with no '/' !
+	$(eval export target:=$(strip $(shell echo ${*} | cut -d/ -f2-)))
+	$(eval export times:=$(strip $(shell echo ${*} | cut -d/ -f1)))
+	printf "${GLYPH_FLUX} flux.loop${NO_ANSI_DIM} ${SEP} ${GREEN}$${target}${NO_ANSI} ($${times}x)\n" > /dev/stderr
+	export pv_cmd=`[ $${COMPOSE_MK_DEBUG}==1 ] && echo "pv -s $${times} -l -i 1 --name \"$${target}\" -t -e -C -p" || echo cat` \
+	&& (for i in `seq $${times}`; \
+	do \
+		make $${target} > /dev/null; echo $${i}; \
+	done) | eval $${pv_cmd} > /dev/null
 
 flux.loopf/%:
 	@# Loop the given target forever
@@ -546,27 +612,38 @@ flux.loopf/%:
 		|| printf "$${header} ($${failure_msg:-failed})\n" > /dev/stderr \
 	) ; sleep $${delta:-.5}; done	
 
-flux.loop/%:
-	@# Helper for repeatedly running the named target a given number of times.
-	@# This requires the 'pv' tool for progress visualization, which is available
-	@# by default in k8s-tools containers.   By default, stdout for targets is 
-	@# supressed because it messes up the progress bar, but stderr is left alone. 
+flux.loopu/%:
+	@# Loop the given target until it succeeds.
+	@#
+	@# To reduce logging noise, this sends stderr to null, 
+	@# but preserves stdout. This makes debugging hard, so
+	@# only use this with well tested/understood sub-targets!
+	@#
+	header="${GLYPH_FLUX} flux.loopu${NO_ANSI_DIM} ${SEP} ${GREEN}${*}${NO_ANSI}" \
+	&& printf "$${header} (until success)\n" > /dev/stderr 
+	make ${*} || (sleep $${delta:-.5}; make flux.loopu/${*})
+
+flux.map/%:
+	@# Similar to 'flux.apply', but maps input stream 
+	@# sequentially onto the comma-delimited target list.
 	@#
 	@# USAGE:
-	@#   make flux.loop/<times>/<target_name>
+	@#   echo hello-world | make flux.map/stream.echo,stream.echo
 	@#
-	@# NB: This requires "flat" targets with no '/' !
-	$(eval export target:=$(strip $(shell echo ${*} | cut -d/ -f2-)))
-	$(eval export times:=$(strip $(shell echo ${*} | cut -d/ -f1)))
-	printf "${GLYPH_FLUX} flux.loop${NO_ANSI_DIM} ${SEP} ${GREEN}$${target}${NO_ANSI} ($${times}x)\n" > /dev/stderr
-	export pv_cmd=`[ -z "$${quiet:-}" ] && echo "pv -s $${times} -l -i 1 --name \"$${target}\" -t -e -C -p" || echo cat` \
-	&& (for i in `seq $${times}`; \
-	do \
-		make $${target} > /dev/null; echo $${i}; \
-	done) | eval $${pv_cmd} > /dev/null
+	$(call io.mktemp) && \
+	cat /dev/stdin > $${tmpf} \
+	&& printf ${*}|sed 's/,/\n/g' | xargs -I% printf 'cat $${tmpf} | make %\n' \
+	| bash -x
+
+flux.wrap/%:; make flux.apply/${*}
+	@# Wraps all of the given targets as if it were a single target.
+	@# 
+	@# USAGE:
+	@#   make flux.timer/flux.wrap/io.time.wait,io.time.wait
+	@#
 
 flux.mux:
-	@# Runs the comma-separated named targets in parallel, then waits for all of them to finish.
+	@# Runs the given comma-delimited targets in parallel, then waits for all of them to finish.
 	@# For stdout and stderr, this is a many-to-one mashup of whatever writes first, and nothing   
 	@# about output ordering is guaranteed.  This works by creating a small script, displaying it, 
 	@# and then running it.  It's not very sophisticated!  The script just tracks pids of 
@@ -574,7 +651,7 @@ flux.mux:
 	@# 
 	@# If the named targets are all well-behaved, this *might* be pipe-safe, but in 
 	@# general it's possible for the subprocess output to be out of order.  If you do
-	@# want legible structured output that *prints* in ways that are concurrency-safe,
+	@# want *legible, structured output* that *prints* in ways that are concurrency-safe,
 	@# here's a hint: emit nothing, or emit minified JSON output with printf and 'jq -c',
 	@# and there is a good chance you can consume it.  Printf should be atomic on most 
 	@# platforms with JSON of practical size? And crucially, 'jq .' handles object input, 
@@ -583,6 +660,7 @@ flux.mux:
 	@# USAGE: (runs 3 commands in parallel)
 	@#   make flux.mux targets="io.time.wait/3,io.time.wait/1,io.time.wait/2" | jq .
 	@#
+	@# NB: Not to be confused 
 	printf "${GLYPH_FLUX} flux.mux${NO_ANSI_DIM} ${SEP} ${NO_ANSI_DIM}$${targets//,/ ; }${NO_ANSI}\n" > /dev/stderr
 	$(call io.mktemp) && \
 	mcmds=`printf $${targets} \
@@ -593,7 +671,7 @@ flux.mux:
 	&& (printf 'pids=""\n' \
 		&& printf "$${mcmds}\n" \
 		&& printf 'wait $${pids}\n') > $${tmpf} \
-	&& printf "${CYAN_FLOW_LEFT} script \n${DIM}`cat $${tmpf}|make io.print.dim.indent`${NO_ANSI}\n" > /dev/stderr \
+	&& printf "${CYAN_FLOW_LEFT} script \n${DIM}`cat $${tmpf}|make stream.dim.indent`${NO_ANSI}\n" > /dev/stderr \
 	&& bash $${tmpf}
 
 flux.mux/%:
@@ -607,15 +685,6 @@ flux.split/%:
 	@# Alias for flux.split, but accepts arguments directly
 	export targets="${*}" && make flux.split
 
-flux.join: 
-	@# Alias for flux.mux
-	make flux.mux
-
-flux.finally/%:
-	@# Alias for 'flux.always'
-	@#
-	$(call _flux.always)
-
 flux.sh.tee:
 	@# Helper for constructing a parallel process pipeline with `tee` and command substitution.
 	@# Pipe-friendly, this works directly with stdin.  This exists mostly to enable `flux.dmux`
@@ -625,7 +694,7 @@ flux.sh.tee:
 	@# also pretty naive, and splits commands on commas; probably better to avoid loading other
 	@# pipelines as individual commands with this approach.  
 	@#
-	@# USAGE: ( pipes the same input to jq and yq commands )
+	@# USAGE: ( pipes the same input to 'jq' and 'yq' commands )
 	@#   echo {} | make flux.sh.tee cmds="jq,yq" 
 	@#
 	src="`\
@@ -666,12 +735,96 @@ flux.sh.ok:
 	printf "${GLYPH_FLUX} flux.sh.suceed${NO_ANSI_DIM} ${SEP} ${NO_ANSI} succceeding as requested!\n" >/dev/stderr  \
 	&& exit 0
 
-## END '.*' targets
+flux.retry/%:
+	@# Retries the given target a certain number of times.
+	@#
+	@# USAGE: (using default interval of 'K8S_POLL_DELTA')
+	@#   make flux.retry/<times>/<target> 
+	@#
+	@# USAGE: (explicit interval in seconds)
+	@#   interval=3 make flux.retry/<times>/<target> 
+	@#
+	times=`printf ${*}|cut -d/ -f1` \
+	&& target=`printf ${*}|cut -d/ -f2-` \
+	&& printf "${GLYPH_IO} flux.retry${NO_ANSI_DIM} (${NO_ANSI}${YELLOW}$${times}x${NO_ANSI_DIM}) ${SEP} ${NO_ANSI_DIM}$${target}${NO_ANSI}\n" >/dev/stderr  \
+	&& (r=$${times};while ! (make $${target}||(printf "${DIM}${GLYPH_IO} flux.retry${NO_ANSI_DIM} (${NO_ANSI}${YELLOW}failed.${NO_ANSI_DIM} waiting ${DIM_GREEN}${K8S_POLL_DELTA}s${NO_ANSI_DIM})  ${SEP} ${NO_ANSI_DIM}$${target}${NO_ANSI}\n">/dev/stderr; exit 1)); do ((--r))||exit;sleep $${interval:-${K8S_POLL_DELTA}};done)
+
+flux.timer/%:
+	@# Emits run time for the given make-target in seconds.
+	@# Pipe safe; target stdout is sent to stderr.
+	@#
+	@# USAGE:
+	@#   flux.timer/<target_to_run>
+	@#
+	start_time=$$(date +%s%N) \
+	&& make ${*} >&2 \
+	&& end_time=$$(date +%s%N) \
+	&& time_diff_ns=$$((end_time - start_time)) \
+	&& echo $$(echo "scale=9; $$time_diff_ns / 1000000000" | bc)
+
+flux.timeout/%:
+	@# Runs the given target for the given number of seconds, then stops it with SIGINT.
+	@#
+	@# USAGE: 
+	@#   make flux.timeout/<seconds>/<target>
+	@#
+	timeout=`printf ${*} | cut -d/ -f1` \
+	&& target=`printf ${*} | cut -d/ -f2-` \
+	timeout=$${timeout} cmd="make $${target}" make flux.sh.timeout
+
+## END 'flux.*' targets
 ## BEGIN 'stream.*' targets
-## DOCS: https://github.com/elo-enterprises/k8s-tools/#api-stream
-stream.echo:
-	@# Just echoes the input stream.  Mostly used for testing 'flow.*' targets, etc
-	cat /dev/stdin
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-stream
+
+stream.comma.to.nl:
+	@# Converts comma-delimited input stream newline-delimited
+	tmp=`cat /dev/stdin` \
+	&& printf $${tmp//,/\\n}
+
+stream.comma.to.json:
+	@# Converts comma-delimited input into minimized JSON array
+	@#
+	@# USAGE:
+	@#   echo 1,2,3 | make stream.comma.to.json
+	@#   ["1","2","3"]
+	@#
+	cat /dev/stdin | make stream.comma.to.nl | make stream.nl.to.json.array
+
+stream.dim: 
+	@# Pipe-friendly helper for dimming the input text
+	@#
+	printf "${DIM}`cat /dev/stdin`${NO_ANSI}\n"
+
+stream.dim.indent:
+	@# Like 'io.print.indent' except it also dims the text.
+	@#
+	cat /dev/stdin | make stream.dim| make io.print.indent
+
+stream.echo:; cat /dev/stdin
+	@# Just echoes the input stream.  Mostly used for testing.
+	@#
+	@# USAGE:
+	@#   echo hello-world | make stream.echo
+	@#
+
+stream.json.array.append:
+	@# Appends <val> to input array
+	@# 
+	@# USAGE:
+	@#   echo '[]'|val=1 make stream.json.array.append|val=2 make stream.json.array.append
+	@#   [1,2]
+	@# 
+	cat /dev/stdin | jq "[.[],\"$${val}\"]"
+stream.json.object.append:
+	@# Appends the given key/val to the input object.
+	@# This is usually used to build JSON objects from scratch.
+	@#
+	@# USAGE: 
+	@#	 echo {} | key=foo val=bar make stream.json.object.append 
+	@#   {"foo":"bar"}
+	@#
+	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
 
 stream.indent:
 	@# Indents input stream
@@ -686,18 +839,23 @@ stream.peek:
 	@#
 	$(call io.mktemp) && \
 	cat /dev/stdin > $${tmpf} \
-	&& cat $${tmpf} | make io.print.dim.indent.stderr \
+	&& cat $${tmpf} | make stream.dim.indent.stderr \
 	&& cat $${tmpf}
 
-stream.json.builder:
-	@# Appends the given key/val to the input object.
-	@# This is usually used to build JSON objects from scratch.
-	@#
-	@# USAGE: 
-	@#	 echo {} | key=foo val=bar make stream.json.builder 
-	@#   {"foo":"bar"}
-	@#
-	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
+stream.stderr.indent:
+	cat /dev/stdin | make stream.dim| make io.print.indent > /dev/stderr
+
+stream.nl.to.json.array: 
+	@#  Converts newline-delimited input stream into a JSON array
+	@# 
+	src=`\
+		cat /dev/stdin \
+		| xargs -I% printf "| val=\"%\" make stream.json.array.append "\
+	` \
+	&& src="echo '[]' $${src} | jq -c ." \
+	&& tmp=`eval $${src}` \
+	&& echo $${tmp}
+
 stream.space.enum:
 	@# Enumerates the space-delimited input list, zipping indexes with values.
 	@#
@@ -715,31 +873,8 @@ stream.nl.enum:
 	@# 		0	one
 	@# 		1	two
 	@#
-	cat /dev/stdin | nl -v0 -w1 -nln
-stream.nl.first:
-	@# Gets the first element, or the "car" of newline-delimited input
-	cat /dev/stdin | awk 'NR==1'
-stream.nl.rest:
-	@# Gets the "rest", aka the tail or the cdr, of newline-delimited input
-	cat /dev/stdin | awk 'NR>1'
-stream.space.first:
-	@# Gets the first element, or the "car" of space-delimited input
-	cat /dev/stdin | awk '{print $$1}'
-stream.space.rest:
-	@# Gets the "rest", aka the tail or the cdr, of space-delimited input
-	cat /dev/stdin |  awk '{$$1=""; print $$0}'
-stream.space.nl:
-	@# Converts space-delim stream to a newline-delimited one
-	cat /dev/stdin | xargs -n1 echo
-
+	cat /dev/stdin | nl --starting-line-number=0 --number-width=1 --number-format=ln
 stream.to.stderr:
 	@# Sends input stream to stderr
 	@#
 	cat /dev/stdin > /dev/stderr
-
-compose.stat/%:
-	# printf "${GLYPH_FLUX} compose.stat${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${NO_ANSI}\n" >/dev/stderr
-	# ( \
-	# 	env | grep COMP || true \
-	# 	; env | grep DOCKER || true \
-	# 	; env|grep workspace || true ) | make io.print.dim.indent

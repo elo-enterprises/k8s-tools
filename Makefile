@@ -7,7 +7,6 @@ SHELL := bash
 MAKEFLAGS += -s --warn-undefined-variables
 .SHELLFLAGS?=-euo pipefail -c
 THIS_MAKEFILE := $(abspath $(firstword $(MAKEFILE_LIST)))
-THIS_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${THIS_MAKEFILE}`
 
 export SRC_ROOT := $(shell git rev-parse --show-toplevel)
 export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
@@ -34,10 +33,17 @@ all: init clean build test docs
 # cache-busting / debugging entrypoints
 # (only used during development; normal usage involves build-on-demand )
 clean: k8s-tools.clean
-	rm -f tests/compose.mk tests/k8s.mk
-build: k8s-tools.build
-shell: io.bash
+	@# Removes temporary files used by build / tests 
+	rm -f tests/compose.mk tests/k8s.mk tests/k8s-tools.yml
+
+build: k8s-tools.build/k8s k8s-tools.build/dind k8s-tools.build
+	@# Explicit ordering to avoid race conditions ('depends_on' affects 'compose up' ordering, not 'compose build' ordering)
+
 init: docker.stat
+
+shell: 
+	make gum.style text='launching shell'
+	make tui.shell/tui,k8s,io.bash
 
 # testing entrypoints
 test: integration-test smoke-test e2e-test
@@ -67,14 +73,16 @@ e2e-test:
 
 docs: docs.jinja docs.mermaid
 	@# Builds all the docs
+
 docs.jinja:
 	@# Render docs twice to use includes, then get the ToC 
 	set -x && pynchon jinja render docs/README.md.j2 \
 	&& mv docs/README.md . \
 	&& pynchon jinja render README.md -o .tmp.R.md && mv .tmp.R.md README.md \
 	&& pynchon markdown preview README.md
-docs.mermaid:
-	pynchon mermaid apply
+
+docs.mermaid:; pynchon mermaid apply
+
 docs.mmd: docs.mermaid
 
 vhs: vhs.e2e vhs.demo
@@ -88,6 +96,12 @@ vhs.demo:
 		&& ls ../docs/tape/demo*.tape \
 		| xargs -I% -n1 sh -x -c "vhs %" \
 		&& mv img/* ../img
+vhs.tui:
+	@# Videos for demos of the TUI
+	rm -f img/tui-*.gif
+	ls docs/tape/tui-*.tape \
+	| xargs -I% -n1 sh -x -c "vhs %"
+
 vhs.e2e:
 	@# Videos of the e2e test suite.
 	@# (Order matters here)

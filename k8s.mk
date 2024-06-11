@@ -39,11 +39,12 @@ CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 
 SEP:=${NO_ANSI}//
 GLYPH_K8S=${GREEN}⑆${DIM}
+export TERM?=xterm
 
 # Defaults for working with charmbracelet/gum
 GUM_SPIN_DEFAULTS=--spinner.foreground=231 --spinner meter
 GUM_STYLE_DEFAULT:=--border double --foreground 139 --border-foreground 109
-GUM_STYLE_DIV:=--border double --align center --width `echo \`tput cols\` - 3 | bc`
+GUM_STYLE_DIV:=--border double --align center --width `echo "x=\`tput cols\` - 5;if (x < 0) x=-x; default=30; if (default>x) default else x" | bc`
 
 # How long to wait when checking if namespaces/pods are ready (yes, 'export' is required.)
 export K8S_POLL_DELTA?=23
@@ -53,7 +54,7 @@ export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
 # Define 'help' target iff it's not already defined.  This should be inlined 
 # for all files that want to be simultaneously usable in stand-alone 
 # mode + library mode (with 'include')
-_help_id:=$(shell (uuidgen||cat /proc/sys/kernel/random/uuid || date +%s) | head -c 8 | tail -c 8)
+_help_id:=$(shell (uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s) | head -c 8 | tail -c 8)
 define _help_gen
 (LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true)
 endef
@@ -66,9 +67,20 @@ _help_${_help_id}:
 _help_namespaces_${_help_id}:
 	@# Returns only the top-level target namespaces
 	@$(call _help_gen) | cut -d. -f1 |cut -d/ -f1 | uniq|grep -v ^all$$
+_help_private_${_help_id}:
+	@# Returns all targets, including private ones
+	(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#]") {print $$1}}' | sort | grep -E -v -e '^_help' -e '^$@$$' || true)
 $(eval help: _help_${_help_id})
+$(eval help.private: _help_private_${_help_id})
 $(eval help.namespaces: _help_namespaces_${_help_id})
 
+
+
+flux.tmux/%:; make tui.mux/${*}
+	@# This alias is an extension of the 'flux.*' API in compose.mk, 
+	@# since the names/arguments are so similar.  Still, this strictly
+	@# depends on compose-services at k8s-tools.yml, so it's part of 'k8s.mk'
+	@#
 
 # Gum macros/targets.  (See https://github.com/charmbracelet/gum)
 define gum.style
@@ -90,7 +102,7 @@ gum.style:
 	@#
 	which gum > /dev/null \
 	&& gum style ${GUM_STYLE_DEFAULT} ${GUM_STYLE_DIV} "$${text}" 2>/dev/null \
-	|| cmd="style ${GUM_STYLE_DEFAULT} ${GUM_STYLE_DIV} \"$${text}\"" make k8s-tools/gum
+	|| COMPOSE_MK_DEBUG=0  cmd="style ${GUM_STYLE_DEFAULT} ${GUM_STYLE_DIV} \'$${text}\'" make k8s-tools/gum
 
 helm.repo.add/%:
 	@# Idempotent version 'helm repo add'
@@ -133,9 +145,10 @@ k3d.ps:
 k3d.stat:
 	@# 
 	@# 
+	@#
 	printf "${GLYPH_K8S} k3d.stat ${NO_ANSI_DIM}\n" > /dev/stderr
 	(printf "${DIM}⑆ k3d.ps ${NO_ANSI}${NO_ANSI}\n" \
-	&& make k3d.ps 2>/dev/null | make io.print.dim.indent) | make stream.indent
+	&& make k3d.ps 2>/dev/null | make stream.dim.indent) | make stream.indent
 
 k3d.cluster.delete/%:
 	@# Idempotent version of k3d cluster delete 
@@ -155,7 +168,8 @@ k3d.tui/%:
 	@# USAGE:  
 	@#   make k3d.commander/<namespace>
 	@# 
-	tmux new-session \; set-option -g default-command "exec /bin/bash -x" \; split-window -h \; send-keys "make ktop/${*}; tmux kill-session" C-m \; select-pane -t 0 \; send-keys "make lazydocker; tmux kill-session" C-m
+	# tmux new-session \; set-option -g default-command "exec /bin/bash -x" \; split-window -h \; send-keys "make ktop/${*}; tmux kill-session" C-m \; select-pane -t 0 \; send-keys "make lazydocker; tmux kill-session" C-m
+	make flux.tmux/ktop/${*},lazydocker
 
 k3d.tui: 
 	@# Opens k3d.tui for the "default" namespace
@@ -180,6 +194,80 @@ k8s.get/%:
 	export cmd_t="kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}" \
 	&& printf "${GLYPH_K8S} k8s.get${NO_ANSI_DIM} // $${cmd_t}\n${NO_ANSI}" > /dev/stderr \
 	&& eval $${cmd_t}
+
+k8s.graph/%:
+	@# Graphs resources under the given namespace, for the given kind, in dot-format.
+	@# Pipe Friendly: results are always dot files.  Caller should handle any errors.
+	@#
+	@# This requires the krew plugin "graph" (installed by default with k8s-tools.yml).
+	@#
+	@# USAGE: 
+	@#	 k8s.graph/<namespace>/<kind>/<field_selector>
+	@#
+	@# Argument for 'kind' must be provided, but may be "all".  
+	@# Argument for field-selector is optional.  (Default value is 'status.phase=Running')
+	@#
+	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
+	$(eval export kind:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
+	case ${COMPOSE_MK} in \
+		1) \
+			export scope=`[ "$${namespace}" == "all" ] && echo "--all-namespaces" || echo "-n $${namespace}"` \
+			&& export KUBECTL_NO_STDERR_LOGS=1 \
+			&& kubectl graph $${kind:-pods} $${scope} 2>/dev/null; ;; \
+		0) \
+			make k8s-tools.dispatch/k8s/k8s.graph/${*}; ;; \
+	esac
+
+k8s.graph: k8s.graph/all/pods 
+	@#
+k8s.graph.tui: k8s.graph.tui/all/pods
+	@#
+k8s.graph.tui.loop: k8s.graph.tui.loop/kube-system/pods
+	@# Loops the graph for the kube-system namespace
+
+k8s.graph.tui.loop/%:
+	@#
+	@#
+	failure_msg="${YELLOW}Waiting for cluster to get ready..${NO_ANSI}" \
+	make flux.loopf/k8s.graph.tui/${*}
+
+k8s.graph.tui/%:
+	@# Previews topology for a given kubernetes <namespace>/<kind> in a way that's terminal-friendly.
+	@#
+	@# This is a human-friendly way to visualize progress or changes, because it supports 
+	@# very large input data from complex deployments with lots of services/pods, either in 
+	@# one namespace or across the whole cluster. To do that, it has throw away some 
+	@# information compared with raw kubectl output, and node labels on the graph aren't visible.  
+	@#
+	@# This is basically a pipeline from graphs in dot format, 
+	@# generated by kubectl-graph, then passed through some image-magick 
+	@# transformations, and then pushed into the 'chafa' tool for 
+	@# generating ASCII-art from images.
+	@#
+	@# USAGE: (same as k8s.graph)
+	@#   make k8s.graph.tui/<namespace>/<kind>
+	@#
+	export COMPOSE_MK_DEBUG=0 \
+	; case $${COMPOSE_MK_DIND} in \
+		0) \
+			script="make .k8s.graph.tui/${*}" \
+			target=tui/shell/pipe \
+			make compose.dind.stream; ;; \
+		*) \
+			make .k8s.graph.tui/${*}; ;; \
+	esac
+.k8s.graph.tui/%:
+	@# (Private helper for k8s.graph.tui)
+	@#
+	$(call io.mktemp) && \
+	make k8s/dispatch/k8s.graph/${*} > $${tmpf} \
+	&& cat $${tmpf} \
+		| dot /dev/stdin -Tsvg -o /tmp/tmp.svg \
+			-Gbgcolor=transparent -Gsize=200,200 \
+			-Estyle=bold -Ecolor=red -Eweight=150 > /dev/null \
+		&& convert /tmp/tmp.svg -transparent white png:- > /tmp/tmp.png \
+		&& default_size=`echo .75*\`tput cols||echo 30\`|bc`x \
+		&& chafa --invert --fill braille -c full --scale max --clear /tmp/tmp.png
 
 k8s.kubens/%: 
 	@# Context-manager.  Activates the given namespace.
@@ -248,6 +336,7 @@ k8s.namespace.purge/%:
 	printf "${GLYPH_K8S} k8s.namespace.purge /${NO_ANSI}${GREEN}${*}${NO_ANSI} Waiting for delete (cascade=foreground) \n" > /dev/stderr \
 	&& set +x \
 	&& kubectl delete namespace --cascade=foreground ${*} -v=9 2>/dev/null || true
+
 k8s.namespace.list:
 	@# Returns all namespaces in a simple array.
 	@# NB: Must remain suitable for use with `xargs`!
@@ -257,6 +346,7 @@ k8s.namespace.list:
 
 k8s.namespace.wait/%:
 	@# Waits for every pod in the given namespace to be ready.
+	@#
 	@# This uses only kubectl/jq to loop on pod-status, but assumes that 
 	@# the krew-plugin 'sick-pods'[1] is available for formatting the 
 	@# user-message.  See `k8s.wait` for an alias that waits on all pods.
@@ -292,13 +382,14 @@ k8s.namespace.wait/%:
 			| sed "s/ErrImagePull/$(shell printf "${YELLOW}ErrImagePull${NO_ANSI}")/g" \
 			| sed "s/ImagePullBackOff/$(shell printf "${YELLOW}ImagePullBackOff${NO_ANSI}")/g" \
 			| sed ':a;N;$$!ba;s/\n\n/\n/g' \
-			| tr '☂' '\n' 2>/dev/null | make io.print.dim > /dev/stderr \
+			| tr '☂' '\n' 2>/dev/null | make stream.dim > /dev/stderr \
 		&& printf "\n${DIM}`date`${NO_ANSI} ${BOLD}Pods aren't ready yet${NO_ANSI}\n" > /dev/stderr \
 		&& gum spin \
 			--title "Waiting ${K8S_POLL_DELTA}s" \
 			${GUM_SPIN_DEFAULTS} -- sleep ${K8S_POLL_DELTA}; \
 	done \
 	&& printf "${DIM}$${header} :: ${NO_ANSI}Namespace looks ready.${NO_ANSI}\n" > /dev/stderr
+
 k8s.pods.wait_until_ready: 
 	@# Waits until all pods in every namespace are ready.
 	@# No parameters; kube context should already be configured
@@ -314,13 +405,9 @@ k8s.stat:
 	@#
 	printf "\n${GLYPH_K8S} k8s.stat ${NO_ANSI_DIM}ctx=${GREEN}${UNDERLINE}`kubectx -c||true`${NO_ANSI_DIM} ns=${GREEN}${UNDERLINE}`kubens -c ||true`${NO_ANSI}\n" \
 	| make stream.to.stderr
-	( make \
-			.k8s.stat.env \
-			.k8s.stat.cluster \
-			.k8s.stat.node_info \
-			.k8s.stat.auth  \
-			.k8s.stat.ns \
-			.k8s.stat.ctx \
+	( make .k8s.stat.env .k8s.stat.cluster \
+		   .k8s.stat.node_info .k8s.stat.auth  \
+		   .k8s.stat.ns .k8s.stat.ctx \
 	) | make stream.indent | make stream.to.stderr 
 .k8s.stat.env:
 	printf "${DIM}⑆ k8s.stat.env ${NO_ANSI}${NO_ANSI}\n"
@@ -382,27 +469,6 @@ k8s.test_harness/%:
 		| jq . \
 		| (set -x && kubectl apply --namespace $${namespace} -f -)
 	make k8s.namespace.wait/$${namespace}
-
-k8s.graph/%:
-	@# Graphs resources under the given namespace, for the given kind, in dot-format.
-	@# Pipe Friendly: results are always dot files.  This command also handles 1 retry, but 
-	@# beyond that, caller should handle any errors.
-	@#
-	@# This requires the krew plugin "graph" (installed by default with k8s-tools.yml).
-	@#
-	@# USAGE: 
-	@#	 k8s.graph/<namespace>/<kind>/<field_selector>
-	@#
-	@# Argument for 'kind' must be provided, but may be "all".  
-	@# Argument for field-selector is optional.  (Default value is 'status.phase=Running')
-	@#
-	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
-	$(eval export kind:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
-	export scope=`[ "$${namespace}" == "all" ] && echo "--all-namespaces" || echo "-n $${namespace}"` \
-	&& export KUBECTL_NO_STDERR_LOGS=1 \
-	&& kubectl graph $${kind} $${scope} 2>/dev/null \
-	|| make io.time.wait/3\
-	; kubectl graph $${kind} $${scope} 2>/dev/null
 
 k8s.shell/%:
 	@# This drops into a debugging shell for the named pod using `kubectl exec`,
@@ -493,6 +559,11 @@ self.kubefwd.container_name/%:
 	cname=kubefwd.`basename ${PWD}`.$${namespace}.$${svc_name:-all} \
 	&& printf $${cname}
 	
+## END 'flux.*' targets
+## BEGIN 'stream.*' targets
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-stream
+
 kubefwd.stop/%:
 	@# Stops the named kubefwd instance.
 	@# This is mostly for internal usage, usually you want 'kubefwd.start' or 'kubefwd.panic'
@@ -547,12 +618,12 @@ kubefwd.start/%:
 	&& echo {} \
 		| make io.json.builder key=namespace val="$${namespace}" \
 		| make io.json.builder key=svc val="$${svc_name}" \
-		| make io.print.dim.indent > /dev/stderr \
+		| make stream.dim.indent > /dev/stderr \
 	&& echo {} \
 		| make io.json.builder key=container val="$${cname}" \
 		| make io.json.builder key=cmd val="$${fwd_cmd}" \
-		| make io.print.dim.indent > /dev/stderr \
-	&& printf "$${fwd_cmd_wrapped}\n"|make io.print.dim > /dev/stderr \
+		| make stream.dim.indent > /dev/stderr \
+	&& printf "$${fwd_cmd_wrapped}\n"|make stream.dim > /dev/stderr \
 	&& cid=`$${fwd_cmd_wrapped}` && cid=$${cid:0:8} \
 	&& cmd="docker logs -f $${cname}" timeout=3 make flux.sh.timeout 
 
@@ -575,7 +646,7 @@ ktop/%:
 		|| kubectl ktop $${scope}
 
 
-k9s/%:
+k9s/%:; make k9s cmd="-n ${*}"
 	@# Starts the k9s pod-browser TUI, opened by default to the given namespace.
 	@# 
 	@# NB: This assumes the `compose.import` macro has already imported k8s-tools services
@@ -583,7 +654,7 @@ k9s/%:
 	@# USAGE:  
 	@#   make k9s/<namespace>
 	@#
-	make k9s cmd="-n ${*}"
+	
 
 k9: k9s
 	@# Starts the k9s pod-browser TUI, using whatever namespace is currently activated.
@@ -593,98 +664,245 @@ k9: k9s
 	@# USAGE:  
 	@#   make k9
 
-dind.stream: compose.stat/dind.stream.wrapper
-	@# Sets context that docker-in-docker is allowed, then streams commands into the given target/container.
-	@# This is not really recommended for external use, but it enables some features of 'k8s.tui.*' targets
-	@# By default, the presence of the COMPOSE_MK var prevents this.  We also need to override  
-	@# the 'workspace' var, which (unintuitively) needs to be a _host_ path, not a container path.
-	@#
-	@# USAGE:
-	@#	target=<target_to_stream_into> script=<script_to_stream> make dind.stream
-	@#
-	export workspace="$${DOCKER_HOST_WORKSPACE}" \
-	&& export stream="`printf "$${script}"`" \
-	&& export stream="\nexport COMPOSE_MK_DIND=1;\nmake compose.stat/dind.streaming;\n$${stream}" \
-	&& printf "export COMPOSE_MK_DIND=1; make compose.stat/dind.stream.internal; $${stream}" \
-	| make $${target}
 
-k8s.graph.tui: k8s.graph.tui/all/pods
+## END misc targets
+## BEGIN 'tui.*' targets
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-tui
 
-k8s.graph.tui/%:
-	@# Previews topology for a given kubernetes <namespace>/<kind> in a way that's terminal-friendly.
-	@#
-	@# This is a human-friendly way to visualize progress or changes, because it supports 
-	@# very large input data from complex deployments with lots of services/pods, either in 
-	@# one namespace or across the whole cluster. To do that, it has throw away some 
-	@# information compared with raw kubectl output, and node labels on the graph aren't visible.  
-	@#
-	@# This is basically a pipeline from graphs in dot format, 
-	@# generated by kubectl-graph, then passed through some image-magick 
-	@# transformations, and then pushed into the 'chafa' tool for 
-	@# generating ASCII-art from images.
-	@#
-	@# USAGE: (same as k8s.graph)
-	@#   make k8s.graph.tui/<namespace>/<kind>
-	@#
-	export quiet=1  \
-	&& [ $${COMPOSE_MK_DIND}==0 ] \
-	&& script="make .k8s.graph.tui/${*}" \
-		target=tui/shell/pipe \
-		make dind.stream \
-	|| make .k8s.graph.tui/${*}
-
-.k8s.graph.tui/%:
-	@# (Private helper for k8s.graph.tui)
-	@#
-	$(call io.mktemp) && \
-	make k8s-tools.dispatch/k8s/k8s.graph/${*} > $${tmpf} \
-	&& cat $${tmpf} \
-		| dot /dev/stdin -Tsvg -o /tmp/tmp.svg \
-			-Gbgcolor=transparent -Gsize=200,200 \
-			-Estyle=bold -Ecolor=red -Eweight=150 > /dev/null \
-		&& convert /tmp/tmp.svg -transparent white png:- > /tmp/tmp.png \
-		&& chafa --invert -c full --size $${size:-70x} /tmp/tmp.png --clear
-
-# Parametric config for tmuxinator 
-define _tui._muxin
+export TUI_LAYOUT_CALLBACK?=.tui.layout.spiral
+export TUI_TMUX_SOCKET?=/workspace/tmux.sock
+export TUI_TMUX_SESSION_NAME?=k8s_tui
+define _tui._tmuxp
 cat <<EOF
-# https://tmuxp.git-pull.com/configuration/examples.html#id2
-session_name: k8s tui
-name: k8s tui
-root: .
-shell_command_before: "echo ${PWD}; make compose.stat/tmux"
-on_project_start:
-  - export COMPOSE_MK_DIND=1
+session_name: k8s_tui
+start_directory: /workspace
+environment:
+  TUI_LAYOUT_CALLBACK: ${TUI_LAYOUT_CALLBACK}
+global_options:
+  status-right-length: 100
+  status-left-length: 100
+  pane-border-status: top
+  pane-active-border-style: 'fg=red,bg=black'
+  pane-border-style: "#T #{session_name}::#{pane_index} #{pane_title} #{pane_current_command}"
+options: {}
 windows:
-  - main:
-      layout: main-vertical
-      panes:
-        - make docker.stat k8s.stat
-        - curl -sL https://github.com/elo-enterprises/k8s-tools/raw/master/img/icon.png|chafa --size 30
-        - size=20x make k8s.graph.tui.loop/kube-system/pod 
+  - window_name: k8s_tui
+    options:
+      automatic-rename: on
+    panes: ${panes:-[]}
 EOF
 endef
-export MUXIN = $(value _tui._muxin)
+export TUI_TMUXP_CONF_DATA = $(value _tui._tmuxp)
 
-flux.tmux:
-	@#
-	@#
-	@#
-	eval "$${MUXIN}" > .tmuxinator.yml
-	trap 'rm -f .tmuxinator.yml' EXIT \
-	&& cat .tmuxinator.yml | make io.print.dim.indent \
-	&& ./k8s-tools.yml run --entrypoint bash tui -c "tmuxinator start --project .tmuxinator.yml"
+k8s.commander:
+	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tui.shell/4
 
-k8s.graph.tui.loop: k8s.graph.tui.loop/kube-system/pods
-	@#
+tui.pane/%:
+	@# Sends a make-target into a pane.
+	@# This is a public interface, it dispatches commands into the 
+	@# k8s:tui container to work with tmux.
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	&& target=`printf "${*}"|cut -d/ -f2-` \
+	&& make k8s-tools.dispatch/tui/.tui.pane/${*}
 
-k8s.graph.tui.loop/%:
+.tui.k8s.commander.layout: 
+	make .tui.pane/4/.tui.widget.k8s.topology/kube-system
+	make .tui.pane/3/.tui.widget.k8s.topology/default
+	make .tui.commander.layout
+.tui.commander.layout: 
+	make .tui.layout.4
+.tui.widget.k8s.topology/%: io.time.wait/2
+	make gum.style text="${*} topology"; 
+	ns=${*} make flux.loopf/.tui.widget.k8s.topology.2
+.tui.widget.k8s.topology.2:
+	make flux.loopf/k8s.graph.tui/$${ns}/pod
+
+tui.commander/%:
 	@#
+	TUI_LAYOUT_CALLBACK=.tui.commander.layout make tui.shell/${*}
+tui.commander: tui.commander/4
+
+tui.help:
+	@# Shows help information for 'tui.*' targets
+	make help.private | grep -E '^(tui|[.]tui)' | uniq | sort --version-sort
+tui.mux/%:
+	@# Maps execution for each of the comma-delimited targets 
+	@# into separate panes of a tmux (actually 'tmuxp') session.
 	@#
-	failure_msg="${YELLOW}Waiting for cluster to get ready..${NO_ANSI}" \
-	make flux.loopf/k8s.graph.tui/${*}
-tui.run: k8s.graph.tui.loop
+	@# USAGE:
+	@#   make tui.mux/<target1>,<target2>
 	@#
+	export tmpf=.tmp.tmuxp.yml \
+	&& export panes=$(strip $(shell make .tui.panes/${*})) \
+	&& eval "$${TUI_TMUXP_CONF_DATA}" > $${tmpf} && trap 'rm -f $${tmpf}' EXIT \
+	&& cat $${tmpf} | make stream.dim.indent \
+	&& ./k8s-tools.yml run --entrypoint bash -e TMUX=${TUI_TMUX_SOCKET} \
+		tui -c "\
+			tmuxp load -d -S ${TUI_TMUX_SOCKET} $${tmpf} \
+			&& make .tui.init \
+			&& make ${TUI_LAYOUT_CALLBACK} \
+			&& tmux attach -t ${TUI_TMUX_SESSION_NAME}"
+tui.panic: 
+	@# Non-graceful stop for the TUI (i.e. all the 'k8s:tui' containers).
+	@#
+	printf "${GLYPH_K8S} tui.panic ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
+	make tui.ps | xargs -I% -n1 sh -c "id=% make docker.stop"
+
+tui.shell/%:
+	@# Starts a split-screen display of several panes inside a tmux (actually 'tmuxp') session.
+	@# If argument is an integer, opens the given number of shells in the 'k8s:tui' container.
+	@# Otherwise, executes one shell per pane for each of thecomma-delimited container-names.
+	@# 
+	@# USAGE:
+	@#   make tui.shell/<svc1>,<svc2>
+	@#
+	@# USAGE:
+	@#   make tui.shell/<int>
+	@#
+	case ${*} in \
+		''|*[!0-9]*) \
+			targets=`echo $(strip $(shell printf ${*}|sed 's/,/\n/g' | xargs -I% printf '%/shell,'))| sed 's/,$$//'` \
+			&& make tui.mux/$(strip $${targets}); ;; \
+		*) \
+			targets=`seq ${*}|xargs -n1 -I% printf "io.bash,"` \
+			&& make tui.mux/$${targets} \
+			; ;; \
+	esac
+
+tui.stat:
+	@# Show status for the TUI.
+	@#
+	printf "${GLYPH_K8S} tui.stat ${SEP} instances ${NO_ANSI}\n" > /dev/stderr
+	make tui.ps | make stream.dim | make stream.indent
+
+tui.ps:
+	@# Lists ID's for containers related to the TUI.
+	@#
+	docker ps --format json |jq -r 'select(.Image=="k8s:tui").ID'
+
+## BEGIN '.tui.*' targets
+## These targets require tmux, and so are only executed *from* the 
+## TUI, i.e. inside the k8s:tui container.  See instead 'tui.*' for 
+## public (docker-host) entrypoints.
+.tui.pane/%:
+	@# Dispatches the given make-target to the tmux pane with the given id.
+	@#
+	@# USAGE:
+	@#   make .tui.pane/<pane_id>/<target_name>
+	@#
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	&& target=`printf "${*}"|cut -d/ -f2-` \
+	cmd="make $${target}" make .tui.pane.sh/${*}
+
+.tui.pane.sh/%:
+	@# Dispatch a shell command to the tmux pane with the given ID.
+	@#
+	@# USAGE:
+	@#   cmd="echo hello tmux pane" make .tui.pane.sh/<pane_id>
+	@#
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	&& export TMUX=${TUI_TMUX_SOCKET} \
+	&& session_id="${TUI_TMUX_SESSION_NAME}:0" \
+	&& set -x && tmux send-keys -t $${session_id}.$${pane_id} "$${cmd:-echo hello .tui.pane.sh}" C-m
+
+.tui.msg/%:; tmux display-message ${*}
+
+.tui.init: 
+	@# Initialization for the TUI (a tmuxinator-managed tmux instance).
+	@# This needs to be called from inside the TUI container, with tmux already running.
+	@#
+	@# Typically this is used internally during TUI bootstrap, but you can call this to 
+	@# rexecute the main setup for things like default key-bindings and look & feel.
+	@#
+	printf "${GLYPH_K8S} .tui.init ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
+	make .tui.config 
+
+blam: tui.panic
+
+.tui.pane.focus/%:
+	tmux select-pane -t 0.${*}
+.tui.config: .tui.pane.focus/0 .tui.init.titles .tui.bind.keys
+	@# Stuff that has to be set before importing the theme 
+	tmux set -goq  @theme-status-interval 1
+	tmux set -goq \
+		@themepack-status-left-area-middle-format \
+		"ctx=#(kubectx -c||echo ?)"
+	tmux set -goq \
+		@themepack-status-left-area-right-format \
+		"ns=#(kubens -c||echo ?) wd=#{pane_current_path}"
+	tmux set -goq \
+		@themepack-status-right-area-middle-format \
+		"pid=#{pane_pid}"
+	make .tui.theme/powerline/double/cyan 
+	tmux set -g window-status-current-format "#T #[bg=black]||#[default] cmd=#{pane_current_command}  user=#(whoami)#[default]"
+.tui.bind.keys:
+	@# Private helper for .tui.init.  
+	@# (This bind default keys for pane resizing, etc)
+	tmux bind -n M-Up resize-pane -U 5 \
+	; tmux bind -n M-Down resize-pane -D 5 \
+	; tmux bind -n M-Left resize-pane -L 5 \
+	; tmux bind -n M-Right resize-pane -R 5
+.tui.init.titles:
+	@# Private helper for .tui.init.  (This fixes a bug in tmuxp with pane titles)
+	tmux set -g base-index 1
+	tmux setw -g pane-base-index 1
+	# Ensure window index numbers get reordered on delete.
+	tmux set-option -g renumber-windows on
+	$(eval export tmp=$(strip $(shell cat .tmp.tmuxp.yml | yq .windows[].panes[].name -c| xargs)))
+	$(eval export tmpseq=$(shell seq 1 $(words ${tmp})))
+	$(foreach i, $(tmpseq), $(shell bash -x -c "tmux select-pane -t `echo ${i}-1|bc` -T $(strip $(shell echo ${tmp}| cut -d' ' -f ${i}));"))
+
+.tui.panes/%:
+	@# Helper for flux.tmux. 
+	@# This generates a JSON array of tmuxp panes from comma-separated target list.
+	echo $${*} \
+	&& export targets="${*}" \
+	&& ( (\
+			printf "$${targets}" \
+			| make stream.comma.to.nl \
+			| xargs -n1 -I% echo "{\"name\":\"%\",\"shell\":\"make %\"}" \
+		) \
+	) | jq -s -c | echo \'$$(cat /dev/stdin)\'
+.tui.theme/%: 
+	@# Sets the named theme for current tmux session.  
+	@#
+	@# Requires themepack [1] (installed by default with k8s-tools.yml)
+	@#
+	@# USAGE:
+	@#   make io.tmux.theme/powerline/double/cyan
+	@#
+	@# [1]: https://github.com/jimeh/tmux-themepack.git
+	@# [2]: https://github.com/tmux/tmux/wiki/Advanced-Use
+	@#
+	tmux display-message "io.tmux.theme: ${*}" \
+	&& tmux source-file $${HOME}/.tmux-themepack/${*}.tmuxtheme	
+
+.tui.geo.get:; tmux list-windows | sed -n 's/.*layout \(.*\)] @.*/\1/p'
+	@# Gets current geometry
+.tui.geo.set:; tmux select-layout "$${geometry}"
+	@# Sets current geometry
+
+.tui.layout.spiral: .tui.dwindle/s
+	@# Alias for the dwindle spiral layout.  See '.tui.dwindle' docs for more info
+
+.tui.layout.4:
+	@# A custom geometry on up to 4 panes.
+	@# This has a large central window and a sidebar.
+	@# (Used with 'tui.commander')
+	tmux display-message ${@}
+	geometry="7384,118x68,0,0{74x68,0,0,1,43x68,75,0[43x21,75,0,2,43x28,75,22,3,43x17,75,51,4]}" \
+	make .tui.geo.set
+
+
+.tui.dwindle/%:
+	@# Sets geometry to the given layout, using tmux-layout-dwindle.
+	@# This is installed by default in k8s-tools.yml / k8s:tui container.
+	@# See [1] for general docs and discussion of options.
+	@#
+	@# [1] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
+	@#
+	set -x && tmux-layout-dwindle ${*}
 
 # k8s.graph.ez/%:
 # 	@#
@@ -693,3 +911,8 @@ tui.run: k8s.graph.tui.loop
 # 	make ▰/k8s/k8s.graph/${*} > $${tmpf} \
 # 	&& ./k8s-tools.yml run graph-easy $${tmpf}
 
+# primitive metrics with no deps: https://stackoverflow.com/questions/54531646/checking-kubernetes-pod-cpu-and-memory-utilization
+# k8s.metrics:
+# 	kubectl exec -it pod_name -n namespace -- /bin/bash
+# 	Run cat /sys/fs/cgroup/cpu/cpuacct.usage for cpu usage
+# 	Run cat /sys/fs/cgroup/memory/memory.usage_in_bytes

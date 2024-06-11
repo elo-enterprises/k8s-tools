@@ -127,7 +127,6 @@ test.flux.finally:
 		.file.touch flux.sh.fail file-cleanup || true)"
 	# NB: cannot assert this from here because cleanup only runs when the *test process* exits
 	# ! ls .tmp.test.flux.finally	
-
 .file.touch:
 	touch .tmp.test.flux.finally
 
@@ -135,11 +134,17 @@ test.flux.finally:
 	rm .tmp.test.flux.finally
 
 test.flux.loop:
-	make flux.loop/2/io.time.wait
+	make k8s-tools.dispatch/k8s/flux.loop/2/io.time.wait
 
 test.flux.dmux:
 	echo {} | make flux.dmux/yq,jq
 	echo {} | make flux.split/yq,jq
+
+test.flux.retry:
+	! interval=1 make flux.retry/3/flux.sh.fail
+
+test.flux.apply:
+	make flux.apply.later/2/io.time.wait/1
 
 test.flux.mux:
 	make flux.mux targets="io.time.wait,io.time.wait,io.time.wait/2" | jq .
