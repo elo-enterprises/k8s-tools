@@ -50,7 +50,7 @@ prometheus: k8s-tools.dispatch/k8s/.prometheus
 	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
 
 # Forces an orderly rebuild on tools containers
-build: k8s-tools.qbuild/k8s,dind k8s-tools.qbuild
+build: k8s-tools.qbuild/k8s k8s-tools.build
 
 ###############################################################################
 

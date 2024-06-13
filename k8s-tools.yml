@@ -393,29 +393,14 @@ services:
     build:
       context: . 
       dockerfile_inline: |
-        FROM debian 
+        # 5027089adc4c bookworm 
+        FROM debian
         RUN groupadd --gid ${DOCKER_GID:-1000} ${DOCKER_UGNAME:-root}
         RUN useradd --uid ${DOCKER_UID:-1000} --gid ${DOCKER_GID:-1000} --shell /bin/bash --create-home ${DOCKER_UGNAME:-root}
         RUN echo "${DOCKER_UGNAME:-root} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-        USER ${DOCKER_UGNAME:-root}
-
-  dind: &dind
-    <<: *base 
-    depends_on: ['dind_base', 'k8s']
-    image: k8s:dind
-    hostname: k8s:dind
-    build:
-      context: . 
-      dockerfile_inline: |
-        FROM k8s:base as base
-        FROM compose.mk:dind_base 
-        COPY --from=base /usr/bin/kube* /usr/bin/krew /usr/bin/gum /usr/bin 
-        USER root 
         RUN apt-get update && apt-get install -y curl uuid-runtime git
         RUN curl -fsSL https://get.docker.com -o get-docker.sh && bash get-docker.sh
         USER ${DOCKER_UGNAME:-root}
-    entrypoint: bash 
-
   # crux: for dockerized tmux!
   # This is used for TUI scripting by the 'tui.*' targets
   # Docs: .....
@@ -426,7 +411,7 @@ services:
   #   [4] https://github.com/efrecon/docker-images/tree/master/chafa
   #   [5] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
   crux: &crux
-    <<: *dind 
+    <<: *dind_base
     image: compose.mk:crux
     hostname: crux
     working_dir: /workspace
@@ -440,9 +425,9 @@ services:
     build:
       context: . 
       dockerfile_inline: |
-        FROM k8s:dind 
+        FROM compose.mk:dind_base
         USER root 
-        RUN apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
+        RUN apt-get update && apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
         RUN wget https://github.com/tmux/tmux/releases/download/${TMUX_CLI_VERSION:-3.4}/tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz
         RUN tar -zxvf tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz 
         RUN cd tmux-${TMUX_CLI_VERSION:-3.4} && ./configure && make && mv ./tmux `which tmux`
@@ -476,18 +461,41 @@ services:
         RUN cd ~/.tmux/plugins/tpm/scripts \
           && TMUX_PLUGIN_MANAGER_PATH=~/.tmux/plugins/tpm \
             ./install_plugins.sh
+
+  # dind: &dind
+  #   <<: *base 
+  #   depends_on: ['dind_base', 'k8s']
+  #   image: k8s:dind
+  #   hostname: k8s:dind
+  #   build:
+  #     context: . 
+  #     dockerfile_inline: |
+  #       FROM k8s:base as base
+  #       FROM compose.mk:dind_base 
+  #       COPY --from=base \
+  #         /usr/bin/kube* /usr/bin/helm* \
+  #         /usr/bin/krew /usr/bin/gum \
+  #         /usr/bin 
+  #       USER ${DOCKER_UGNAME:-root}
+  #   entrypoint: bash 
   
   krux: 
-    <<: *crux 
+    <<: *base
     image: k8s:krux
     hostname: k8s:krux
     environment:
-      <<: *crux_environment
+      <<: *base_environment
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
+      COMPOSE_MK_DIND: "1"
     build:
       context: . 
       dockerfile_inline: |
+        FROM k8s:dind as dind_base
         FROM compose.mk:crux
+        COPY --from=dind_base \
+          /usr/bin/kube* /usr/bin/helm* \
+          /usr/bin/krew /usr/bin/gum \
+          /usr/bin 
         USER root 
         RUN apt-get update && apt-get install -y graphviz imagemagick
         USER ${DOCKER_UGNAME:-root}

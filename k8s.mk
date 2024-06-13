@@ -250,7 +250,7 @@ k8s.graph.tui/%:
 	; case $${COMPOSE_MK_DIND} in \
 		0) \
 			script="make .k8s.graph.tui/${*}" \
-			target=crux/shell/pipe \
+			target=krux/shell/pipe \
 			make compose.dind.stream; ;; \
 		*) \
 			make .k8s.graph.tui/${*}; ;; \
