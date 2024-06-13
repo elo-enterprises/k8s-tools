@@ -16,7 +16,7 @@ Type "# This combines several instances of the 'io.time.wait/<seconds>' target, 
 Type "# into separate tmux panels.  Each exists, leaving only the default shell at the end."
 Enter
 Sleep 3
-Type "make tui.mux/io.time.wait/5,io.time.wait/7,io.time.wait/9,io.time.wait/11"
+Type "make crux.mux/io.time.wait/5,io.time.wait/7,io.time.wait/9,io.time.wait/11"
 Sleep 2.3
 Enter
 Sleep 35

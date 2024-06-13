@@ -76,7 +76,7 @@ $(eval help.namespaces: _help_namespaces_${_help_id})
 
 
 
-flux.tmux/%:; make tui.mux/${*}
+flux.tmux/%:; make crux.mux/${*}
 	@# This alias is an extension of the 'flux.*' API in compose.mk, 
 	@# since the names/arguments are so similar.  Still, this strictly
 	@# depends on compose-services at k8s-tools.yml, so it's part of 'k8s.mk'
@@ -710,16 +710,16 @@ tui.pane/%:
 	@# k8s:krux container to work with tmux.
 	pane_id=`printf "${*}"|cut -d/ -f1` \
 	&& target=`printf "${*}"|cut -d/ -f2-` \
-	&& make k8s-tools.dispatch/krux/.tui.pane/${*}
+	&& make k8s-tools.dispatch/krux/.crux.pane/${*}
 
 .tui.k8s.commander.layout: 
-	make .tui.pane/4/.tui.widget.k8s.topology.clear/kube-system
-	make .tui.pane/3/.tui.widget.k8s.topology.clear/default
-	make .tui.pane/1/flux.wrap/docker.stat,k8s.stat
+	make .crux.pane/4/.tui.widget.k8s.topology.clear/kube-system
+	make .crux.pane/3/.tui.widget.k8s.topology.clear/default
+	make .crux.pane/1/flux.wrap/docker.stat,k8s.stat
 	make .tui.commander.layout
-	title="main" make .tui.panel.title/1
-	title="default namespace" make .tui.panel.title/3
-	title="kube-system namespace" make .tui.panel.title/4
+	title="main" make .crux.panel.title/1
+	title="default namespace" make .crux.panel.title/3
+	title="kube-system namespace" make .crux.panel.title/4
 
 .tui.commander.layout: 
 	make .tui.layout.4
@@ -738,15 +738,15 @@ tui.help:
 	@# Shows help information for 'tui.*' targets
 	make help.private | grep -E '^(tui|[.]tui)' | uniq | sort --version-sort
 export TUI_CONTAINER_NAME?=krux
-tui.mux/%:
+crux.mux/%:
 	@# Maps execution for each of the comma-delimited targets 
 	@# into separate panes of a tmux (actually 'tmuxp') session.
 	@#
 	@# USAGE:
-	@#   make tui.mux/<target1>,<target2>
+	@#   make crux.mux/<target1>,<target2>
 	@#
 	export tmpf=.tmp.tmuxp.yml \
-	&& export panes=$(strip $(shell make .tui.panes/${*})) \
+	&& export panes=$(strip $(shell make .crux.panes/${*})) \
 	&& eval "$${TUI_TMUXP_CONF_DATA}" > $${tmpf} && trap 'rm -f $${tmpf}' EXIT \
 	&& cat $${tmpf} | make stream.dim.indent \
 	&& ./k8s-tools.yml run --entrypoint bash -e TMUX=${TUI_TMUX_SOCKET} \
@@ -774,10 +774,10 @@ tui.shell/%:
 	case ${*} in \
 		''|*[!0-9]*) \
 			targets=`echo $(strip $(shell printf ${*}|sed 's/,/\n/g' | xargs -I% printf '%/shell,'))| sed 's/,$$//'` \
-			&& make tui.mux/$(strip $${targets}); ;; \
+			&& make crux.mux/$(strip $${targets}); ;; \
 		*) \
 			targets=`seq ${*}|xargs -n1 -I% printf "io.bash,"` \
-			&& make tui.mux/$${targets} \
+			&& make crux.mux/$${targets} \
 			; ;; \
 	esac
 
@@ -807,28 +807,28 @@ pane3:
 ## These targets require tmux, and so are only executed *from* the 
 ## TUI, i.e. inside the k8s:krux container.  See instead 'tui.*' for 
 ## public (docker-host) entrypoints.
-.tui.pane/%:
+.crux.pane/%:
 	@# Dispatches the given make-target to the tmux pane with the given id.
 	@#
 	@# USAGE:
-	@#   make .tui.pane/<pane_id>/<target_name>
+	@#   make .crux.pane/<pane_id>/<target_name>
 	@#
 	pane_id=`printf "${*}"|cut -d/ -f1` \
 	&& target=`printf "${*}"|cut -d/ -f2-` \
-	cmd="make $${target}" make .tui.pane.sh/${*}
+	cmd="make $${target}" make .crux.pane.sh/${*}
 
-.tui.pane.sh/%:
+.crux.pane.sh/%:
 	@# Dispatch a shell command to the tmux pane with the given ID.
 	@#
 	@# USAGE:
-	@#   cmd="echo hello tmux pane" make .tui.pane.sh/<pane_id>
+	@#   cmd="echo hello tmux pane" make .crux.pane.sh/<pane_id>
 	@#
 	pane_id=`printf "${*}"|cut -d/ -f1` \
 	&& export TMUX=${TUI_TMUX_SOCKET} \
 	&& session_id="${TUI_TMUX_SESSION_NAME}:0" \
-	&& set -x && tmux send-keys -t $${session_id}.$${pane_id} "$${cmd:-echo hello .tui.pane.sh}" C-m
+	&& set -x && tmux send-keys -t $${session_id}.$${pane_id} "$${cmd:-echo hello .crux.pane.sh}" C-m
 
-.tui.msg/%:; tmux display-message ${*}
+.crux.msg/%:; tmux display-message ${*}
 
 .tui.init: 
 	@# Initialization for the TUI (a tmuxinator-managed tmux instance).
@@ -841,9 +841,9 @@ pane3:
 	make .tui.config 
 
 
-.tui.pane.focus/%:
+.crux.pane.focus/%:
 	tmux select-pane -t 0.${*} || true
-.tuiz:
+.crux.helper1:
 	./k8s-tools.yml config --services \
 	| python3 -c "import sys; tmp=sys.stdin.read().split()[:1]; tmp=[f'#[range=user|{x}][{x}]#[norange]' for x in tmp]; tmp=' '.join(tmp); print(tmp)"
 
@@ -868,11 +868,11 @@ sys.stdout.write(acc)
 EOF
 endef
 export PYZ = $(value _pyz)
-tuiz2:
+.crux.helper2:
 	# trap 'rm -f .tmp.py' EXIT \
 	eval "$${PYZ}" > .tmp.py \
 	&& make k8s-tools.services | python3 .tmp.py
-.tui.config: .tui.pane.focus/0 .tui.init.titles .tui.bind.keys
+.tui.config: .crux.pane.focus/0 .tui.init.titles .crux.bind.keys
 	@# Stuff that has to be set before importing the theme 
 	tmux set -goq  @theme-status-interval 1
 	tmux set -goq \
@@ -884,26 +884,26 @@ tuiz2:
 	tmux set -goq \
 		@themepack-status-right-area-middle-format \
 		"cmd=#{pane_current_command} pid=#{pane_pid}"
-	make .tui.theme/powerline/double/cyan 
+	make .crux.theme/powerline/double/cyan 
 
 	# run-shell ~/.tmux/plugins/tmux-sidebar/sidebar.tmux
 	# set -g @sidebar-tree-command 'make k8s.namespace.list'
 	# set -g @sidebar-tree-command 'tree -C'
-.tui.bind.keys:
+.crux.bind.keys:
 	@# Private helper for .tui.init.  
 	@# (This bind default keys for pane resizing, etc)
 	tmux bind -n M-Up resize-pane -U 5 \
 	; tmux bind -n M-Down resize-pane -D 5 \
 	; tmux bind -n M-Left resize-pane -L 5 \
 	; tmux bind -n M-Right resize-pane -R 5
-	tmux set -g window-status-current-format "#W#{?window_end_flag,#[range=user|new][+zzz]#[norange],} `make .tuiz`"
+	tmux set -g window-status-current-format "#W#{?window_end_flag,#[range=user|new][+zzz]#[norange],} `make .crux.helper1`"
 	
 	# tmux set -g window-status-current-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
 	# tmux set -g window-status-current-format '#W#{?window_end_flag,#[range=user|zzz][zzz]#[norange],}'
 
-	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {split-window} `make tuiz2`}"
+	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {split-window} `make .crux.helper2`}"
 
-.tui.panel.title/%:
+.crux.panel.title/%:
 	pane_id=`printf "${*}"|cut -d/ -f1` \
 	tmux select-pane -t ${*} -T "$${title}"
 .tui.init.titles:
@@ -916,7 +916,7 @@ tuiz2:
 	$(eval export tmpseq=$(shell seq 1 $(words ${tmp})))
 	$(foreach i, $(tmpseq), $(shell bash -x -c "tmux select-pane -t `echo ${i}-1|bc` -T $(strip $(shell echo ${tmp}| cut -d' ' -f ${i}));"))
 
-.tui.panes/%:
+.crux.panes/%:
 	@# Helper for flux.tmux. 
 	@# This generates a JSON array of tmuxp panes from comma-separated target list.
 	echo $${*} \
@@ -927,7 +927,7 @@ tuiz2:
 			| xargs -n1 -I% echo "{\"name\":\"%\",\"shell\":\"make %\"}" \
 		) \
 	) | jq -s -c | echo \'$$(cat /dev/stdin)\'
-.tui.theme/%: 
+.crux.theme/%: 
 	@# Sets the named theme for current tmux session.  
 	@#
 	@# Requires themepack [1] (installed by default with k8s-tools.yml)
@@ -941,13 +941,13 @@ tuiz2:
 	tmux display-message "io.tmux.theme: ${*}" \
 	&& tmux source-file $${HOME}/.tmux-themepack/${*}.tmuxtheme	
 
-.tui.geo.get:; tmux list-windows | sed -n 's/.*layout \(.*\)] @.*/\1/p'
+.crux.geo.get:; tmux list-windows | sed -n 's/.*layout \(.*\)] @.*/\1/p'
 	@# Gets current geometry
-.tui.geo.set:; tmux select-layout "$${geometry}"
+.crux.geo.set:; tmux select-layout "$${geometry}"
 	@# Sets current geometry
 
-.tui.layout.spiral: .tui.dwindle/s
-	@# Alias for the dwindle spiral layout.  See '.tui.dwindle' docs for more info
+.tui.layout.spiral: .crux.dwindle/s
+	@# Alias for the dwindle spiral layout.  See '.crux.dwindle' docs for more info
 
 .tui.layout.4:
 	@# A custom geometry on up to 4 panes.
@@ -955,10 +955,10 @@ tuiz2:
 	@# (Used with 'tui.commander')
 	tmux display-message ${@}
 	geometry="7384,118x68,0,0{74x68,0,0,1,43x68,75,0[43x21,75,0,2,43x28,75,22,3,43x17,75,51,4]}" \
-	make .tui.geo.set
+	make .crux.geo.set
 
 
-.tui.dwindle/%:
+.crux.dwindle/%:
 	@# Sets geometry to the given layout, using tmux-layout-dwindle.
 	@# This is installed by default in k8s-tools.yml / k8s:krux container.
 	@# See [1] for general docs and discussion of options.
