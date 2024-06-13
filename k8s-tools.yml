@@ -388,29 +388,20 @@ services:
       - ${PWD}:${workspace:-/workspace}
 
   # https://github.com/efrecon/docker-images/tree/master/chafa
-  dind: &dind
-    <<: *base 
-    depends_on: ['k8s']
-    image: k8s:dind
-    hostname: k8s:dind
-    privileged: true 
-    # user: root 
+  dind_base: &dind_base 
+    image: compose.mk:dind_base 
     build:
       context: . 
       dockerfile_inline: |
-        FROM k8s:base as base
-        FROM debian 
-        COPY --from=base /usr/bin/kube* /usr/bin/krew /usr/bin/gum /usr/bin 
-        RUN apt-get update && apt-get install -y curl uuid-runtime 
-        RUN curl -fsSL https://get.docker.com -o get-docker.sh && bash get-docker.sh
+        # 5027089adc4c bookworm 
+        FROM debian
         RUN groupadd --gid ${DOCKER_GID:-1000} ${DOCKER_UGNAME:-root}
         RUN useradd --uid ${DOCKER_UID:-1000} --gid ${DOCKER_GID:-1000} --shell /bin/bash --create-home ${DOCKER_UGNAME:-root}
         RUN echo "${DOCKER_UGNAME:-root} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+        RUN apt-get update && apt-get install -y curl uuid-runtime git
+        RUN curl -fsSL https://get.docker.com -o get-docker.sh && bash get-docker.sh
         USER ${DOCKER_UGNAME:-root}
-
-    entrypoint: bash 
-
-  # dux: for dockerized tmux!
+  # crux: for dockerized tmux!
   # This is used for TUI scripting by the 'tui.*' targets
   # Docs: .....
   # Manifest: 
@@ -419,47 +410,39 @@ services:
   #   [3] https://github.com/hpjansson/chafa
   #   [4] https://github.com/efrecon/docker-images/tree/master/chafa
   #   [5] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
-  dux: 
-    <<: *dind 
-    image: k8s:dtmux
-    hostname: k8s:dtmux
+  crux: &crux
+    <<: *dind_base
+    image: compose.mk:crux
+    hostname: crux
     working_dir: /workspace
-    environment:
-      <<: *base_environment
+    environment: &crux_environment
+      DOCKER_UID: ${DOCKER_UID:-1000}
+      DOCKER_GID: ${DOCKER_GID:-1000}
+      DOCKER_UGNAME: ${DOCKER_UGNAME:-root}
+      DOCKER_HOST_WORKSPACE: ${DOCKER_HOST_WORKSPACE:-${PWD}}
+      TERM: ${TERM:-xterm-256color}
       COMPOSE_MK_DIND: "1"
-      KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
     build:
       context: . 
       dockerfile_inline: |
-        FROM k8s:dind as base 
+        FROM compose.mk:dind_base
         USER root 
-        RUN apt-get update && apt-get install -y graphviz imagemagick
-        RUN apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
+        RUN apt-get update && apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
         RUN wget https://github.com/tmux/tmux/releases/download/${TMUX_CLI_VERSION:-3.4}/tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz
         RUN tar -zxvf tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz 
         RUN cd tmux-${TMUX_CLI_VERSION:-3.4} && ./configure && make && mv ./tmux `which tmux`
-        RUN pip3 install --break-system-packages imgcat Pillow
         RUN pip3 install tmuxp --break-system-packages
         RUN apt-get install -y chafa jq yq bc ack-grep tree pv
         RUN mkdir -p /home/${DOCKER_UGNAME:-root}
         RUN curl -sL https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle > /usr/bin/tmux-layout-dwindle && chmod ugo+x /usr/bin/tmux-layout-dwindle
         USER ${DOCKER_UGNAME:-root}
         WORKDIR /home/${DOCKER_UGNAME:-root}
-        # geometry manager / tiler for tmux
         RUN git clone https://github.com/jimeh/tmux-themepack.git ~/.tmux-themepack \
           && git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm \
           && git clone https://github.com/tmux-plugins/tmux-sidebar ~/.tmux/plugins/tmux-sidebar
         RUN tmux show -g | sed 's/^/set-option -g /' > ~/.tmux.conf
         # https://github.com/tmux-plugins/tmux-sidebar/blob/master/docs/options.md
         RUN cat <<EOF >> ~/.tmux.conf
-          set -g window-status-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
-          bind -Troot MouseDown1Status if -F '#{==:#{mouse_status_range},window}' {
-              select-window
-          } {
-              if -F '#{==:#{mouse_status_range},new}' {
-                  new-window
-              }
-          }
           set -g mouse on
           set -g @plugin 'tmux-plugins/tmux-sensible'
           bind-key  -n  M-1   select-window    -t  :=1
@@ -473,20 +456,48 @@ services:
           bind-key  -n  M-9   select-window    -t  :=9
           bind | split-window -h
           bind - split-window -v
-          run-shell ~/.tmux/plugins/tmux-sidebar/sidebar.tmux
-          set -g @sidebar-tree-command 'make k8s.namespace.list'
-          set -g @sidebar-tree-command 'tree -C'
-          set -g window-status-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
-          bind -Troot MouseDown1Status if -F '#{==:#{mouse_status_range},window}' {
-              select-window
-          } {
-              if -F '#{==:#{mouse_status_range},new}' {
-                  new-window
-              }
-          }
           run -b '~/.tmux/plugins/tpm/tpm'
         EOF
-        RUN cd ~/.tmux/plugins/tpm/scripts && TMUX_PLUGIN_MANAGER_PATH=~/.tmux/plugins/tpm ./install_plugins.sh
+        RUN cd ~/.tmux/plugins/tpm/scripts \
+          && TMUX_PLUGIN_MANAGER_PATH=~/.tmux/plugins/tpm \
+            ./install_plugins.sh
 
+  # dind: &dind
+  #   <<: *base 
+  #   depends_on: ['dind_base', 'k8s']
+  #   image: k8s:dind
+  #   hostname: k8s:dind
+  #   build:
+  #     context: . 
+  #     dockerfile_inline: |
+  #       FROM k8s:base as base
+  #       FROM compose.mk:dind_base 
+  #       COPY --from=base \
+  #         /usr/bin/kube* /usr/bin/helm* \
+  #         /usr/bin/krew /usr/bin/gum \
+  #         /usr/bin 
+  #       USER ${DOCKER_UGNAME:-root}
+  #   entrypoint: bash 
+  
+  krux: 
+    <<: *base
+    image: k8s:krux
+    hostname: k8s:krux
+    environment:
+      <<: *base_environment
+      KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
+      COMPOSE_MK_DIND: "1"
+    build:
+      context: . 
+      dockerfile_inline: |
+        FROM k8s:dind as dind_base
+        FROM compose.mk:crux
+        COPY --from=dind_base \
+          /usr/bin/kube* /usr/bin/helm* \
+          /usr/bin/krew /usr/bin/gum \
+          /usr/bin 
+        USER root 
+        RUN apt-get update && apt-get install -y graphviz imagemagick
+        USER ${DOCKER_UGNAME:-root}
 
 # https://github.com/kdash-rs/kdash?tab=readme-ov-file

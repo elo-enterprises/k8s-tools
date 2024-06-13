@@ -28,15 +28,10 @@ export POD_NAMESPACE:=default
 include k8s.mk
 include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
-
 # Default target should do everything, end to end.
 all: build clean cluster deploy test
-tui.all: 
-	make flux.delay/2/tui.pane/1/flux.wrap/k8s.stat,k8s.wait k8s.commander 
-pane2:
-	make io.bash
 pane1: 
-	sleep 5;
+	sleep 2;
 	make gum.style text='Cluster Create / Deploy / Test'
 	make docker.stat 
 	make cluster deploy test
@@ -45,8 +40,6 @@ pane1:
 	make gum.style text='k8s.wait'
 	make flux.loopf/k8s.wait
 	# sleep 10; make k9s/kube-system
-widget:
-	size=50x make k8s.graph.tui/kube-system/pod
 
 export PROMETHEUS_CLI_VERSION?=v2.52.0
 export PROMETHEUS_HELM_REPO?=prometheus-community
@@ -56,14 +49,8 @@ prometheus: k8s-tools.dispatch/k8s/.prometheus
 	make helm.repo.add/$${PROMETHEUS_HELM_REPO} url=$${PROMETHEUS_HELM_REPO_URL}
 	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
 
-pane3: 
-	curl -sL https://github.com/elo-enterprises/k8s-tools/raw/master/img/icon.png|chafa --size 30
-	make gum.style text='kube-system topology'; sleep 5
-	make flux.loopf/widget
-
-
-# Alias.  Forces an orderly rebuild on tools containers
-build: #k8s-tools.qbuild/k8s,dind k8s-tools.qbuild
+# Forces an orderly rebuild on tools containers
+build: k8s-tools.qbuild/k8s k8s-tools.build
 
 ###############################################################################
 
@@ -124,9 +111,9 @@ test.cluster:
 	text="Showing kubernetes status" make gum.style 
 	make k8s/dispatch/k8s.stat 
 	text="Previewing topology for kube-system namespace" make gum.style 
-	clear="" make k8s.graph.tui/kube-system/pod
+	make krux/qdispatch/k8s.graph.tui/kube-system/pod
 	text="Previewing topology for default namespace" make gum.style 
-	clear="" make k8s.graph.tui/default/pod
+	make krux/qdispatch/k8s.graph.tui/default/pod
 
 test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
 	@# Helpers for displaying platform info 
