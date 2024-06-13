@@ -171,6 +171,7 @@ $(compose_service_name): $(target_namespace)/$(compose_service_name)
 $(compose_service_name)/pipe: ⟂/${compose_file_stem}/$(compose_service_name)
 $(compose_service_name)/shell: ${compose_file_stem}/$(compose_service_name)/shell
 $(compose_service_name)/get_shell:  ${compose_file_stem}/$(compose_service_name)/get_shell
+$(compose_service_name)/build: ${compose_file_stem}.build/$(compose_service_name)
 $(compose_service_name)/shell/pipe: ${compose_file_stem}/$(compose_service_name)/shell/pipe
 $(compose_service_name)/dispatch/%:; make ${compose_file_stem}.dispatch/$(compose_service_name)/$${*}
 $(compose_service_name)/qdispatch/%:; make ${compose_file_stem}.qdispatch/$(compose_service_name)/$${*}
