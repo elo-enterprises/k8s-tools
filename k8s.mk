@@ -208,14 +208,17 @@ k8s.graph/%:
 	@#
 	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
 	$(eval export kind:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
-	case ${COMPOSE_MK} in \
-		1) \
-			export scope=`[ "$${namespace}" == "all" ] && echo "--all-namespaces" || echo "-n $${namespace}"` \
-			&& export KUBECTL_NO_STDERR_LOGS=1 \
-			&& kubectl graph $${kind:-pods} $${scope} 2>/dev/null; ;; \
-		0) \
-			make k8s-tools.dispatch/k8s/k8s.graph/${*}; ;; \
-	esac
+	export scope=`[ "$${namespace}" == "all" ] && echo "--all-namespaces" || echo "-n $${namespace}"` \
+	&& export KUBECTL_NO_STDERR_LOGS=1 \
+	&& kubectl graph $${kind:-pods} $${scope} 2>/dev/null;
+	# case ${COMPOSE_MK} in \
+	# 	1) \
+	# 		 \
+	# 		&& export KUBECTL_NO_STDERR_LOGS=1 \
+	# 		&& kubectl graph $${kind:-pods} $${scope} 2>/dev/null; ;; \
+	# 	0) \
+	# 		make k8s-tools.dispatch/k8s/k8s.graph/${*}; ;; \
+	# esac
 
 k8s.graph: k8s.graph/all/pods 
 	@#
@@ -246,7 +249,7 @@ k8s.graph.tui/%:
 	@# USAGE: (same as k8s.graph)
 	@#   make k8s.graph.tui/<namespace>/<kind>
 	@#
-	export COMPOSE_MK_DEBUG=0 \
+	export COMPOSE_MK_DEBUG=1 \
 	; case $${COMPOSE_MK_DIND} in \
 		0) \
 			script="make .k8s.graph.tui/${*}" \
@@ -259,14 +262,15 @@ k8s.graph.tui/%:
 	@# (Private helper for k8s.graph.tui)
 	@#
 	$(call io.mktemp) && \
-	make k8s/dispatch/k8s.graph/${*} > $${tmpf} \
+	make k8s.graph/${*} > $${tmpf} \
 	&& cat $${tmpf} \
 		| dot /dev/stdin -Tsvg -o /tmp/tmp.svg \
 			-Gbgcolor=transparent -Gsize=200,200 \
 			-Estyle=bold -Ecolor=red -Eweight=150 > /dev/null \
 		&& convert /tmp/tmp.svg -transparent white png:- > /tmp/tmp.png \
 		&& default_size=`echo .75*\`tput cols||echo 30\`|bc`x \
-		&& chafa --invert --fill braille -c full --scale max $${clear:-} /tmp/tmp.png
+		&& chafa --invert --fill braille -c full \
+			--center=on --scale max $${clear:-} /tmp/tmp.png
 .k8s.graph.tui.clear/%: 
 	clear="--clear" make .k8s.graph.tui/${*}
 k8s.kubens/%: 
@@ -713,9 +717,9 @@ tui.pane/%:
 	make .tui.pane/3/.tui.widget.k8s.topology.clear/default
 	make .tui.pane/1/flux.wrap/docker.stat,k8s.stat
 	make .tui.commander.layout
-	title="main".tui.panel.title/1
-	title="default namespace".tui.panel.title/3
-	title="kube-system namespace".tui.panel.title/4
+	title="main" make .tui.panel.title/1
+	title="default namespace" make .tui.panel.title/3
+	title="kube-system namespace" make .tui.panel.title/4
 
 .tui.commander.layout: 
 	make .tui.layout.4
