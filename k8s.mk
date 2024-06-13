@@ -222,8 +222,10 @@ k8s.graph/%:
 
 k8s.graph: k8s.graph/all/pods 
 	@#
+
 k8s.graph.tui: k8s.graph.tui/all/pods
 	@#
+
 k8s.graph.tui.loop: k8s.graph.tui.loop/kube-system/pods
 	@# Loops the graph for the kube-system namespace
 
@@ -271,8 +273,8 @@ k8s.graph.tui/%:
 		&& default_size=`echo .75*\`tput cols||echo 30\`|bc`x \
 		&& chafa --invert --fill braille -c full \
 			--center=on --scale max $${clear:-} /tmp/tmp.png
-.k8s.graph.tui.clear/%: 
-	clear="--clear" make .k8s.graph.tui/${*}
+.k8s.graph.tui.clear/%:; clear="--clear" make .k8s.graph.tui/${*}
+
 k8s.kubens/%: 
 	@# Context-manager.  Activates the given namespace.
 	@# NB: This modifies state in the kubeconfig, so that it can effect contexts 
@@ -807,29 +809,6 @@ pane3:
 ## These targets require tmux, and so are only executed *from* the 
 ## TUI, i.e. inside the k8s:krux container.  See instead 'tui.*' for 
 ## public (docker-host) entrypoints.
-.crux.pane/%:
-	@# Dispatches the given make-target to the tmux pane with the given id.
-	@#
-	@# USAGE:
-	@#   make .crux.pane/<pane_id>/<target_name>
-	@#
-	pane_id=`printf "${*}"|cut -d/ -f1` \
-	&& target=`printf "${*}"|cut -d/ -f2-` \
-	cmd="make $${target}" make .crux.pane.sh/${*}
-
-.crux.pane.sh/%:
-	@# Dispatch a shell command to the tmux pane with the given ID.
-	@#
-	@# USAGE:
-	@#   cmd="echo hello tmux pane" make .crux.pane.sh/<pane_id>
-	@#
-	pane_id=`printf "${*}"|cut -d/ -f1` \
-	&& export TMUX=${TUI_TMUX_SOCKET} \
-	&& session_id="${TUI_TMUX_SESSION_NAME}:0" \
-	&& set -x && tmux send-keys -t $${session_id}.$${pane_id} "$${cmd:-echo hello .crux.pane.sh}" C-m
-
-.crux.msg/%:; tmux display-message ${*}
-
 .tui.init: 
 	@# Initialization for the TUI (a tmuxinator-managed tmux instance).
 	@# This needs to be called from inside the TUI container, with tmux already running.
@@ -840,72 +819,38 @@ pane3:
 	printf "${GLYPH_K8S} .tui.init ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
 	make .tui.config 
 
+# define _pyz
+# cat <<EOF
+# import sys; import json
+# tmp=sys.stdin.read().split()[:1]; 
+# acc=None
+# for x in tmp:
+#   z = "{if -F '#{==:#{mouse_status_range}," + x +"}' { split-window; send-keys 'make "+x+"/shell' C-m}}"
+#   if not acc:
+#     acc=z 
+#   else:
+#     #for i in range(len(acc)):
+#     #if acc[-i] not in "} ": break
+#     acc = acc[:-1] + z + '}'
+#     acc=acc.strip()
+#     #raise Exception(acc)
+# assert len([x for x in acc if x=='{'])==len([x for x in acc if x=='}'])
+# sys.stderr.write(acc)
+# sys.stdout.write(acc)
+# EOF
+# endef
+# export PYZ = $(value _pyz)
 
-.crux.pane.focus/%:
-	tmux select-pane -t 0.${*} || true
-.crux.helper1:
-	./k8s-tools.yml config --services \
-	| python3 -c "import sys; tmp=sys.stdin.read().split()[:1]; tmp=[f'#[range=user|{x}][{x}]#[norange]' for x in tmp]; tmp=' '.join(tmp); print(tmp)"
+.tui.config: \
+	.crux.pane.focus/0 \
+	.tui.init.titles \
+	.crux.bind.keys .crux.theme
 
-define _pyz
-cat <<EOF
-import sys; import json
-tmp=sys.stdin.read().split()[:1]; 
-acc=None
-for x in tmp:
-  z = "{if -F '#{==:#{mouse_status_range}," + x +"}' { split-window; send-keys 'make "+x+"/shell' C-m}}"
-  if not acc:
-    acc=z 
-  else:
-    #for i in range(len(acc)):
-    #if acc[-i] not in "} ": break
-    acc = acc[:-1] + z + '}'
-    acc=acc.strip()
-    #raise Exception(acc)
-assert len([x for x in acc if x=='{'])==len([x for x in acc if x=='}'])
-sys.stderr.write(acc)
-sys.stdout.write(acc)
-EOF
-endef
-export PYZ = $(value _pyz)
-.crux.helper2:
-	# trap 'rm -f .tmp.py' EXIT \
-	eval "$${PYZ}" > .tmp.py \
-	&& make k8s-tools.services | python3 .tmp.py
-.tui.config: .crux.pane.focus/0 .tui.init.titles .crux.bind.keys
-	@# Stuff that has to be set before importing the theme 
-	tmux set -goq  @theme-status-interval 1
-	tmux set -goq \
-		@themepack-status-left-area-middle-format \
-		"ctx=#(kubectx -c||echo ?) ns=#(kubens -c||echo ?)"
-	tmux set -goq \
-		@themepack-status-left-area-right-format \
-		"wd=#{pane_current_path}"
-	tmux set -goq \
-		@themepack-status-right-area-middle-format \
-		"cmd=#{pane_current_command} pid=#{pane_pid}"
-	make .crux.theme/powerline/double/cyan 
-
-	# run-shell ~/.tmux/plugins/tmux-sidebar/sidebar.tmux
-	# set -g @sidebar-tree-command 'make k8s.namespace.list'
-	# set -g @sidebar-tree-command 'tree -C'
-.crux.bind.keys:
-	@# Private helper for .tui.init.  
-	@# (This bind default keys for pane resizing, etc)
-	tmux bind -n M-Up resize-pane -U 5 \
-	; tmux bind -n M-Down resize-pane -D 5 \
-	; tmux bind -n M-Left resize-pane -L 5 \
-	; tmux bind -n M-Right resize-pane -R 5
-	tmux set -g window-status-current-format "#W#{?window_end_flag,#[range=user|new][+zzz]#[norange],} `make .crux.helper1`"
 	
-	# tmux set -g window-status-current-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
-	# tmux set -g window-status-current-format '#W#{?window_end_flag,#[range=user|zzz][zzz]#[norange],}'
+# run-shell ~/.tmux/plugins/tmux-sidebar/sidebar.tmux
+# set -g @sidebar-tree-command 'make k8s.namespace.list'
+# set -g @sidebar-tree-command 'tree -C'
 
-	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {split-window} `make .crux.helper2`}"
-
-.crux.panel.title/%:
-	pane_id=`printf "${*}"|cut -d/ -f1` \
-	tmux select-pane -t ${*} -T "$${title}"
 .tui.init.titles:
 	@# Private helper for .tui.init.  (This fixes a bug in tmuxp with pane titles)
 	tmux set -g base-index 1
@@ -915,36 +860,6 @@ export PYZ = $(value _pyz)
 	$(eval export tmp=$(strip $(shell cat .tmp.tmuxp.yml | yq .windows[].panes[].name -c| xargs)))
 	$(eval export tmpseq=$(shell seq 1 $(words ${tmp})))
 	$(foreach i, $(tmpseq), $(shell bash -x -c "tmux select-pane -t `echo ${i}-1|bc` -T $(strip $(shell echo ${tmp}| cut -d' ' -f ${i}));"))
-
-.crux.panes/%:
-	@# Helper for flux.tmux. 
-	@# This generates a JSON array of tmuxp panes from comma-separated target list.
-	echo $${*} \
-	&& export targets="${*}" \
-	&& ( (\
-			printf "$${targets}" \
-			| make stream.comma.to.nl \
-			| xargs -n1 -I% echo "{\"name\":\"%\",\"shell\":\"make %\"}" \
-		) \
-	) | jq -s -c | echo \'$$(cat /dev/stdin)\'
-.crux.theme/%: 
-	@# Sets the named theme for current tmux session.  
-	@#
-	@# Requires themepack [1] (installed by default with k8s-tools.yml)
-	@#
-	@# USAGE:
-	@#   make io.tmux.theme/powerline/double/cyan
-	@#
-	@# [1]: https://github.com/jimeh/tmux-themepack.git
-	@# [2]: https://github.com/tmux/tmux/wiki/Advanced-Use
-	@#
-	tmux display-message "io.tmux.theme: ${*}" \
-	&& tmux source-file $${HOME}/.tmux-themepack/${*}.tmuxtheme	
-
-.crux.geo.get:; tmux list-windows | sed -n 's/.*layout \(.*\)] @.*/\1/p'
-	@# Gets current geometry
-.crux.geo.set:; tmux select-layout "$${geometry}"
-	@# Sets current geometry
 
 .tui.layout.spiral: .crux.dwindle/s
 	@# Alias for the dwindle spiral layout.  See '.crux.dwindle' docs for more info
@@ -956,16 +871,6 @@ export PYZ = $(value _pyz)
 	tmux display-message ${@}
 	geometry="7384,118x68,0,0{74x68,0,0,1,43x68,75,0[43x21,75,0,2,43x28,75,22,3,43x17,75,51,4]}" \
 	make .crux.geo.set
-
-
-.crux.dwindle/%:
-	@# Sets geometry to the given layout, using tmux-layout-dwindle.
-	@# This is installed by default in k8s-tools.yml / k8s:krux container.
-	@# See [1] for general docs and discussion of options.
-	@#
-	@# [1] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
-	@#
-	set -x && tmux-layout-dwindle ${*}
 
 # k8s.graph.ez/%:
 # 	@#

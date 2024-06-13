@@ -883,3 +883,173 @@ stream.to.stderr:
 	@# Sends input stream to stderr
 	@#
 	cat /dev/stdin > /dev/stderr
+
+define _crux.bind.helper
+cat <<EOF
+import sys; import json
+tmp=sys.stdin.read().split()[:1]; 
+acc=None
+for x in tmp:
+  z = "{if -F '#{==:#{mouse_status_range}," + x +"}' { split-window; send-keys 'make "+x+"/shell' C-m}}"
+  if not acc:
+    acc=z 
+  else:
+    #for i in range(len(acc)):
+    #if acc[-i] not in "} ": break
+    acc = acc[:-1] + z + '}'
+    acc=acc.strip()
+    #raise Exception(acc)
+assert len([x for x in acc if x=='{'])==len([x for x in acc if x=='}'])
+sys.stderr.write(acc)
+sys.stdout.write(acc)
+EOF
+endef
+export CRUX_BIND_HELPER = $(value _crux.bind.helper)
+
+.crux.bind.keys:
+	@# Private helper for .tui.init.  
+	@# (This bind default keys for pane resizing, etc)
+	tmux bind -n M-Up resize-pane -U 5 \
+	; tmux bind -n M-Down resize-pane -D 5 \
+	; tmux bind -n M-Left resize-pane -L 5 \
+	; tmux bind -n M-Right resize-pane -R 5
+	tmux set -g window-status-current-format "#W#{?window_end_flag,#[range=user|new][+zzz]#[norange],} `make .crux.bind.keys.helper1`"
+	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {split-window} `make .crux.bind.keys.helper2`}"
+.crux.bind.keys.helper1:
+	./k8s-tools.yml config --services \
+	| python3 -c "import sys; tmp=sys.stdin.read().split()[:1]; tmp=[f'#[range=user|{x}][{x}]#[norange]' for x in tmp]; tmp=' '.join(tmp); print(tmp)"
+.crux.bind.keys.helper2:
+	# trap 'rm -f .tmp.py' EXIT \
+	eval "$${CRUX_BIND_HELPER}" > .tmp.py \
+	&& make k8s-tools.services | python3 .tmp.py
+.crux.dwindle/%:
+	@# Sets geometry to the given layout, using tmux-layout-dwindle.
+	@# This is installed by default in k8s-tools.yml / k8s:krux container.
+	@# See [1] for general docs and discussion of options.
+	@#
+	@# [1] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
+	@#
+	set -x && tmux-layout-dwindle ${*}
+
+
+.crux.geo.get:; tmux list-windows | sed -n 's/.*layout \(.*\)] @.*/\1/p'
+	@# Gets current geometry
+.crux.geo.set:; tmux select-layout "$${geometry}"
+	@# Sets current geometry
+.crux.pane.focus/%:
+	tmux select-pane -t 0.${*} || true
+.crux.pane/%:
+	@# Dispatches the given make-target to the tmux pane with the given id.
+	@#
+	@# USAGE:
+	@#   make .crux.pane/<pane_id>/<target_name>
+	@#
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	&& target=`printf "${*}"|cut -d/ -f2-` \
+	cmd="make $${target}" make .crux.pane.sh/${*}
+.crux.pane.sh/%:
+	@# Dispatch a shell command to the tmux pane with the given ID.
+	@#
+	@# USAGE:
+	@#   cmd="echo hello tmux pane" make .crux.pane.sh/<pane_id>
+	@#
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	&& export TMUX=${TUI_TMUX_SOCKET} \
+	&& session_id="${TUI_TMUX_SESSION_NAME}:0" \
+	&& set -x \
+	&& tmux send-keys \
+		-t $${session_id}.$${pane_id} \
+		"$${cmd:-echo hello .tui.pane.sh}" C-m
+
+.crux.pane.title/%:
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	tmux select-pane -t ${*} -T "$${title}"
+
+.crux.panes/%:
+	@# This generates a JSON array of tmuxp panes from comma-separated target list.
+	echo $${*} \
+	&& export targets="${*}" \
+	&& ( (\
+			printf "$${targets}" \
+			| make stream.comma.to.nl \
+			| xargs -n1 -I% echo "{\"name\":\"%\",\"shell\":\"make %\"}" \
+		) \
+	) | jq -s -c | echo \'$$(cat /dev/stdin)\'
+
+.crux.msg/%:; tmux display-message ${*}
+
+
+# .crux.geo.get:; tmux list-windows | sed -n 's/.*layout \(.*\)] @.*/\1/p'
+# 	@# Gets current geometry
+# .crux.geo.set:; tmux select-layout "$${geometry}"
+# 	@# Sets current geometry
+# .crux.helper1:
+# 	./k8s-tools.yml config --services \
+# 	| python3 -c "import sys; tmp=sys.stdin.read().split()[:1]; tmp=[f'#[range=user|{x}][{x}]#[norange]' for x in tmp]; tmp=' '.join(tmp); print(tmp)"
+# .crux.helper2:
+# 	# trap 'rm -f .tmp.py' EXIT \
+# 	eval "$${CRUX_BIND_HELPER}" > .tmp.py \
+# 	&& make k8s-tools.services | python3 .tmp.py
+# .crux.msg/%:; tmux display-message ${*}
+	tmux select-pane -t 0.${*} || true
+# .crux.pane/%:
+# 	@# Dispatches the given make-target to the tmux pane with the given id.
+# 	@#
+# 	@# USAGE:
+# 	@#   make .crux.pane/<pane_id>/<target_name>
+# 	@#
+# 	pane_id=`printf "${*}"|cut -d/ -f1` \
+# 	&& target=`printf "${*}"|cut -d/ -f2-` \
+# 	cmd="make $${target}" make .crux.pane.sh/${*}
+
+# .crux.pane.focus/%:
+# .crux.pane.sh/%:
+# 	@# Dispatch a shell command to the tmux pane with the given ID.
+# 	@#
+# 	@# USAGE:
+# 	@#   cmd="echo hello tmux pane" make .crux.pane.sh/<pane_id>
+# 	@#
+# 	pane_id=`printf "${*}"|cut -d/ -f1` \
+# 	&& export TMUX=${TUI_TMUX_SOCKET} \
+# 	&& session_id="${TUI_TMUX_SESSION_NAME}:0" \
+# 	&& set -x && tmux send-keys -t $${session_id}.$${pane_id} "$${cmd:-echo hello .crux.pane.sh}" C-m
+# .crux.panes/%:
+# 	@# Helper for flux.tmux. 
+# 	@# This generates a JSON array of tmuxp panes from comma-separated target list.
+# 	echo $${*} \
+# 	&& export targets="${*}" \
+# 	&& ( (\
+# 			printf "$${targets}" \
+# 			| make stream.comma.to.nl \
+# 			| xargs -n1 -I% echo "{\"name\":\"%\",\"shell\":\"make %\"}" \
+# 		) \
+# 	) | jq -s -c | echo \'$$(cat /dev/stdin)\'
+.crux.panel.title/%:
+	pane_id=`printf "${*}"|cut -d/ -f1` \
+	tmux select-pane -t ${*} -T "$${title}"
+.crux.theme:
+	@# Stuff that has to be set before importing the theme 
+	tmux set -goq  @theme-status-interval 1
+	tmux set -goq \
+		@themepack-status-left-area-middle-format \
+		"ctx=#(kubectx -c||echo ?) ns=#(kubens -c||echo ?)"
+	tmux set -goq \
+		@themepack-status-left-area-right-format \
+		"wd=#{pane_current_path}"
+	tmux set -goq \
+		@themepack-status-right-area-middle-format \
+		"cmd=#{pane_current_command} pid=#{pane_pid}"
+	make .crux.theme/powerline/double/cyan 
+.crux.theme/%: 
+	@# Sets the named theme for current tmux session.  
+	@#
+	@# Requires themepack [1] (installed by default with k8s-tools.yml)
+	@#
+	@# USAGE:
+	@#   make io.tmux.theme/powerline/double/cyan
+	@#
+	@# [1]: https://github.com/jimeh/tmux-themepack.git
+	@# [2]: https://github.com/tmux/tmux/wiki/Advanced-Use
+	@#
+	tmux display-message "io.tmux.theme: ${*}" \
+	&& tmux source-file $${HOME}/.tmux-themepack/${*}.tmuxtheme	
