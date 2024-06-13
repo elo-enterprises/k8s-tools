@@ -88,7 +88,7 @@ The main focus for `compose.mk` is providing the `compose.import` macro:
   * **[Curated collection of automation interfaces](#k8smk-api)**, arranged into a few namespaces:
     * **`k8s.*`:** Default namespace with debugging tools, cluster life-cycle primitives, etc.
     * **`tui.*`:** Control-surface for a tmux-backed console geometry manager.
-      * **No host dependencies.** This uses the `k8s:tui` tool container to dockerize tmux.
+      * **No host dependencies.** This uses the `k8s:dux` tool container to dockerize tmux.
       * Uses docker-in-docker to interact with your other containers seamlessly.
       * Open split-screen displays, shelling into 1 or more of the tool containers in k8s-tools.yml.
       * Combine with `flux.*` target and quickly create dashboards / custom development environments.

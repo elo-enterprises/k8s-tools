@@ -410,12 +410,19 @@ services:
 
     entrypoint: bash 
 
-  # https://github.com/hpjansson/chafa
-  # https://github.com/efrecon/docker-images/tree/master/chafa
-  tui:
+  # dux: for dockerized tmux!
+  # This is used for TUI scripting by the 'tui.*' targets
+  # Docs: .....
+  # Manifest: 
+  #   [1] tmux 3.4 by default (slightly newer than bookworm default)
+  #   [2] tmuxp, for working with profiled sessions
+  #   [3] https://github.com/hpjansson/chafa
+  #   [4] https://github.com/efrecon/docker-images/tree/master/chafa
+  #   [5] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
+  dux: 
     <<: *dind 
-    image: k8s:tui
-    hostname: k8s:tui
+    image: k8s:dtmux
+    hostname: k8s:dtmux
     working_dir: /workspace
     environment:
       <<: *base_environment
@@ -427,9 +434,11 @@ services:
         FROM k8s:dind as base 
         USER root 
         RUN apt-get update && apt-get install -y graphviz imagemagick
-        RUN apt-get install -y tmux python3-pip
-        # imgcat seems broken inside a container..
-        # RUN pip3 install --break-system-packages imgcat Pillow
+        RUN apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
+        RUN wget https://github.com/tmux/tmux/releases/download/${TMUX_CLI_VERSION:-3.4}/tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz
+        RUN tar -zxvf tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz 
+        RUN cd tmux-${TMUX_CLI_VERSION:-3.4} && ./configure && make && mv ./tmux `which tmux`
+        RUN pip3 install --break-system-packages imgcat Pillow
         RUN pip3 install tmuxp --break-system-packages
         RUN apt-get install -y chafa jq yq bc ack-grep tree pv
         RUN mkdir -p /home/${DOCKER_UGNAME:-root}

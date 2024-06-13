@@ -566,8 +566,11 @@ flux.apply/%:
 	| tr ',' '\n' \
 	| xargs -I% echo make % \
 	| bash -x
-
+flux.delay/%:; make flux.apply.later/${*}
+	@#
+	@#
 flux.apply.later/%:
+	@# 
 	@#
 	time=`printf ${*}| cut -d/ -f1` \
 	&& target=`printf ${*}| cut -d/ -f2-` \

@@ -31,7 +31,8 @@ $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 # Default target should do everything, end to end.
 all: build clean cluster deploy test
-tui.all: flux.tmux/pane1,pane2,pane3
+tui.all: 
+	make flux.delay/2/tui.pane/1/flux.wrap/k8s.stat,k8s.wait k8s.commander 
 pane2:
 	make io.bash
 pane1: 
@@ -93,7 +94,7 @@ self.cluster.clean:
 # You can expand this to include usage of `kustomize`, etc.
 # Volumes are already setup, so you can `kubectl appply` from the filesystem.
 deploy: 
-	make gum.style text="Cluster Provision"
+	make gum.style text="Cluster Deploy"
 	make deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
@@ -123,9 +124,9 @@ test.cluster:
 	text="Showing kubernetes status" make gum.style 
 	make k8s/dispatch/k8s.stat 
 	text="Previewing topology for kube-system namespace" make gum.style 
-	make k8s.graph.tui/kube-system/pod
+	clear="" make k8s.graph.tui/kube-system/pod
 	text="Previewing topology for default namespace" make gum.style 
-	make k8s.graph.tui/default/pod
+	clear="" make k8s.graph.tui/default/pod
 
 test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
 	@# Helpers for displaying platform info 

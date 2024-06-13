@@ -267,7 +267,7 @@ k8s.graph.tui/%:
 			-Estyle=bold -Ecolor=red -Eweight=150 > /dev/null \
 		&& convert /tmp/tmp.svg -transparent white png:- > /tmp/tmp.png \
 		&& default_size=`echo .75*\`tput cols||echo 30\`|bc`x \
-		&& chafa --invert --fill braille -c full --scale max --clear /tmp/tmp.png
+		&& chafa --invert --fill braille -c full --scale max ${clear:---clear} /tmp/tmp.png
 
 k8s.kubens/%: 
 	@# Context-manager.  Activates the given namespace.
@@ -697,11 +697,13 @@ export TUI_TMUXP_CONF_DATA = $(value _tui._tmuxp)
 
 k8s.commander:
 	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tui.shell/4
-
+blam: tui.panic
+tui: tui.commander
 tui.pane/%:
 	@# Sends a make-target into a pane.
-	@# This is a public interface, it dispatches commands into the 
-	@# k8s:tui container to work with tmux.
+	@# This is a public interface safe to call from the docker-host.
+	@# It works by dispatching commands into the 
+	@# k8s:dux container to work with tmux.
 	pane_id=`printf "${*}"|cut -d/ -f1` \
 	&& target=`printf "${*}"|cut -d/ -f2-` \
 	&& make k8s-tools.dispatch/tui/.tui.pane/${*}
@@ -709,6 +711,7 @@ tui.pane/%:
 .tui.k8s.commander.layout: 
 	make .tui.pane/4/.tui.widget.k8s.topology/kube-system
 	make .tui.pane/3/.tui.widget.k8s.topology/default
+	make .tui.pane/1/flux.wrap/k8s.stat
 	make .tui.commander.layout
 .tui.commander.layout: 
 	make .tui.layout.4
@@ -726,6 +729,7 @@ tui.commander: tui.commander/4
 tui.help:
 	@# Shows help information for 'tui.*' targets
 	make help.private | grep -E '^(tui|[.]tui)' | uniq | sort --version-sort
+export TUI_CONTAINER_NAME?=dux
 tui.mux/%:
 	@# Maps execution for each of the comma-delimited targets 
 	@# into separate panes of a tmux (actually 'tmuxp') session.
@@ -738,20 +742,19 @@ tui.mux/%:
 	&& eval "$${TUI_TMUXP_CONF_DATA}" > $${tmpf} && trap 'rm -f $${tmpf}' EXIT \
 	&& cat $${tmpf} | make stream.dim.indent \
 	&& ./k8s-tools.yml run --entrypoint bash -e TMUX=${TUI_TMUX_SOCKET} \
-		tui -c "\
+		${TUI_CONTAINER_NAME} -c "\
 			tmuxp load -d -S ${TUI_TMUX_SOCKET} $${tmpf} \
-			&& make .tui.init \
-			&& make ${TUI_LAYOUT_CALLBACK} \
+			&& make .tui.init ${TUI_LAYOUT_CALLBACK} \
 			&& tmux attach -t ${TUI_TMUX_SESSION_NAME}"
 tui.panic: 
-	@# Non-graceful stop for the TUI (i.e. all the 'k8s:tui' containers).
+	@# Non-graceful stop for the TUI (i.e. all the 'k8s:dux' containers).
 	@#
 	printf "${GLYPH_K8S} tui.panic ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
 	make tui.ps | xargs -I% -n1 sh -c "id=% make docker.stop"
 
 tui.shell/%:
 	@# Starts a split-screen display of several panes inside a tmux (actually 'tmuxp') session.
-	@# If argument is an integer, opens the given number of shells in the 'k8s:tui' container.
+	@# If argument is an integer, opens the given number of shells in the 'k8s:dux' container.
 	@# Otherwise, executes one shell per pane for each of thecomma-delimited container-names.
 	@# 
 	@# USAGE:
@@ -779,11 +782,11 @@ tui.stat:
 tui.ps:
 	@# Lists ID's for containers related to the TUI.
 	@#
-	docker ps --format json |jq -r 'select(.Image=="k8s:tui").ID'
+	docker ps --format json |jq -r 'select(.Image=="k8s:dux").ID'
 
 ## BEGIN '.tui.*' targets
 ## These targets require tmux, and so are only executed *from* the 
-## TUI, i.e. inside the k8s:tui container.  See instead 'tui.*' for 
+## TUI, i.e. inside the k8s:dux container.  See instead 'tui.*' for 
 ## public (docker-host) entrypoints.
 .tui.pane/%:
 	@# Dispatches the given make-target to the tmux pane with the given id.
@@ -818,24 +821,25 @@ tui.ps:
 	printf "${GLYPH_K8S} .tui.init ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
 	make .tui.config 
 
-blam: tui.panic
 
 .tui.pane.focus/%:
-	tmux select-pane -t 0.${*}
+	tmux select-pane -t 0.${*} || true
 .tui.config: .tui.pane.focus/0 .tui.init.titles .tui.bind.keys
 	@# Stuff that has to be set before importing the theme 
 	tmux set -goq  @theme-status-interval 1
 	tmux set -goq \
 		@themepack-status-left-area-middle-format \
-		"ctx=#(kubectx -c||echo ?)"
+		"ctx=#(kubectx -c||echo ?) ns=#(kubens -c||echo ?)"
 	tmux set -goq \
 		@themepack-status-left-area-right-format \
-		"ns=#(kubens -c||echo ?) wd=#{pane_current_path}"
+		"wd=#{pane_current_path}"
 	tmux set -goq \
 		@themepack-status-right-area-middle-format \
-		"pid=#{pane_pid}"
+		"cmd=#{pane_current_command} pid=#{pane_pid}"
 	make .tui.theme/powerline/double/cyan 
-	tmux set -g window-status-current-format "#T #[bg=black]||#[default] cmd=#{pane_current_command}  user=#(whoami)#[default]"
+	# tmux set -g window-status-current-format "#T #[bg=black]||#[default]   user=#(whoami)#[default]"
+	tmux set -g window-status-current-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
+	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {split-window}}"
 .tui.bind.keys:
 	@# Private helper for .tui.init.  
 	@# (This bind default keys for pane resizing, etc)
@@ -897,7 +901,7 @@ blam: tui.panic
 
 .tui.dwindle/%:
 	@# Sets geometry to the given layout, using tmux-layout-dwindle.
-	@# This is installed by default in k8s-tools.yml / k8s:tui container.
+	@# This is installed by default in k8s-tools.yml / k8s:dux container.
 	@# See [1] for general docs and discussion of options.
 	@#
 	@# [1] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
