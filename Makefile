@@ -25,9 +25,7 @@ $(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
 
 .PHONY: docs
 .DEFAULT_GOAL :=  all 
-# default entrypoint
 all: init clean build test docs
-	@# Default entrypoint
 
 
 # cache-busting / debugging entrypoints
