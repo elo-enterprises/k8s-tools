@@ -27,12 +27,11 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 .DEFAULT_GOAL := all 
-all: k8s-tools.build/k8s
+all: k8s-tools.qbuild/k8s
 	printf '\n' && set -x \
-	&& make demo \
-	&& make demo-double-dispatch \
-	&& make test.containerized.tty.output \
+	&& make demo demo-double-dispatch \
 	&& make \
+		test.containerized.tty.output \
 		test.flux.lib test.dispatch \
 		test.compose.pipes \
 		test.compose.services \
