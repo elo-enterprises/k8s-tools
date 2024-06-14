@@ -1016,9 +1016,9 @@ def.demo.python:; make def.dispatch/python3/_${@}
 .crux.panel.title/%:
 	pane_id=`printf "${*}"|cut -d/ -f1` \
 	tmux select-pane -t ${*} -T "$${title}"
-.crux.theme:
+.crux.theme: .crux.theme.custom .crux.theme/powerline/double/cyan .crux.theme.buttons
+.crux.theme.custom:
 	@# Stuff that has to be set before importing the theme 
-
 	tmux set -goq  @theme-status-interval 1
 	tmux set -goq \
 		@themepack-status-left-area-middle-format \
@@ -1029,9 +1029,9 @@ def.demo.python:; make def.dispatch/python3/_${@}
 	tmux set -goq \
 		@themepack-status-right-area-middle-format \
 		"cmd=#{pane_current_command} pid=#{pane_pid}"
-	make .crux.theme/powerline/double/cyan 
-	tmux set -g window-status-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
-	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {new-window}}"
+.crux.theme.buttons:
+	tmux set -g window-status-current-format '#W#{?window_end_flag,#[range=user|new][+]#[norange],}'
+	tmux bind -Troot MouseDown1Status "if -F '#{==:#{mouse_status_range},window}' {select-window} {if -F '#{==:#{mouse_status_range},new}' {split-window}}"
 .crux.theme/%: 
 	@# Sets the named theme for current tmux session.  
 	@#
