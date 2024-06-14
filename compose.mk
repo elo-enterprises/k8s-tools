@@ -212,16 +212,14 @@ ${compose_file_stem}.services:
 	@echo $(__services__) | sed -e 's/ /\n/g'
 
 ${compose_file_stem}.build:; set -x && docker compose -f $${compose_file} build
-${compose_file_stem}.qbuild:; make ${compose_file_stem}.build 2>/dev/null 
-${compose_file_stem}.qbuild/%:; make ${compose_file_stem}.build/$${*} 2>/dev/null
+${compose_file_stem}.qbuild:; make io.quiet.stderr/${compose_file_stem}.build
+${compose_file_stem}.qbuild/%:; make io.quiet.stderr/${compose_file_stem}.build/$${*}
 ${compose_file_stem}.build/%:; echo $${*}|make stream.comma.to.nl| xargs -n1 -I% sh -x -c "docker compose -f $${compose_file} build %"
-
-${compose_file_stem}.stop:
+${compose_file_stem}.qbuild/%:; make io.quiet.stderr/${compose_file_stem}.build/$${*}
+${compose_file_stem}.stop:; docker compose -f $${compose_file} stop -t 1
 	@#
-	docker compose -f $${compose_file} stop -t 1
-${compose_file_stem}.up:
+${compose_file_stem}.up:; docker compose -f $${compose_file} up
 	@#
-	docker compose -f $${compose_file} up
 ${compose_file_stem}.down: ${compose_file_stem}.clean
 	@# Alias for 'compose_file_stem.down'
 ${compose_file_stem}.clean:
@@ -472,6 +470,17 @@ io.print.divider/%:
 	@#
 	@width=`echo \`tput cols\` / ${*} | bc` \
 	make io.print.divider
+io.quiet.stderr/%:
+	@# Runs the given target, sending stderr to /dev/null
+	@#
+	@# USAGE: 
+	@#  make io.quiet/<target_name>
+	@#
+	printf "${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}Starting ${GREEN}${*}${NO_ANSI} and surpressing stderr output.. ${NO_ANSI}\n" > /dev/stderr \
+	make ${*} 2> /dev/null
+io.quiet.stdout/%:
+	printf "${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}Starting ${GREEN}${*}${NO_ANSI} and surpressing stdout.. ${NO_ANSI}\n" > /dev/stderr \
+	make ${*} > /dev/null
 
 io.print.indent:
 	@# Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
