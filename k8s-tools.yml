@@ -196,7 +196,7 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM debian
+        FROM ${DEBIAN_CONTAINER_VERSION:-debian:bookworm}
         RUN apt-get update && apt-get install -y curl
         RUN cd /tmp && curl -s -Lo helmify.tgz \
             https://github.com/arttor/helmify/releases/download/${HELMIFY_CLI_VERSION:-v0.4.12}/helmify_Linux_i386.tar.gz
@@ -393,8 +393,7 @@ services:
     build:
       context: . 
       dockerfile_inline: |
-        # 5027089adc4c bookworm 
-        FROM debian
+        FROM ${DEBIAN_CONTAINER_VERSION:-debian:bookworm}
         RUN groupadd --gid ${DOCKER_GID:-1000} ${DOCKER_UGNAME:-root}
         RUN useradd --uid ${DOCKER_UID:-1000} --gid ${DOCKER_GID:-1000} --shell /bin/bash --create-home ${DOCKER_UGNAME:-root}
         RUN echo "${DOCKER_UGNAME:-root} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
