@@ -27,7 +27,7 @@ $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 .DEFAULT_GOAL := all 
-all: 
+all: k8s-tools.build/k8s
 	printf '\n' && set -x \
 	&& make demo \
 	&& make demo-double-dispatch \
