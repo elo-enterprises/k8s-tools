@@ -819,28 +819,6 @@ pane3:
 	printf "${GLYPH_K8S} .tui.init ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
 	make .tui.config 
 
-# define _pyz
-# cat <<EOF
-# import sys; import json
-# tmp=sys.stdin.read().split()[:1]; 
-# acc=None
-# for x in tmp:
-#   z = "{if -F '#{==:#{mouse_status_range}," + x +"}' { split-window; send-keys 'make "+x+"/shell' C-m}}"
-#   if not acc:
-#     acc=z 
-#   else:
-#     #for i in range(len(acc)):
-#     #if acc[-i] not in "} ": break
-#     acc = acc[:-1] + z + '}'
-#     acc=acc.strip()
-#     #raise Exception(acc)
-# assert len([x for x in acc if x=='{'])==len([x for x in acc if x=='}'])
-# sys.stderr.write(acc)
-# sys.stdout.write(acc)
-# EOF
-# endef
-# export PYZ = $(value _pyz)
-
 .tui.config: \
 	.crux.pane.focus/0 \
 	.tui.init.titles \
