@@ -94,6 +94,36 @@ export workspace?=$(shell echo ${DOCKER_HOST_WORKSPACE})
 export COMPOSE_MK=0
 endif
 
+# If make is invoked normally, build the default targets 
+# If make is invoked with a pipe, route directly to 'compose.default.pipe'
+ifeq ($(shell if [ -p /dev/stdin ]; then echo true; else echo false; fi), true)
+$(eval .DEFAULT_GOAL:=.compose.default.pipe)
+else
+$(eval .DEFAULT_GOAL:=.compose.default.goal)
+endif
+.compose.default.goal: help
+.compose.default.pipe:; cat /dev/stdin
+
+# Define 'help' target iff it's not already defined.  This should be inlined 
+# for all files that want to be simultaneously usable in stand-alone 
+# mode + library mode (with 'include')
+_help_id:=$(shell (uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s) | head -c 8 | tail -c 8)
+define _help_gen
+(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true)
+endef
+_help_${_help_id}:
+	@# Attempts to autodetect the targets defined in this Makefile context.  
+	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
+	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
+	@#
+	@$(call _help_gen)
+_help_namespaces_${_help_id}:
+	@# Returns only the top-level target namespaces
+	@$(call _help_gen) | cut -d. -f1 |cut -d/ -f1 | uniq|grep -v ^all$$
+$(eval help: _help_${_help_id})
+$(eval help.namespaces: _help_namespaces_${_help_id})
+
+
 ## END: data
 ## BEGIN: macros
 
@@ -278,26 +308,6 @@ endef
 define io.mktemp
 	export tmpf=$$(mktemp -p .) && trap "rm -f $${tmpf}" EXIT 
 endef
-
-
-# Define 'help' target iff it's not already defined.  This should be inlined 
-# for all files that want to be simultaneously usable in stand-alone 
-# mode + library mode (with 'include')
-_help_id:=$(shell (uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s) | head -c 8 | tail -c 8)
-define _help_gen
-(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true)
-endef
-_help_${_help_id}:
-	@# Attempts to autodetect the targets defined in this Makefile context.  
-	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
-	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
-	@#
-	@$(call _help_gen)
-_help_namespaces_${_help_id}:
-	@# Returns only the top-level target namespaces
-	@$(call _help_gen) | cut -d. -f1 |cut -d/ -f1 | uniq|grep -v ^all$$
-$(eval help: _help_${_help_id})
-$(eval help.namespaces: _help_namespaces_${_help_id})
 
 ## END macros/data
 ## BEGIN 'compose.*' and 'docker.*' targets
@@ -903,6 +913,10 @@ stream.to.stderr:
 	cat /dev/stdin > /dev/stderr
 
 
+## END 'stream.*' targets
+## BEGIN 'crux.*' targets
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-crux
 define _.crux.bind.helper3
 import sys; import json
 tmp=sys.stdin.read().split()[:3]; 
