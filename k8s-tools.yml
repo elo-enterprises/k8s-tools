@@ -413,6 +413,7 @@ services:
     <<: *dind_base
     image: compose.mk:crux
     hostname: crux
+    tty: true
     working_dir: /workspace
     environment: &crux_environment
       DOCKER_UID: ${DOCKER_UID:-1000}

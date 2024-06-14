@@ -902,6 +902,7 @@ stream.to.stderr:
 	@#
 	cat /dev/stdin > /dev/stderr
 
+
 define _.crux.bind.helper3
 import sys; import json
 tmp=sys.stdin.read().split()[:3]; 
@@ -931,49 +932,6 @@ endef
 	| python3 -c "import sys; tmp=sys.stdin.read().split()[:1]; tmp=[f'#[range=user|{x}][{x}]#[norange]' for x in tmp]; tmp=' '.join(tmp); print(tmp)"
 .crux.bind.keys.helper2:
 	make k8s-tools.services | make .crux.bind.helper3
-
-def.dispatch.python/%:; make def.dispatch/python3/${*}:
-def.dispatch.python.pipe/%:; cat /dev/stdin make def.dispatch.python/${*}
-def.dispatch.pipe/%:; cat /dev/stdin make def.dispatch/${*}
-def.dispatch/%:
-	@# Reads the given <def_name>, writes to a tmp-file, 
-	@# then runs the given interpretter on the tmp file.
-	@#
-	@# USAGE:
-	@#   make def.dispatch/<interpretter>/<def_name>
-	@#
-	@# HINT: for testing, use 'make def.dispatch/cat/<def_name>' 
-	tmpf=.tmp.py && \
-	export intr=`printf "${*}"|cut -d/ -f1` \
-	&& export def_name=`printf "${*}" | cut -d/ -f2-` \
-	&& make def.write.to.file/$${def_name}/$${tmpf} \
-	&& cat $${tmpf} | make stream.dim.indent \
-	&& which $${intr} > /dev/null || exit 1 \
-	&& $${intr} $${tmpf}
-def.write.to.file/%:
-	@# Reads the given define/endef block from this makefile, writing it to the given output file.
-	@#
-	@# USAGE: make def.write.to.file/<def_name>/<fname>
-	@#
-	def_name=`printf "${*}" | cut -d/ -f1` \
-	&& out_file=`printf "${*}" | cut -d/ -f2-` \
-	&& make def.read/$${def_name} > $${out_file}
-def.read/%:
-	@# Reads the named define/endef block from this makefile, emitting it to stdout.
-	@# This works around make's normal behaviour of completely wrecking indention/newlines
-	@# present inside the block.
-	@#
-	@# USAGE: 
-	@#   make mk.read_def/<name_of_define>
-	@#
-	$(eval def_name=${*})
-	$(info $(value ${def_name}))
-define _def.demo.python
-import sys
-print('hi ')
-endef
-def.demo.python:; make def.dispatch/python3/_${@}
-
 
 .crux.dwindle/%:
 	@# Sets geometry to the given layout, using tmux-layout-dwindle.
@@ -1063,3 +1021,50 @@ def.demo.python:; make def.dispatch/python3/_${@}
 	@#
 	tmux display-message "io.tmux.theme: ${*}" \
 	&& tmux source-file $${HOME}/.tmux-themepack/${*}.tmuxtheme	
+
+##
+##
+##
+##
+
+def.dispatch.python/%:; make def.dispatch/python3/${*}:
+def.dispatch.python.pipe/%:; cat /dev/stdin make def.dispatch.python/${*}
+def.dispatch.pipe/%:; cat /dev/stdin make def.dispatch/${*}
+def.dispatch/%:
+	@# Reads the given <def_name>, writes to a tmp-file, 
+	@# then runs the given interpretter on the tmp file.
+	@#
+	@# USAGE:
+	@#   make def.dispatch/<interpretter>/<def_name>
+	@#
+	@# HINT: for testing, use 'make def.dispatch/cat/<def_name>' 
+	tmpf=.tmp.py && \
+	export intr=`printf "${*}"|cut -d/ -f1` \
+	&& export def_name=`printf "${*}" | cut -d/ -f2-` \
+	&& make def.write.to.file/$${def_name}/$${tmpf} \
+	&& cat $${tmpf} | make stream.dim.indent \
+	&& which $${intr} > /dev/null || exit 1 \
+	&& $${intr} $${tmpf}
+def.write.to.file/%:
+	@# Reads the given define/endef block from this makefile, writing it to the given output file.
+	@#
+	@# USAGE: make def.write.to.file/<def_name>/<fname>
+	@#
+	def_name=`printf "${*}" | cut -d/ -f1` \
+	&& out_file=`printf "${*}" | cut -d/ -f2-` \
+	&& make def.read/$${def_name} > $${out_file}
+def.read/%:
+	@# Reads the named define/endef block from this makefile, emitting it to stdout.
+	@# This works around make's normal behaviour of completely wrecking indention/newlines
+	@# present inside the block.
+	@#
+	@# USAGE: 
+	@#   make mk.read_def/<name_of_define>
+	@#
+	$(eval def_name=${*})
+	$(info $(value ${def_name}))
+define _def.demo.python
+import sys
+print('hi ')
+endef
+def.demo.python:; make def.dispatch/python3/_${@}

@@ -687,10 +687,6 @@ environment:
   TUI_LAYOUT_CALLBACK: ${TUI_LAYOUT_CALLBACK}
 global_options:
   status-right-length: 100
-  status-left-length: 100
-  pane-border-status: top
-  pane-active-border-style: 'fg=red,bg=black'
-  pane-border-style: "#T #{session_name}::#{pane_index} #{pane_title} #{pane_current_command}"
 options: {}
 windows:
   - window_name: k8s_tui
@@ -833,6 +829,8 @@ pane3:
 	@# Private helper for .tui.init.  (This fixes a bug in tmuxp with pane titles)
 	tmux set -g base-index 1
 	tmux setw -g pane-base-index 1
+	tmux set -g pane-border-style fg=magenta
+	tmux set -g pane-active-border-style "bg=default fg=magenta"
 	# Ensure window index numbers get reordered on delete.
 	tmux set-option -g renumber-windows on
 	$(eval export tmp=$(strip $(shell cat .tmp.tmuxp.yml | yq .windows[].panes[].name -c| xargs)))
