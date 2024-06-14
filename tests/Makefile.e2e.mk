@@ -1,7 +1,7 @@
 # k8s-tools.git End-to-end tests
 # Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services to create & interact  with a small k3d cluster.
 SHELL := bash
-MAKEFLAGS += -s --warn-undefined-variables
+MAKEFLAGS=-s -S --warn-undefined-variables
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL :=  all 
 
@@ -30,27 +30,9 @@ include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 # Default target should do everything, end to end.
 all: build clean cluster deploy test
-pane1: 
-	sleep 2;
-	make gum.style text='Cluster Create / Deploy / Test'
-	make docker.stat 
-	make cluster deploy test
-	make gum.style text='k8s.stat'
-	make flux.loopu/k8s.stat
-	make gum.style text='k8s.wait'
-	make flux.loopf/k8s.wait
-	# sleep 10; make k9s/kube-system
-
-export PROMETHEUS_CLI_VERSION?=v2.52.0
-export PROMETHEUS_HELM_REPO?=prometheus-community
-export PROMETHEUS_HELM_REPO_URL?=https://prometheus-community.github.io/helm-charts
-prometheus: k8s-tools.dispatch/k8s/.prometheus
-.prometheus:
-	make helm.repo.add/$${PROMETHEUS_HELM_REPO} url=$${PROMETHEUS_HELM_REPO_URL}
-	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
 
 # Forces an orderly rebuild on tools containers
-build: k8s-tools.qbuild/k8s k8s-tools.build
+build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,krux
 
 ###############################################################################
 
@@ -74,14 +56,14 @@ self.cluster.init:
 	) | make io.print.indent
 self.cluster.clean:
 	make gum.style text="Cluster Clean"
-	set -x && k3d cluster delete $${CLUSTER_NAME}
+	set -x && k3d cluster delete $${CLUSTER_NAME} | make io.print.indent
 
 ###############################################################################
 
 # You can expand this to include usage of `kustomize`, etc.
 # Volumes are already setup, so you can `kubectl appply` from the filesystem.
 deploy: 
-	make gum.style text="Cluster Deploy"
+	# make gum.style text="Cluster Deploy"
 	make deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
@@ -142,3 +124,27 @@ cluster.show: k3d.tui
 
 test.flux.tmux:
 	make flux.tmux/io.time.wait/10,io.time.wait/7,io.time.wait/6,io.time.wait/5,io.time.wait/4
+
+###############################################################################
+
+pane1: 
+	sleep 2;
+	make gum.style text='Cluster Create / Deploy / Test'
+	make docker.stat 
+	make cluster deploy test
+	make gum.style text='k8s.stat'
+	make flux.loopu/k8s.stat
+	make gum.style text='k8s.wait'
+	make flux.loopf/k8s.wait
+	sleep 10; make k9s/kube-system
+tui:
+	make tux.mux/io.bash
+
+export PROMETHEUS_CLI_VERSION?=v2.52.0
+export PROMETHEUS_HELM_REPO?=prometheus-community
+export PROMETHEUS_HELM_REPO_URL?=https://prometheus-community.github.io/helm-charts
+prometheus: k8s-tools.dispatch/k8s/.prometheus
+.prometheus:
+	make helm.repo.add/$${PROMETHEUS_HELM_REPO} url=$${PROMETHEUS_HELM_REPO_URL}
+	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
+

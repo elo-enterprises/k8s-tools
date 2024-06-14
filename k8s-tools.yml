@@ -20,7 +20,6 @@
 # See also: https://docs.docker.com/compose/environment-variables/set-environment-variables/#cli
 services:
   k8s: &base
-    image: k8s:base
     hostname: k8s-base
     environment: &base_environment
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
@@ -30,6 +29,7 @@ services:
       DOCKER_HOST_WORKSPACE: ${DOCKER_HOST_WORKSPACE:-${PWD}}
       TERM: ${TERM:-xterm-256color}
     build:
+      tags: ['k8s:base']
       context: .
       dockerfile_inline: |
         FROM ${ALPINE_K8S_VERSION:-alpine/k8s:1.30.0} as builder
@@ -51,7 +51,7 @@ services:
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/kubectl-ctx /usr/bin/kubectx
         RUN cp /home/${DOCKER_UGNAME:-root}/.krew/bin/* /usr/bin
         RUN chown -R ${DOCKER_UID:-1000}:${DOCKER_GID:-1000} /home/${DOCKER_UGNAME:-root}/
-        RUN curl https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/bin/spark && chmod +x /usr/bin/spark
+        RUN curl -sL https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/bin/spark && chmod +x /usr/bin/spark
         USER ${DOCKER_UGNAME:-root}
         ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/${DOCKER_UGNAME:-root}/.krew/bin
     # NB: Left for reference, and possibly required by older versions of docker or certain configurations?  
@@ -133,6 +133,7 @@ services:
     <<: *base
     entrypoint: aws-iam-authenticator
     hostname: k8s:aws-iam-authenticator
+    tty: true
 
   # https://github.com/weaveworks/eksctl
   eksctl:
@@ -174,9 +175,9 @@ services:
   kn: &knative
     <<: *base
     depends_on: ['k8s']
-    image: k8s:kn
     hostname: k8s:kn
     build:
+      tags: ['k8s:kn']
       context: .
       dockerfile_inline: |
         FROM k8s:base as base
@@ -191,12 +192,12 @@ services:
   helmify:
     <<: *base
     depends_on: ['k8s']
-    image: k8s:helmify
     hostname: k8s:helmify
     build:
+      tags: ['k8s:helmify']
       context: .
       dockerfile_inline: |
-        FROM debian
+        FROM ${DEBIAN_CONTAINER_VERSION:-debian:bookworm}
         RUN apt-get update && apt-get install -y curl
         RUN cd /tmp && curl -s -Lo helmify.tgz \
             https://github.com/arttor/helmify/releases/download/${HELMIFY_CLI_VERSION:-v0.4.12}/helmify_Linux_i386.tar.gz
@@ -209,9 +210,9 @@ services:
   fission:
     <<: *base
     depends_on: ['k8s']
-    image: k8s:fission
     hostname: k8s:fission
     build:
+      tags: ['k8s:fission']
       context: .
       dockerfile_inline: |
         FROM k8s:base
@@ -227,9 +228,9 @@ services:
   kompose:
     <<: *base
     depends_on: ['k8s']
-    image: k8s:kompose
     hostname: k8s:kompose
     build:
+      tags: ['k8s:kompose']
       context: .
       dockerfile_inline: |
         FROM k8s:base
@@ -244,9 +245,9 @@ services:
   argo:
     <<: *base 
     depends_on: ['k8s']
-    image: k8s:argo 
     hostname: k8s:argo
     build:
+      tags: ['k8s:argo']
       context: . 
       dockerfile_inline: |
         FROM quay.io/argoproj/argocli:${ARGO_CLI_VERSION:-v3.4.17} as argo
@@ -259,10 +260,10 @@ services:
   kubefwd:
     <<: *base 
     depends_on: ['k8s']
-    image: k8s:kubefwd 
     hostname: k8s:kubefwd
     user: root 
     build:
+      tags: ['k8s:kubefwd']
       context: . 
       dockerfile_inline: |
         FROM txn2/kubefwd as builder 
@@ -283,9 +284,9 @@ services:
   k3d:
     <<: *base
     depends_on: ['k8s']
-    image: k8s:k3d
     hostname: k8s:k3d
     build:
+      tags: ['k8s:k3d']
       context: .
       dockerfile_inline: |
         FROM k8s:base
@@ -299,9 +300,9 @@ services:
   lazydocker:
     <<: *base
     depends_on: ['k8s']
-    image: k8s:lazydocker
     hostname: k8s:lazydocker
     build:
+      tags: ['k8s:lazydocker']
       context: .
       dockerfile_inline: |
         FROM k8s:base
@@ -314,9 +315,9 @@ services:
 
   # https://github.com/kubernetes-sigs/kind
   kind: 
-    image: 'k8s:kind'
     hostname: "k8s:kind"
     build:
+      tags: ['k8s:kind']
       context: .
       dockerfile_inline: |
         FROM debian
@@ -346,9 +347,9 @@ services:
   rancher:
     <<: *base 
     depends_on: ['k8s']
-    image: k8s:rancher 
     hostname: k8s:rancher
     build:
+      tags: ['k8s:rancher']
       context: . 
       dockerfile_inline: |
         FROM rancher/cli2:${RANCHER_CLI_VERSION:-v2.8.4} as rancher
@@ -360,9 +361,9 @@ services:
   promtool:
     <<: *base 
     depends_on: ['k8s']
-    image: k8s:promtool
     hostname: k8s:promtool
     build:
+      tags: ['k8s:promtool']
       context: . 
       dockerfile_inline: |
         FROM prom/prometheus:${PROMETHEUS_CLI_VERSION:-v2.52.0} as prom
@@ -387,111 +388,36 @@ services:
     volumes: 
       - ${PWD}:${workspace:-/workspace}
 
-  # https://github.com/efrecon/docker-images/tree/master/chafa
-  dind_base: &dind_base 
-    image: compose.mk:dind_base 
+  dind: &dind
+    <<: *base 
+    depends_on: ['k8s']
+    hostname: k8s:dind
     build:
+      tags: ['k8s:dind']
       context: . 
       dockerfile_inline: |
-        # 5027089adc4c bookworm 
-        FROM debian
-        RUN groupadd --gid ${DOCKER_GID:-1000} ${DOCKER_UGNAME:-root}
-        RUN useradd --uid ${DOCKER_UID:-1000} --gid ${DOCKER_GID:-1000} --shell /bin/bash --create-home ${DOCKER_UGNAME:-root}
-        RUN echo "${DOCKER_UGNAME:-root} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-        RUN apt-get update && apt-get install -y curl uuid-runtime git
-        RUN curl -fsSL https://get.docker.com -o get-docker.sh && bash get-docker.sh
+        FROM k8s:base as base
+        FROM compose.mk:dind_base 
+        COPY --from=base \
+          /usr/bin/kube* /usr/bin/helm* \
+          /usr/bin/krew /usr/bin/gum \
+          /usr/bin 
         USER ${DOCKER_UGNAME:-root}
-  # crux: for dockerized tmux!
-  # This is used for TUI scripting by the 'tui.*' targets
-  # Docs: .....
-  # Manifest: 
-  #   [1] tmux 3.4 by default (slightly newer than bookworm default)
-  #   [2] tmuxp, for working with profiled sessions
-  #   [3] https://github.com/hpjansson/chafa
-  #   [4] https://github.com/efrecon/docker-images/tree/master/chafa
-  #   [5] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
-  crux: &crux
-    <<: *dind_base
-    image: compose.mk:crux
-    hostname: crux
-    working_dir: /workspace
-    environment: &crux_environment
-      DOCKER_UID: ${DOCKER_UID:-1000}
-      DOCKER_GID: ${DOCKER_GID:-1000}
-      DOCKER_UGNAME: ${DOCKER_UGNAME:-root}
-      DOCKER_HOST_WORKSPACE: ${DOCKER_HOST_WORKSPACE:-${PWD}}
-      TERM: ${TERM:-xterm-256color}
-      COMPOSE_MK_DIND: "1"
-    build:
-      context: . 
-      dockerfile_inline: |
-        FROM compose.mk:dind_base
-        USER root 
-        RUN apt-get update && apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
-        RUN wget https://github.com/tmux/tmux/releases/download/${TMUX_CLI_VERSION:-3.4}/tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz
-        RUN tar -zxvf tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz 
-        RUN cd tmux-${TMUX_CLI_VERSION:-3.4} && ./configure && make && mv ./tmux `which tmux`
-        RUN pip3 install tmuxp --break-system-packages
-        RUN apt-get install -y chafa jq yq bc ack-grep tree pv
-        RUN mkdir -p /home/${DOCKER_UGNAME:-root}
-        RUN curl -sL https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle > /usr/bin/tmux-layout-dwindle && chmod ugo+x /usr/bin/tmux-layout-dwindle
-        USER ${DOCKER_UGNAME:-root}
-        WORKDIR /home/${DOCKER_UGNAME:-root}
-        RUN git clone https://github.com/jimeh/tmux-themepack.git ~/.tmux-themepack \
-          && git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm \
-          && git clone https://github.com/tmux-plugins/tmux-sidebar ~/.tmux/plugins/tmux-sidebar
-        RUN tmux show -g | sed 's/^/set-option -g /' > ~/.tmux.conf
-        # https://github.com/tmux-plugins/tmux-sidebar/blob/master/docs/options.md
-        RUN cat <<EOF >> ~/.tmux.conf
-          set -g mouse on
-          set -g @plugin 'tmux-plugins/tmux-sensible'
-          bind-key  -n  M-1   select-window    -t  :=1
-          bind-key  -n  M-2   select-window    -t  :=2
-          bind-key  -n  M-3   select-window    -t  :=3
-          bind-key  -n  M-4   select-window    -t  :=4
-          bind-key  -n  M-5   select-window    -t  :=5
-          bind-key  -n  M-6   select-window    -t  :=6
-          bind-key  -n  M-7   select-window    -t  :=7
-          bind-key  -n  M-8   select-window    -t  :=8
-          bind-key  -n  M-9   select-window    -t  :=9
-          bind | split-window -h
-          bind - split-window -v
-          run -b '~/.tmux/plugins/tpm/tpm'
-        EOF
-        RUN cd ~/.tmux/plugins/tpm/scripts \
-          && TMUX_PLUGIN_MANAGER_PATH=~/.tmux/plugins/tpm \
-            ./install_plugins.sh
-
-  # dind: &dind
-  #   <<: *base 
-  #   depends_on: ['dind_base', 'k8s']
-  #   image: k8s:dind
-  #   hostname: k8s:dind
-  #   build:
-  #     context: . 
-  #     dockerfile_inline: |
-  #       FROM k8s:base as base
-  #       FROM compose.mk:dind_base 
-  #       COPY --from=base \
-  #         /usr/bin/kube* /usr/bin/helm* \
-  #         /usr/bin/krew /usr/bin/gum \
-  #         /usr/bin 
-  #       USER ${DOCKER_UGNAME:-root}
-  #   entrypoint: bash 
+    entrypoint: bash 
   
   krux: 
     <<: *base
-    image: k8s:krux
     hostname: k8s:krux
     environment:
       <<: *base_environment
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
       COMPOSE_MK_DIND: "1"
     build:
+      tags: ['k8s:krux']
       context: . 
       dockerfile_inline: |
         FROM k8s:dind as dind_base
-        FROM compose.mk:crux
+        FROM compose.mk:tux
         COPY --from=dind_base \
           /usr/bin/kube* /usr/bin/helm* \
           /usr/bin/krew /usr/bin/gum \

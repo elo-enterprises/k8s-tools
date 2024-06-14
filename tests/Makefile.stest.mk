@@ -1,5 +1,7 @@
+MAKEFLAGS=-s --warn-undefined-variables
 # Smoke-test suite covers basics stuff about k8s-tools.yml directly, ignoring Makefile libs
-all: smoke-test 
+all: build smoke-test 
+build:; docker compose -f k8s-tools.yml build k8s;
 smoke-test:
 	bash -x -c "\
 		docker compose -f k8s-tools.yml run fission --help \

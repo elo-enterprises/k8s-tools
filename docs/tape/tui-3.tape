@@ -1,5 +1,5 @@
 # This file describes terminal videos with the `vhs` tool (https://github.com/charmbracelet/vhs)
-Output img/tui-2.gif 
+Output img/tui-3.gif 
 Require "make"
 Require "docker"
 Set Shell "bash --norc --noprofile"
@@ -12,12 +12,8 @@ Set CursorBlink false
 Type "# Launches a split-screen shell context for each of the named make-targets"
 Enter
 Sleep 2
-Type "# This combines several instances of the 'io.time.wait/<seconds>' target, "
-Type "# into separate tmux panels.  Each exists, leaving only the default shell at the end."
-Enter
-Sleep 3
-Type "make tux.mux/io.time.wait/5,io.time.wait/7,io.time.wait/9,io.time.wait/11"
+Type "./compose.mk loadf tests/docker-compose.yml"
 Sleep 2.3
 Enter
-Sleep 35
+Sleep 20
 

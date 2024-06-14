@@ -3,24 +3,24 @@
 #  A minimal compose file that works with target dispatch
 ##
 services:
-  docker:
-    build:
-      context: .
-      dockerfile_inline: |
-        FROM docker
-        RUN apk add --update --no-cache alpine-sdk bash
-    entrypoint: bash
-    working_dir: /workspace
-    volumes:
-      - ${PWD}:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
   debian: &base
-    hostname: debian 
+    hostname: debian
     build:
       context: .
       dockerfile_inline: |
         FROM debian
-        RUN apt-get update && apt-get install -y make
+        RUN apt-get update && apt-get install -y make procps
+    entrypoint: bash
+    working_dir: /workspace
+    volumes:
+      - ${PWD}:/workspace
+  ubuntu: &base
+    hostname: ubuntu
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM ubuntu
+        RUN apt-get update && apt-get install -y make procps
     entrypoint: bash
     working_dir: /workspace
     volumes:
@@ -32,4 +32,4 @@ services:
       context: .
       dockerfile_inline: |
         FROM alpine
-        RUN apk add --update --no-cache alpine-sdk bash
+        RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng

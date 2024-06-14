@@ -18,7 +18,7 @@ $ make clean build test
 ### Tools via Compose CLI
 
 ```bash
-{%- for svc in bash("make -s k8s-tools.services").split() %}
+{%- for svc in bash("make -s k8s-tools.services|sort").split() %}
 $ docker compose run -f k8s-tools.yml {{svc}} ...{% endfor %}
 ```
 
