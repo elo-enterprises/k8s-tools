@@ -4,8 +4,8 @@
 # Typical usage: `make clean build test`
 ##
 SHELL := bash
-MAKEFLAGS += -s --warn-undefined-variables
 .SHELLFLAGS?=-euo pipefail -c
+MAKEFLAGS=-s --warn-undefined-variables
 THIS_MAKEFILE := $(abspath $(firstword $(MAKEFILE_LIST)))
 
 export SRC_ROOT := $(shell git rev-parse --show-toplevel)
@@ -25,10 +25,13 @@ $(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
 
 .PHONY: docs
 .DEFAULT_GOAL :=  all 
-# default entrypoint
 all: init clean build test docs
-	@# Default entrypoint
 
+build: k8s-tools.qbuild/k8s,dind_base
+	@# Development usage only.  This uses explicit ordering that is 
+	@# required because compose 'depends_on' key affects the 
+	@# ordering for 'docker compose up', but doesn't affect 
+	@# ordering for 'docker compose build'.
 
 # cache-busting / debugging entrypoints
 # (only used during development; normal usage involves build-on-demand )
@@ -36,40 +39,49 @@ clean: k8s-tools.clean
 	@# Removes temporary files used by build / tests 
 	rm -f tests/compose.mk tests/k8s.mk tests/k8s-tools.yml
 
-build: k8s-tools.build/k8s k8s-tools.build
-	@# Explicit ordering to avoid race conditions ('depends_on' affects 'compose up' ordering, not 'compose build' ordering)
 
 init: docker.stat
 
-shell: 
-	make gum.style text='launching shell'
-	make tui.shell/tui,k8s,io.bash
+shell: krux.bootstrap
+	make gum.style text='Launching shell'
+	make crux.shell/tui,k8s,io.bash
 
 # testing entrypoints
 test: integration-test smoke-test e2e-test
 	@# Runs all test-suites.
-etest: e2e-test 
-itest: integration-test
-stest: smoke-test 
-smoke-test:
-	@# Smoke-test suite, exercising the containers we built.
+test-suite/%:
+	@# Generic test-suite runner, just provide the test-suite name.
+	@# (Names are taken from the files like "tests/Makefile.<name>.mk")
 	@# This just covers the compose file at k8s-tools.yml, ignoring Makefile integration
 	$(call gum.style.target)
-	cd tests && bash ./bootstrap.sh \
-	 && cp Makefile.stest.mk Makefile && make
-integration-test:
+	cd tests && bash ./bootstrap.sh
+	cp tests/Makefile.${*}.mk tests/Makefile
+	set -x \
+	&& env -i HOME=${HOME} make ${MAKE_FLAGS} -C tests 
+
+ttest: tui-test
+etest: e2e-test 
+mtest: test-suite/mad-science
+itest: integration-test
+stest: smoke-test 
+
+tui-test: test-suite/tui 
+smoke-test: test-suite/stest
+	@# Smoke-test suite, exercising the containers we built.
+	@# This just covers the compose file at k8s-tools.yml, ignoring Makefile integration
+
+integration-test: test-suite/itest
 	@# Integration-test suite.  This tests compose.mk and ignores k8s-tools.yml.
 	@# Exercises container dispatch and the make/compose bridge.  No kubernetes.
-	$(call gum.style.target)
-	cd tests && bash ./bootstrap.sh\
-	 && cp Makefile.itest.mk Makefile && make
-e2e-test:
+
+e2e-test: test-suite/e2e
 	@# End-to-end tests.  This tests k8s.mk + compose.mk + k8s-tools.yml
 	@# by walking through cluster-lifecycle stuff inside a 
 	@# project-local kubernetes cluster.
-	$(call gum.style.target)
-	cd tests && bash -x ./bootstrap.sh \
-	&& cp Makefile.e2e.mk Makefile && make
+
+mad: test-suite/mad-science
+	@# Polyglot tests.  These demonstrate some mad-science and other bad ideas 
+	@# that allows make targets to be written in real programming languages.
 
 docs: docs.jinja docs.mermaid
 	@# Builds all the docs

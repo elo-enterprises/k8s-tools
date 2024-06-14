@@ -1,7 +1,7 @@
 # k8s-tools.git End-to-end tests
 # Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services to create & interact  with a small k3d cluster.
 SHELL := bash
-MAKEFLAGS += -s --warn-undefined-variables
+MAKEFLAGS=-s --warn-undefined-variables
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL :=  all 
 
@@ -50,7 +50,7 @@ prometheus: k8s-tools.dispatch/k8s/.prometheus
 	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
 
 # Forces an orderly rebuild on tools containers
-build: k8s-tools.qbuild/k8s k8s-tools.build
+build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,krux
 
 ###############################################################################
 

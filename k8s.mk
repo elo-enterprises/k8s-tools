@@ -74,8 +74,6 @@ $(eval help: _help_${_help_id})
 $(eval help.private: _help_private_${_help_id})
 $(eval help.namespaces: _help_namespaces_${_help_id})
 
-
-
 flux.tmux/%:; make crux.mux/${*}
 	@# This alias is an extension of the 'flux.*' API in compose.mk, 
 	@# since the names/arguments are so similar.  Still, this strictly
@@ -168,7 +166,7 @@ k3d.tui/%:
 	@# USAGE:  
 	@#   make k3d.commander/<namespace>
 	@# 
-	make tui.shell/ktop/${*},lazydocker
+	make crux.shell/ktop/${*},lazydocker
 
 k3d.tui: 
 	@# Opens k3d.tui for the "default" namespace
@@ -402,12 +400,18 @@ k8s.pods.wait_until_ready:
 	@#
 	make k8s.namespace.wait/all
 	
+k8s.stat.widget:
+	printf "\n${GLYPH_K8S} k8s.stat ${NO_ANSI_DIM}ctx=${GREEN}${UNDERLINE}`kubectx -c||true`${NO_ANSI_DIM} ns=${GREEN}${UNDERLINE}`kubens -c ||true`${NO_ANSI}\n" \
+	| make stream.to.stderr
+
 k8s.stat: 
 	@# Describes status for cluster, cluster auth, and namespaces.
 	@# Not pipe friendly, and not suitable for parsing!  
 	@#
 	@# This is just for user information, as it's generated from 
 	@# a bunch of tools that are using very different output styles.
+	@#
+	@# For a shorter, looping version that's suitable as a tmux widget, see 'k8s.stat.widget'
 	@#
 	printf "\n${GLYPH_K8S} k8s.stat ${NO_ANSI_DIM}ctx=${GREEN}${UNDERLINE}`kubectx -c||true`${NO_ANSI_DIM} ns=${GREEN}${UNDERLINE}`kubens -c ||true`${NO_ANSI}\n" \
 	| make stream.to.stderr
@@ -676,35 +680,20 @@ k9: k9s
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-tui
 
-export TUI_LAYOUT_CALLBACK?=.tui.layout.spiral
-export TUI_TMUX_SOCKET?=/workspace/tmux.sock
-export TUI_TMUX_SESSION_NAME?=k8s_tui
-define _tui._tmuxp
-cat <<EOF
-session_name: k8s_tui
-start_directory: /workspace
-environment:
-  TUI_LAYOUT_CALLBACK: ${TUI_LAYOUT_CALLBACK}
-global_options:
-  status-right-length: 100
-  status-left-length: 100
-  pane-border-status: top
-  pane-active-border-style: 'fg=red,bg=black'
-  pane-border-style: "#T #{session_name}::#{pane_index} #{pane_title} #{pane_current_command}"
-options: {}
-windows:
-  - window_name: k8s_tui
-    options:
-      automatic-rename: on
-    panes: ${panes:-[]}
-EOF
-endef
-export TUI_TMUXP_CONF_DATA = $(value _tui._tmuxp)
+# export TUI_THEME_PRE_HOOK:=.krux.theme.custom
+export TUI_THEME_POST_HOOK:=.crux.theme.buttons
+export TUI_THEME_NAME:=powerline/double/cyan
+.krux.theme.custom: .crux.theme.custom
+	setter="tmux set -goq" \
+	&& $${setter} @theme-status-interval 1 \
+	&& $${setter} @themepack-status-left-area-middle-format \
+		"ctx=#(kubectx -c||echo ?) ns=#(kubens -c||echo ?)" \
 
 k8s.commander:
-	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tui.shell/4
-blam: tui.panic
-tui: tui.commander
+	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make crux.shell/4
+
+export TUI_CONTAINER_NAME?=krux
+export TUI_COMPOSE_EXTRA_ARGS:=-f k8s-tools.yml
 tui.pane/%:
 	@# Sends a make-target into a pane.
 	@# This is a public interface safe to call from the docker-host.
@@ -717,11 +706,12 @@ tui.pane/%:
 .tui.k8s.commander.layout: 
 	make .crux.pane/4/.tui.widget.k8s.topology.clear/kube-system
 	make .crux.pane/3/.tui.widget.k8s.topology.clear/default
+	make .crux.pane/2/flux.loopf/
 	make .crux.pane/1/flux.wrap/docker.stat,k8s.stat
 	make .tui.commander.layout
-	title="main" make .crux.panel.title/1
-	title="default namespace" make .crux.panel.title/3
-	title="kube-system namespace" make .crux.panel.title/4
+	title="main" make .crux.pane.title/1
+	title="default namespace" make .crux.pane.title/3
+	title="kube-system namespace" make .crux.pane.title/4
 
 .tui.commander.layout: 
 	make .tui.layout.4
@@ -733,55 +723,19 @@ tui.pane/%:
 tui.commander/%:
 	@#
 	TUI_LAYOUT_CALLBACK=.tui.commander.layout \
-		make tui.shell/${*}
+		make crux.shell/${*}
 tui.commander: tui.commander/4
 
 tui.help:
 	@# Shows help information for 'tui.*' targets
 	make help.private | grep -E '^(tui|[.]tui)' | uniq | sort --version-sort
-export TUI_CONTAINER_NAME?=krux
-crux.mux/%:
-	@# Maps execution for each of the comma-delimited targets 
-	@# into separate panes of a tmux (actually 'tmuxp') session.
-	@#
-	@# USAGE:
-	@#   make crux.mux/<target1>,<target2>
-	@#
-	export tmpf=.tmp.tmuxp.yml \
-	&& export panes=$(strip $(shell make .crux.panes/${*})) \
-	&& eval "$${TUI_TMUXP_CONF_DATA}" > $${tmpf} && trap 'rm -f $${tmpf}' EXIT \
-	&& cat $${tmpf} | make stream.dim.indent \
-	&& ./k8s-tools.yml run --entrypoint bash -e TMUX=${TUI_TMUX_SOCKET} \
-		${TUI_CONTAINER_NAME} -c "\
-			tmuxp load -d -S ${TUI_TMUX_SOCKET} $${tmpf} \
-			&& make .tui.init ${TUI_LAYOUT_CALLBACK} \
-			&& tmux attach -t ${TUI_TMUX_SESSION_NAME}"
+
 tui.panic: 
 	@# Non-graceful stop for the TUI (i.e. all the 'k8s:krux' containers).
 	@#
 	printf "${GLYPH_K8S} tui.panic ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
 	make tui.ps | xargs -I% -n1 sh -c "id=% make docker.stop"
 
-tui.shell/%:
-	@# Starts a split-screen display of several panes inside a tmux (actually 'tmuxp') session.
-	@# If argument is an integer, opens the given number of shells in the 'k8s:krux' container.
-	@# Otherwise, executes one shell per pane for each of thecomma-delimited container-names.
-	@# 
-	@# USAGE:
-	@#   make tui.shell/<svc1>,<svc2>
-	@#
-	@# USAGE:
-	@#   make tui.shell/<int>
-	@#
-	case ${*} in \
-		''|*[!0-9]*) \
-			targets=`echo $(strip $(shell printf ${*}|sed 's/,/\n/g' | xargs -I% printf '%/shell,'))| sed 's/,$$//'` \
-			&& make crux.mux/$(strip $${targets}); ;; \
-		*) \
-			targets=`seq ${*}|xargs -n1 -I% printf "io.bash,"` \
-			&& make crux.mux/$${targets} \
-			; ;; \
-	esac
 
 tui.stat:
 	@# Show status for the TUI.
@@ -809,6 +763,8 @@ pane3:
 ## These targets require tmux, and so are only executed *from* the 
 ## TUI, i.e. inside the k8s:krux container.  See instead 'tui.*' for 
 ## public (docker-host) entrypoints.
+export TUI_LAYOUT_CALLBACK?=.crux.layout.spiral
+export TUI_INIT_CALLBACK?=.tui.init
 .tui.init: 
 	@# Initialization for the TUI (a tmuxinator-managed tmux instance).
 	@# This needs to be called from inside the TUI container, with tmux already running.
@@ -833,14 +789,14 @@ pane3:
 	@# Private helper for .tui.init.  (This fixes a bug in tmuxp with pane titles)
 	tmux set -g base-index 1
 	tmux setw -g pane-base-index 1
+	tmux set -g pane-border-style fg=magenta
+	tmux set -g pane-active-border-style "bg=default fg=magenta"
 	# Ensure window index numbers get reordered on delete.
 	tmux set-option -g renumber-windows on
 	$(eval export tmp=$(strip $(shell cat .tmp.tmuxp.yml | yq .windows[].panes[].name -c| xargs)))
 	$(eval export tmpseq=$(shell seq 1 $(words ${tmp})))
 	$(foreach i, $(tmpseq), $(shell bash -x -c "tmux select-pane -t `echo ${i}-1|bc` -T $(strip $(shell echo ${tmp}| cut -d' ' -f ${i}));"))
 
-.tui.layout.spiral: .crux.dwindle/s
-	@# Alias for the dwindle spiral layout.  See '.crux.dwindle' docs for more info
 
 .tui.layout.4:
 	@# A custom geometry on up to 4 panes.
@@ -862,3 +818,8 @@ pane3:
 # 	kubectl exec -it pod_name -n namespace -- /bin/bash
 # 	Run cat /sys/fs/cgroup/cpu/cpuacct.usage for cpu usage
 # 	Run cat /sys/fs/cgroup/memory/memory.usage_in_bytes
+
+k8s.help: help.namespace/k8s
+k3d.help: help.namespace/k3d
+kubefwd.help: help.namespace/kubefwd
+
