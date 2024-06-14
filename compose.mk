@@ -93,7 +93,6 @@ ifeq ($(shell echo $${COMPOSE_MK_DIND:-0}), 1)
 export workspace?=$(shell echo ${DOCKER_HOST_WORKSPACE})
 export COMPOSE_MK=0
 endif
-
 .compose.default.goal: 
 	case $${arg:-default} in \
 		default) make help ;; \
@@ -102,35 +101,33 @@ endif
 		;; \
 	esac
 .compose.default.pipe:; cat /dev/stdin
-%.yml:
-	echo ${*}
-define _compose.loadf
-$$(eval $$(call compose.import, ▰, TRUE, 
-endef 
 compose.loadf/%:
 	 fname="${*}" \
 	 && ls $${fname} > /dev/null \
 	 || (printf "no such file"; exit 1) \
+	 && cd `dirname $${fname}` \
 	 && tmpf=".tmp.mk" \
-	 && echo "# $${fname}" > $${tmpf} \
-	 && echo "include compose.mk" >> $${tmpf} \
-	 && printf "`make def.read/_compose.loadf` $${fname}))\n"| sed 's/\$$\$$/\$$/g' >> $${tmpf} \
-	 && printf ".DEFAULT_GOAL:=default\ndefault: crux.mux/io.bash" >> $${tmpf} \
-	 && cat $${tmpf} | make stream.peek \
-	 && make -f $${tmpf}
-# Special behaviour iff this makefile is running directly, (not included), respect the local default-target
-MK_CLI?=$(shell (cat /proc/$(strip $(shell ps -o ppid= -p $$$$))/cmdline |tr '\0' ' ')||echo '?')
-ifneq ($(findstring compose.mk, ${MK_CLI}),)
-$(eval .DEFAULT_GOAL:=.compose.default.goal)
-$(eval ARG_fname:=$(shell echo ${MK_CLI}| rev | cut -d' ' -f 1 | rev))
-$(eval .PHONY: ${ARG_fname})
-$(eval ${ARG_fname}:; make compose.loadf/${ARG_fname})
-
-%:; arg="${*}" make .compose.default.goal
-ifeq ($(shell if [ -p /dev/stdin ]; then echo true; else echo false; fi), true)
-$(eval .DEFAULT_GOAL:=.compose.default.pipe)
-endif
-endif
+	 && printf "# $${fname}\n" > $${tmpf} \
+	 && printf "include $${COMPOSE_MK_SRC}\n" >> $${tmpf} \
+	 && src='$$' \
+	 && src+='(eval ' \
+	 && src+='$$' \
+	 && src+='(call compose.import, ▰, TRUE, ' \
+	 && src+="`basename $${fname}`))\n" >> $${tmpf} \
+	 && printf "$${src}" >> $${tmpf} \
+	 && printf ".DEFAULT_GOAL:=default\ndefault: crux.mux/io.bash\n\n" >> $${tmpf} \
+	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}wrapper${NO_ANSI}\n" >/dev/stderr \
+	 && cat $${tmpf} | make stream.dim.indent.stderr \
+	 && export COMPOSE_MK_COMPOSE_FILE="`basename $${fname}`" \
+	 && export COMPOSE_MK_COMPOSE_STEM="`basename -s .yml $${COMPOSE_MK_COMPOSE_FILE}`" \
+	 && export COMPOSE_MK_COMPOSE_STEM="`basename -s .yaml $${COMPOSE_MK_COMPOSE_STEM}`" \
+	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}containers${NO_ANSI}\n" >/dev/stderr \
+	 && make $${COMPOSE_MK_COMPOSE_STEM}.services | make stream.dim.indent.stderr \
+	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}env${NO_ANSI}\n" >/dev/stderr \
+	 && make -s -f $${tmpf} io.env | make stream.dim.indent.stderr \
+	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}dispatching ${NO_ANSI}${BOLD}$${COMPOSE_MK_TARGET:-}${NO_ANSI}\n" >/dev/stderr \
+	 && make -s -f $${tmpf} $${COMPOSE_MK_TARGET:-}
+io.env:; env|grep COMPOSE_MK||true
 
 # Define 'help' target iff it's not already defined.  This should be inlined 
 # for all files that want to be simultaneously usable in stand-alone 
@@ -152,6 +149,29 @@ $(eval help: _help_${_help_id})
 $(eval help.namespaces: _help_namespaces_${_help_id})
 
 
+# Special behaviour iff this makefile is running directly, (not included), respect the local default-target
+THIS_MAKEFILE?=$(abspath $(firstword $(MAKEFILE_LIST)))
+export COMPOSE_MK_CLI:=$(shell (cat /proc/$(strip $(shell ps -o ppid= -p $$$$))/cmdline |tr '\0' ' ')||echo '?')
+ifneq ($(findstring compose.mk, ${COMPOSE_MK_CLI}),)
+$(eval .DEFAULT_GOAL:=.compose.default.goal)
+$(eval ARG_fname:=$(shell echo ${COMPOSE_MK_CLI}| rev | cut -d' ' -f 1 | rev))
+ifeq ($(shell cat ${THIS_MAKEFILE}|grep ${ARG_fname}&&echo true||echo false),false)
+$(eval .PHONY: ${ARG_fname})
+$(eval ${ARG_fname}:; COMPOSE_MK_SRC=${THIS_MAKEFILE} COMPOSE_MK_TARGET=crux.loadf make compose.loadf/${ARG_fname})
+endif
+%:; arg="${*}" make .compose.default.goal
+ifeq ($(shell if [ -p /dev/stdin ]; then echo true; else echo false; fi), true)
+$(eval .DEFAULT_GOAL:=.compose.default.pipe)
+endif
+endif
+
+crux.loadf:
+	pane_list=`make $${COMPOSE_MK_COMPOSE_STEM}.services \
+		|xargs -I% printf "%/shell," \
+		| sed 's/ /,/g'| rev | cut -c2- | rev` \
+	set -x && $(MAKE) crux.mux/$${pane_list}
+
+	
 ## END: data
 ## BEGIN: macros
 
