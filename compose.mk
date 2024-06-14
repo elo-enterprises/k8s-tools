@@ -479,10 +479,11 @@ io.quiet.stderr/%:
 	@#
 	$(call io.mktemp) && \
 	printf "${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${GREEN}${*}${NO_ANSI} ${SEP} ${DIM}Surpressing stderr output, except in case of error. ${NO_ANSI}\n" > /dev/stderr \
-	&& make ${*} 2> $${tmpf} ; exit_status=$$? \
+	&& start=$$(date +%s) \
+	&& make ${*} > /dev/null 2>&1 $${tmpf} ; exit_status=$$? ; end=$$(date +%s) ; elapsed=$$(($${end}-$${start})) \
 	; case $${exit_status} in \
 		0) \
-			printf "${DIM}${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}${*} ${SEP} ${GREEN}ok ${NO_ANSI}\n" > /dev/stderr; ;; \
+			printf "${DIM}${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${GREEN}${*} ${SEP} ${GREEN}ok ${NO_ANSI_DIM}(in ${BOLD}$${elapsed}s${NO_ANSI_DIM})${NO_ANSI}\n" > /dev/stderr; ;; \
 		*) \
 			printf "${DIM}${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}${*} ${SEP} ${RED}failed ${NO_ANSI}\n" > /dev/stderr \
 			; cat $${tmpf} >> /dev/stderr \
