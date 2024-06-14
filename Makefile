@@ -46,8 +46,7 @@ shell:
 	make tui.shell/tui,k8s,io.bash
 
 # testing entrypoints
-# test: integration-test smoke-test e2e-test
-test: e2e-test
+test: integration-test smoke-test e2e-test
 	@# Runs all test-suites.
 etest: e2e-test 
 itest: integration-test

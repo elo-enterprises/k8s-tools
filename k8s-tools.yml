@@ -461,22 +461,22 @@ services:
           && TMUX_PLUGIN_MANAGER_PATH=~/.tmux/plugins/tpm \
             ./install_plugins.sh
 
-  # dind: &dind
-  #   <<: *base 
-  #   depends_on: ['dind_base', 'k8s']
-  #   image: k8s:dind
-  #   hostname: k8s:dind
-  #   build:
-  #     context: . 
-  #     dockerfile_inline: |
-  #       FROM k8s:base as base
-  #       FROM compose.mk:dind_base 
-  #       COPY --from=base \
-  #         /usr/bin/kube* /usr/bin/helm* \
-  #         /usr/bin/krew /usr/bin/gum \
-  #         /usr/bin 
-  #       USER ${DOCKER_UGNAME:-root}
-  #   entrypoint: bash 
+  dind: &dind
+    <<: *base 
+    depends_on: ['dind_base', 'k8s']
+    image: k8s:dind
+    hostname: k8s:dind
+    build:
+      context: . 
+      dockerfile_inline: |
+        FROM k8s:base as base
+        FROM compose.mk:dind_base 
+        COPY --from=base \
+          /usr/bin/kube* /usr/bin/helm* \
+          /usr/bin/krew /usr/bin/gum \
+          /usr/bin 
+        USER ${DOCKER_UGNAME:-root}
+    entrypoint: bash 
   
   krux: 
     <<: *base
