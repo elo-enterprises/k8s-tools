@@ -214,7 +214,7 @@ ${compose_file_stem}.services:
 ${compose_file_stem}.build:; set -x && docker compose -f $${compose_file} build
 ${compose_file_stem}.qbuild:; make io.quiet.stderr/${compose_file_stem}.build
 ${compose_file_stem}.qbuild/%:; make io.quiet.stderr/${compose_file_stem}.build/$${*}
-${compose_file_stem}.build/%:; echo $${*}|make stream.comma.to.nl| xargs -n1 -I% sh -x -c "docker compose -f $${compose_file} build %"
+${compose_file_stem}.build/%:; echo $${*} | make stream.comma.to.nl | xargs -n1 -I% sh -x -c "docker compose -f $${compose_file} build %"
 ${compose_file_stem}.qbuild/%:; make io.quiet.stderr/${compose_file_stem}.build/$${*}
 ${compose_file_stem}.stop:; docker compose -f $${compose_file} stop -t 1
 	@#
@@ -470,17 +470,25 @@ io.print.divider/%:
 	@#
 	@width=`echo \`tput cols\` / ${*} | bc` \
 	make io.print.divider
+
 io.quiet.stderr/%:
-	@# Runs the given target, sending stderr to /dev/null
+	@# Runs the given target, surpressing stderr output, except in case of error.
 	@#
 	@# USAGE: 
 	@#  make io.quiet/<target_name>
 	@#
-	printf "${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}Starting ${GREEN}${*}${NO_ANSI} and surpressing stderr output.. ${NO_ANSI}\n" > /dev/stderr \
-	make ${*} 2> /dev/null
-io.quiet.stdout/%:
-	printf "${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}Starting ${GREEN}${*}${NO_ANSI} and surpressing stdout.. ${NO_ANSI}\n" > /dev/stderr \
-	make ${*} > /dev/null
+	$(call io.mktemp) && \
+	printf "${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${GREEN}${*}${NO_ANSI} ${SEP} ${DIM}Surpressing stderr output, except in case of error. ${NO_ANSI}\n" > /dev/stderr \
+	&& make ${*} 2> $${tmpf} ; exit_status=$$? \
+	; case $${exit_status} in \
+		0) \
+			printf "${DIM}${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}${*} ${SEP} ${GREEN}ok ${NO_ANSI}\n" > /dev/stderr; ;; \
+		*) \
+			printf "${DIM}${GLYPH_IO} io.quiet${NO_ANSI} ${SEP} ${DIM}${*} ${SEP} ${RED}failed ${NO_ANSI}\n" > /dev/stderr \
+			; cat $${tmpf} >> /dev/stderr \
+			; exit $${exit_status}; \
+		;; \
+	esac
 
 io.print.indent:
 	@# Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
@@ -746,7 +754,7 @@ flux.sh.ok:
 	@# Alias for 'exit 0', which is success.
 	@# This is mostly for used for testing other pipelines.
 	@#
-	printf "${GLYPH_FLUX} flux.sh.suceed${NO_ANSI_DIM} ${SEP} ${NO_ANSI} succceeding as requested!\n" >/dev/stderr  \
+	printf "${GLYPH_FLUX} flux.sh.ok${NO_ANSI_DIM} ${SEP} ${NO_ANSI} succceeding as requested!\n" > /dev/stderr  \
 	&& exit 0
 
 flux.retry/%:
