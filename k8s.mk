@@ -51,6 +51,19 @@ export K8S_POLL_DELTA?=23
 
 export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
 
+# Special behaviour iff this makefile is running directly,
+# i.e. not included as a library.
+MK_CLI?=$(shell (cat /proc/$(strip $(shell ps -o ppid= -p $$$$))/cmdline |tr '\0' ' ')||echo '?')
+ifneq ($(findstring k8s.mk, ${MK_CLI}),)
+$(eval %:; make .k8s.default.target)
+ifeq ($(shell if [ -p /dev/stdin ]; then echo true; else echo false; fi), true)
+$(eval .DEFAULT_GOAL:=.k8s.default.pipe)
+endif
+endif
+.k8s.default.goal: help
+.k8s.default.pipe:; cat /dev/stdin
+.k8s.default.target:
+
 # Define 'help' target iff it's not already defined.  This should be inlined 
 # for all files that want to be simultaneously usable in stand-alone 
 # mode + library mode (with 'include')
@@ -73,8 +86,6 @@ _help_private_${_help_id}:
 $(eval help: _help_${_help_id})
 $(eval help.private: _help_private_${_help_id})
 $(eval help.namespaces: _help_namespaces_${_help_id})
-
-
 
 flux.tmux/%:; make crux.mux/${*}
 	@# This alias is an extension of the 'flux.*' API in compose.mk, 
@@ -676,27 +687,6 @@ k9: k9s
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-tui
 
-export TUI_LAYOUT_CALLBACK?=.tui.layout.spiral
-export TUI_TMUX_SOCKET?=/workspace/tmux.sock
-export TUI_TMUX_SESSION_NAME?=k8s_tui
-define _tui._tmuxp
-cat <<EOF
-session_name: k8s_tui
-start_directory: /workspace
-environment:
-  TUI_LAYOUT_CALLBACK: ${TUI_LAYOUT_CALLBACK}
-global_options:
-  status-right-length: 100
-options: {}
-windows:
-  - window_name: k8s_tui
-    options:
-      automatic-rename: on
-    panes: ${panes:-[]}
-EOF
-endef
-export TUI_TMUXP_CONF_DATA = $(value _tui._tmuxp)
-
 k8s.commander:
 	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tui.shell/4
 blam: tui.panic
@@ -735,23 +725,7 @@ tui.commander: tui.commander/4
 tui.help:
 	@# Shows help information for 'tui.*' targets
 	make help.private | grep -E '^(tui|[.]tui)' | uniq | sort --version-sort
-export TUI_CONTAINER_NAME?=krux
-crux.mux/%:
-	@# Maps execution for each of the comma-delimited targets 
-	@# into separate panes of a tmux (actually 'tmuxp') session.
-	@#
-	@# USAGE:
-	@#   make crux.mux/<target1>,<target2>
-	@#
-	export tmpf=.tmp.tmuxp.yml \
-	&& export panes=$(strip $(shell make .crux.panes/${*})) \
-	&& eval "$${TUI_TMUXP_CONF_DATA}" > $${tmpf} && trap 'rm -f $${tmpf}' EXIT \
-	&& cat $${tmpf} | make stream.dim.indent \
-	&& ./k8s-tools.yml run --entrypoint bash -e TMUX=${TUI_TMUX_SOCKET} \
-		${TUI_CONTAINER_NAME} -c "\
-			tmuxp load -d -S ${TUI_TMUX_SOCKET} $${tmpf} \
-			&& make .tui.init ${TUI_LAYOUT_CALLBACK} \
-			&& tmux attach -t ${TUI_TMUX_SESSION_NAME}"
+
 tui.panic: 
 	@# Non-graceful stop for the TUI (i.e. all the 'k8s:krux' containers).
 	@#
@@ -805,6 +779,8 @@ pane3:
 ## These targets require tmux, and so are only executed *from* the 
 ## TUI, i.e. inside the k8s:krux container.  See instead 'tui.*' for 
 ## public (docker-host) entrypoints.
+export TUI_LAYOUT_CALLBACK?=.crux.layout.spiral
+export TUI_INIT_CALLBACK?=.tui.init
 .tui.init: 
 	@# Initialization for the TUI (a tmuxinator-managed tmux instance).
 	@# This needs to be called from inside the TUI container, with tmux already running.
@@ -837,8 +813,6 @@ pane3:
 	$(eval export tmpseq=$(shell seq 1 $(words ${tmp})))
 	$(foreach i, $(tmpseq), $(shell bash -x -c "tmux select-pane -t `echo ${i}-1|bc` -T $(strip $(shell echo ${tmp}| cut -d' ' -f ${i}));"))
 
-.tui.layout.spiral: .crux.dwindle/s
-	@# Alias for the dwindle spiral layout.  See '.crux.dwindle' docs for more info
 
 .tui.layout.4:
 	@# A custom geometry on up to 4 panes.

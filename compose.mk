@@ -94,15 +94,43 @@ export workspace?=$(shell echo ${DOCKER_HOST_WORKSPACE})
 export COMPOSE_MK=0
 endif
 
-# If make is invoked normally, build the default targets 
-# If make is invoked with a pipe, route directly to 'compose.default.pipe'
+.compose.default.goal: 
+	case $${arg:-default} in \
+		default) make help ;; \
+		*) \
+			echo make compose.loadf/$${arg:-}; \
+		;; \
+	esac
+.compose.default.pipe:; cat /dev/stdin
+%.yml:
+	echo ${*}
+define _compose.loadf
+$$(eval $$(call compose.import, ▰, TRUE, 
+endef 
+compose.loadf/%:
+	 fname="${*}" \
+	 && ls $${fname} > /dev/null \
+	 || (printf "no such file"; exit 1) \
+	 && tmpf=".tmp.mk" \
+	 && echo "# $${fname}" > $${tmpf} \
+	 && echo "include compose.mk" >> $${tmpf} \
+	 && printf "`make def.read/_compose.loadf` $${fname}))\n"| sed 's/\$$\$$/\$$/g' >> $${tmpf} \
+	 && printf ".DEFAULT_GOAL:=default\ndefault: crux.mux/io.bash" >> $${tmpf} \
+	 && cat $${tmpf} | make stream.peek \
+	 && make -f $${tmpf}
+# Special behaviour iff this makefile is running directly, (not included), respect the local default-target
+MK_CLI?=$(shell (cat /proc/$(strip $(shell ps -o ppid= -p $$$$))/cmdline |tr '\0' ' ')||echo '?')
+ifneq ($(findstring compose.mk, ${MK_CLI}),)
+$(eval .DEFAULT_GOAL:=.compose.default.goal)
+$(eval ARG_fname:=$(shell echo ${MK_CLI}| rev | cut -d' ' -f 1 | rev))
+$(eval .PHONY: ${ARG_fname})
+$(eval ${ARG_fname}:; make compose.loadf/${ARG_fname})
+
+%:; arg="${*}" make .compose.default.goal
 ifeq ($(shell if [ -p /dev/stdin ]; then echo true; else echo false; fi), true)
 $(eval .DEFAULT_GOAL:=.compose.default.pipe)
-else
-$(eval .DEFAULT_GOAL:=.compose.default.goal)
 endif
-.compose.default.goal: help
-.compose.default.pipe:; cat /dev/stdin
+endif
 
 # Define 'help' target iff it's not already defined.  This should be inlined 
 # for all files that want to be simultaneously usable in stand-alone 
@@ -1082,3 +1110,58 @@ import sys
 print('hi ')
 endef
 def.demo.python:; make def.dispatch/python3/_${@}
+
+export TUI_CONTAINER_NAME?=krux
+export TUI_TMUX_SOCKET?=/workspace/tmux.sock
+export TUI_TMUX_SESSION_NAME?=k8s_tui
+export TUI_LAYOUT_CALLBACK?=.crux.layout.spiral
+export TUI_INIT_CALLBACK?=.crux.init
+define _tui._tmuxp
+cat <<EOF
+session_name: k8s_tui
+start_directory: /workspace
+environment:
+  TUI_LAYOUT_CALLBACK: ${TUI_LAYOUT_CALLBACK}
+global_options:
+  status-right-length: 100
+options: {}
+windows:
+  - window_name: k8s_tui
+    options:
+      automatic-rename: on
+    panes: ${panes:-[]}
+EOF
+endef
+export TUI_TMUXP_CONF_DATA = $(value _tui._tmuxp)
+
+
+.crux.layout.spiral: .crux.dwindle/s
+	@# Alias for the dwindle spiral layout.  See '.crux.dwindle' docs for more info
+
+.crux.init: 
+	@# Initialization for the TUI (a tmuxinator-managed tmux instance).
+	@# This needs to be called from inside the TUI container, with tmux already running.
+	@#
+	@# Typically this is used internally during TUI bootstrap, but you can call this to 
+	@# rexecute the main setup for things like default key-bindings and look & feel.
+	@#
+	printf "${GLYPH_K8S} .crux.init ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
+	# make .tui.config 
+
+crux.mux/%:
+	@# Maps execution for each of the comma-delimited targets 
+	@# into separate panes of a tmux (actually 'tmuxp') session.
+	@#
+	@# USAGE:
+	@#   make crux.mux/<target1>,<target2>
+	@#
+	export tmpf=.tmp.tmuxp.yml \
+	&& export panes=$(strip $(shell make .crux.panes/${*})) \
+	&& eval "$${TUI_TMUXP_CONF_DATA}" > $${tmpf} && trap 'rm -f $${tmpf}' EXIT \
+	&& cat $${tmpf} | make stream.dim.indent \
+	&& ./k8s-tools.yml run --entrypoint bash \
+		-e TMUX=${TUI_TMUX_SOCKET} \
+		${TUI_CONTAINER_NAME} -c "\
+			tmuxp load -d -S ${TUI_TMUX_SOCKET} $${tmpf} \
+			&& make ${TUI_INIT_CALLBACK} ${TUI_LAYOUT_CALLBACK} \
+			&& tmux attach -t ${TUI_TMUX_SESSION_NAME}"
