@@ -36,7 +36,7 @@ clean: k8s-tools.clean
 	@# Removes temporary files used by build / tests 
 	rm -f tests/compose.mk tests/k8s.mk tests/k8s-tools.yml
 
-build: k8s-tools.qbuild/k8s,dind_base,crux k8s-tools.qbuild
+build: k8s-tools.qbuild/k8s,dind_base,crux
 	@# Explicit ordering to avoid race conditions ('depends_on' affects 'compose up' ordering, not 'compose build' ordering)
 
 init: docker.stat
