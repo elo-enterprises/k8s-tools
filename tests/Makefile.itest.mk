@@ -23,8 +23,8 @@ include compose.mk
 $(eval $(call compose.import, ▰, FALSE, cm-tools.yml))
 
 # Load all services from two files into 1 namespace.
-$(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
+$(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 .DEFAULT_GOAL := all 
 all: k8s-tools.build/k8s
