@@ -179,7 +179,7 @@ k3d.tui/%:
 	@# USAGE:  
 	@#   make k3d.commander/<namespace>
 	@# 
-	make tui.shell/ktop/${*},lazydocker
+	make crux.shell/ktop/${*},lazydocker
 
 k3d.tui: 
 	@# Opens k3d.tui for the "default" namespace
@@ -688,7 +688,7 @@ k9: k9s
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-tui
 
 k8s.commander:
-	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tui.shell/4
+	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make crux.shell/4
 blam: tui.panic
 tui: tui.commander
 tui.pane/%:
@@ -719,7 +719,7 @@ tui.pane/%:
 tui.commander/%:
 	@#
 	TUI_LAYOUT_CALLBACK=.tui.commander.layout \
-		make tui.shell/${*}
+		make crux.shell/${*}
 tui.commander: tui.commander/4
 
 tui.help:
@@ -732,26 +732,6 @@ tui.panic:
 	printf "${GLYPH_K8S} tui.panic ${SEP} ... ${NO_ANSI}\n" > /dev/stderr
 	make tui.ps | xargs -I% -n1 sh -c "id=% make docker.stop"
 
-tui.shell/%:
-	@# Starts a split-screen display of several panes inside a tmux (actually 'tmuxp') session.
-	@# If argument is an integer, opens the given number of shells in the 'k8s:krux' container.
-	@# Otherwise, executes one shell per pane for each of thecomma-delimited container-names.
-	@# 
-	@# USAGE:
-	@#   make tui.shell/<svc1>,<svc2>
-	@#
-	@# USAGE:
-	@#   make tui.shell/<int>
-	@#
-	case ${*} in \
-		''|*[!0-9]*) \
-			targets=`echo $(strip $(shell printf ${*}|sed 's/,/\n/g' | xargs -I% printf '%/shell,'))| sed 's/,$$//'` \
-			&& make crux.mux/$(strip $${targets}); ;; \
-		*) \
-			targets=`seq ${*}|xargs -n1 -I% printf "io.bash,"` \
-			&& make crux.mux/$${targets} \
-			; ;; \
-	esac
 
 tui.stat:
 	@# Show status for the TUI.

@@ -105,6 +105,7 @@ compose.loadf/%:
 	 fname="${*}" \
 	 && ls $${fname} > /dev/null \
 	 || (printf "no such file"; exit 1) \
+	 && set -x \
 	 && cd `dirname $${fname}` \
 	 && tmpf=".tmp.mk" \
 	 && printf "# $${fname}\n" > $${tmpf} \
@@ -115,18 +116,19 @@ compose.loadf/%:
 	 && src+='(call compose.import, ▰, TRUE, ' \
 	 && src+="`basename $${fname}`))\n" >> $${tmpf} \
 	 && printf "$${src}" >> $${tmpf} \
-	 && printf ".DEFAULT_GOAL:=default\ndefault: crux.mux/io.bash\n\n" >> $${tmpf} \
 	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}wrapper${NO_ANSI}\n" >/dev/stderr \
 	 && cat $${tmpf} | make stream.dim.indent.stderr \
 	 && export COMPOSE_MK_COMPOSE_FILE="`basename $${fname}`" \
 	 && export COMPOSE_MK_COMPOSE_STEM="`basename -s .yml $${COMPOSE_MK_COMPOSE_FILE}`" \
 	 && export COMPOSE_MK_COMPOSE_STEM="`basename -s .yaml $${COMPOSE_MK_COMPOSE_STEM}`" \
+	 && export COMPOSE_MK_GEN="$${tmpf}" \
+	 && printf ".DEFAULT_GOAL:=default\ndefault: crux.mux/io.bash\n\n" >> $${tmpf} \
 	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}containers${NO_ANSI}\n" >/dev/stderr \
-	 && make $${COMPOSE_MK_COMPOSE_STEM}.services | make stream.dim.indent.stderr \
+	 && make -f $${tmpf} $${COMPOSE_MK_COMPOSE_STEM}.services | make stream.dim.indent.stderr \
 	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}env${NO_ANSI}\n" >/dev/stderr \
-	 && make -s -f $${tmpf} io.env | make stream.dim.indent.stderr \
+	 && make  -f $${tmpf} io.env | make stream.dim.indent.stderr \
 	 && printf "${GLYPH_IO} compose.loadf${NO_ANSI_DIM} ${SEP} ${DIM_GREEN} ${*} ${SEP} ${DIM}dispatching ${NO_ANSI}${BOLD}$${COMPOSE_MK_TARGET:-}${NO_ANSI}\n" >/dev/stderr \
-	 && make -s -f $${tmpf} $${COMPOSE_MK_TARGET:-}
+	 && MAKE="make -f $${tmpf}" make -f $${tmpf} $${COMPOSE_MK_TARGET:-}
 io.env:; env|grep COMPOSE_MK||true
 
 # Define 'help' target iff it's not already defined.  This should be inlined 
@@ -148,6 +150,7 @@ _help_namespaces_${_help_id}:
 $(eval help: _help_${_help_id})
 $(eval help.namespaces: _help_namespaces_${_help_id})
 
+export make:=$(shell echo $${MAKE:-${MAKE}} ${MFLAGS})
 
 # Special behaviour iff this makefile is running directly, (not included), respect the local default-target
 THIS_MAKEFILE?=$(abspath $(firstword $(MAKEFILE_LIST)))
@@ -164,12 +167,17 @@ ifeq ($(shell if [ -p /dev/stdin ]; then echo true; else echo false; fi), true)
 $(eval .DEFAULT_GOAL:=.compose.default.pipe)
 endif
 endif
-
 crux.loadf:
-	pane_list=`make $${COMPOSE_MK_COMPOSE_STEM}.services \
+	set -x \
+	&& $${make} $${COMPOSE_MK_COMPOSE_STEM}.services \
 		|xargs -I% printf "%/shell," \
-		| sed 's/ /,/g'| rev | cut -c2- | rev` \
-	set -x && $(MAKE) crux.mux/$${pane_list}
+		| sed 's/ /,/g'| rev | cut -c2- | rev \
+	| $${make} stream.peek \
+	> .tmp.plist \
+	&& pane_list=$(strip $(shell cat .tmp.plist)) \
+	&& $${make} crux.mux/io.bash,$$pane_list
+
+	 
 
 	
 ## END: data
@@ -202,7 +210,6 @@ $(eval compose_file := $(strip $4))
 $(eval namespaced_service:=${target_namespace}/$(compose_service_name))
 $(eval compose_file_stem:=$(shell basename -s .yml $(compose_file)))
 
-
 ${compose_file_stem}.dispatch/%:
 	@# Dispatch helper
 	@#
@@ -225,9 +232,9 @@ ${compose_file_stem}/$(compose_service_name)/get_shell:
 ${compose_file_stem}/$(compose_service_name)/shell:
 	@# Invokes the shell
 	@#
-	@export entrypoint=`make ${compose_file_stem}/$(compose_service_name)/get_shell` \
+	@ export entrypoint=`${make} ${compose_file_stem}/$(compose_service_name)/get_shell` \
 	&& printf "${GREEN}⇒${NO_ANSI}${DIM} ${compose_file_stem}/$(compose_service_name)/shell (${GREEN}`env|grep entrypoint\=`${NO_ANSI}${DIM})${NO_ANSI}\n" \
-		&& make ${compose_file_stem}/$(compose_service_name)
+		&& ${make} ${compose_file_stem}/$(compose_service_name)
 	
 ${compose_file_stem}/$(compose_service_name)/shell/pipe:
 	@# Pipes data into the shell, using stdin directly.
@@ -320,21 +327,16 @@ ${compose_file_stem}/%:
 		run --rm --quiet-pull \
 		--env COMPOSE_MK=1 \
 		--env COMPOSE_MK_DEBUG=$${COMPOSE_MK_DEBUG} \
-		$${pipe} $${entrypoint} $${svc_name} $${cmd} \
-		2\> \>\(\
-			grep -vE \'.\*Container.\*\(Running\|Recreate\|Created\|Starting\|Started\)\' \>\&2\ \
-			\| grep -vE \'.\*Network.\*\(Creating\|Created\)\' \>\&2\ \
-			\))
+		$${pipe} $${entrypoint} $${svc_name} $${cmd})
 	@$$(eval export stdin_tempf:=$$(shell mktemp))
 	@$$(eval export entrypoint_display:=${CYAN}[${NO_ANSI}${BOLD}$(shell \
 			if [ -z "$${entrypoint:-}" ]; \
 			then echo "default${NO_ANSI} entrypoint"; else echo "$${entrypoint:-}"; fi)${NO_ANSI_DIM}${CYAN}]${NO_ANSI})
 	@$$(eval export cmd_disp:=${NO_ANSI_DIM}${ITAL}`[ -z "$${cmd}" ] && echo " " || echo " $${cmd}\n"`${NO_ANSI})
-	
 	@trap "rm -f $${stdin_tempf}" EXIT \
 	&& if [ -z "$${pipe}" ]; then \
 		([ $${COMPOSE_MK_DEBUG} == 1 ] && printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${GREEN_FLOW_LEFT}  ${CYAN}<${NO_ANSI}${BOLD}interactive${NO_ANSI}${CYAN}>${NO_ANSI}${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr || true) \
-		&& eval $${base} ; \
+		&& set -x && eval $${base} ; \
 	else \
 		cat /dev/stdin > $${stdin_tempf} \
 		&& ([ $${COMPOSE_MK_DEBUG} == 1 ] && printf "$${header}${DIM}$${nsdisp} ${NO_ANSI_DIM}$${entrypoint_display}$${cmd_disp}${CYAN_FLOW_LEFT}  ${DIM_ITAL}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${NO_ANSI}\n" > /dev/stderr || true) \
@@ -965,6 +967,27 @@ stream.to.stderr:
 ## BEGIN 'crux.*' targets
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-crux
+crux.shell/%:
+	@# Starts a split-screen display of several panes inside a tmux (actually 'tmuxp') session.
+	@# If argument is an integer, opens the given number of shells in the 'k8s:krux' container.
+	@# Otherwise, executes one shell per pane for each of thecomma-delimited container-names.
+	@# 
+	@# USAGE:
+	@#   make crux.shell/<svc1>,<svc2>
+	@#
+	@# USAGE:
+	@#   make crux.shell/<int>
+	@#
+	case ${*} in \
+		''|*[!0-9]*) \
+			targets=`echo $(strip $(shell printf ${*}|sed 's/,/\n/g' | xargs -I% printf '%/shell,'))| sed 's/,$$//'` \
+			&& make crux.mux/$(strip $${targets}); ;; \
+		*) \
+			targets=`seq ${*}|xargs -n1 -I% printf "io.bash,"` \
+			&& make crux.mux/$${targets} \
+			; ;; \
+	esac
+
 define _.crux.bind.helper3
 import sys; import json
 tmp=sys.stdin.read().split()[:3]; 
