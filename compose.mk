@@ -166,7 +166,13 @@ compose.kernel:
 
 compose.qbuild/%:
 	cmd="make compose.build/${*}" make io.quiet.stderr.sh
+
 compose.build/%:; docker compose -f ${*} build
+
+compose.dispatch.sh/%:
+	@# ./compose.mk compose.dispatch/.tmp.compose.mk.yml svc=crux target=io.env
+	set -x \
+	&& docker compose -f ${*} run --entrypoint bash $${svc} -x -c "$${cmd:-true}"
 
 compose.dind.stream:
 	@# Sets context that docker-in-docker is allowed, then streams commands into the given target/container.
@@ -393,7 +399,7 @@ io.quiet.stderr.sh:
 	$(call io.mktemp) \
 	&& header="${GLYPH_IO} io.quiet ${SEP} ${DIM_GREEN}stderr ${SEP}" \
 	&& printf "$${header} ${GREEN}$${cmd}${NO_ANSI} \n" > ${stderr} \
-	&& printf "$${header} ${DIM_GREEN}stderr${NO_ANSI} ${SEP} ${DIM}Quiet output, except in case of error. ${NO_ANSI}\n" > ${stderr} \
+	&& printf "$${header} ${DIM}(Quiet output, except in case of error.) ${NO_ANSI}\n" > ${stderr} \
 	&& start=$$(date +%s) \
 	&& $${cmd} > /dev/null 2>&1 > $${tmpf} ; set +x; exit_status=$$? ; end=$$(date +%s) ; elapsed=$$(($${end}-$${start})) \
 	&& header="${DIM}${GLYPH_IO} io.quiet${NO_ANSI} ${SEP}" \
@@ -797,6 +803,34 @@ flux.timeout/%:
 	timeout=$${timeout} cmd="make $${target}" make flux.sh.timeout
 
 ## END 'flux.*' targets
+## BEGIN 'gum.*' targets
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/#api-gum
+##   [2] https://github.com/charmbracelet/gum
+define gum.style
+make gum.style text="${1}"
+endef 
+define gum.style.target
+$(call gum.style,${@})
+endef 
+gum.style: 
+	@# Helper for formatting text and banners using 'gum style'.
+	@# See https://github.com/charmbracelet/gum for more details.
+	@#
+	@# There's an optimization here where we attempt to use 
+	@# gum on the host if it's available, falling back to using 
+	@# it from the 'gum'container
+	@#
+	@# USAGE:
+	@#   make gum.style text="..."
+	@#
+	gum_cmd="gum style ${GUM_STYLE_DEFAULT} ${GUM_STYLE_DIV} \"$${text}\"" \
+	&& which gum > /dev/null \
+	&& $${gum_cmd} 2>/dev/null \
+	|| make tux.bootstrap && COMPOSE_MK_DEBUG=0 make compose.dispatch.sh/${TUI_COMPOSE_FILE} svc=crux cmd="$${gum_cmd}"
+#make k8s-tools/gum
+
+## END 'gum.*' targets
 ## BEGIN 'stream.*' targets
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-stream
@@ -940,19 +974,26 @@ export TUI_TMUXP_PROFILE_DATA = $(value _TUI_TMUXP_PROFILE)
 crux.help: help.namespace/crux
 	@# Lists only the targets available under the 'crux' namespace.
 
+export BOOTSTRAP:=
+
 tux.bootstrap:
 	@#
 	@#
 	@#
 	header="${GLYPH_IO} tux.bootstrap ${SEP} ${TUI_COMPOSE_FILE} ${SEP} " \
-	&& printf "$${header} ${DIM}writing.. ${NO_ANSI}\n" | make stream.indent.stderr \
-	&& ${make} mk.def.write.to.file/_CRUX_CONF/${TUI_COMPOSE_FILE} \
-	&& ( \
-		([ -z $${preview:-} ] && true || ${make} io.file.preview/${TUI_COMPOSE_FILE}) \
-		&& printf "$${header} ${DIM}validating..${NO_ANSI}\n" \
-		&& make compose.services/${TUI_COMPOSE_FILE} | ${make} stream.dim.indent.stderr \
-		&& printf "$${header} ${DIM}building..${NO_ANSI}\n") | make stream.indent.stderr \
-	&& ${make} compose.qbuild/${TUI_COMPOSE_FILE}
+	&& if echo "$(BOOTSTRAP)" | grep -qw "${*}"; then \
+		printf "$${header} ${DIM}already bootstrapped for ${UNDERLINE}`pwd`${NO_ANSI}\n" > /dev/stderr \
+	else \
+		printf "$${header} ${DIM}writing.. ${NO_ANSI}\n" | make stream.indent.stderr \
+		&& export BOOTSTRAP="$${BOOTSTRAP} `pwd`" \
+		&& ${make} mk.def.write.to.file/_CRUX_CONF/${TUI_COMPOSE_FILE} \
+		&& ( \
+			([ -z $${preview:-} ] && true || ${make} io.file.preview/${TUI_COMPOSE_FILE}) \
+			&& printf "$${header} ${DIM}validating TUI services..${NO_ANSI}\n" \
+			&& make compose.services/${TUI_COMPOSE_FILE} | ${make} stream.dim.indent.stderr \
+			&& printf "$${header} ${DIM}building TUI if not cached..${NO_ANSI}\n") | make stream.indent.stderr \
+		&& ${make} compose.qbuild/${TUI_COMPOSE_FILE}; \
+	fi
 
 crux.mux/%:
 	@# Maps execution for each of the comma-delimited targets 
@@ -1218,7 +1259,9 @@ services:
     build:
       context: . 
       dockerfile_inline: |
+        FROM ghcr.io/charmbracelet/gum as gum
         FROM compose.mk:dind_base
+        COPY --from=gum /usr/local/bin/gum /usr/bin
         USER root 
         RUN apt-get update && apt-get install -y python3-pip wget tmux libevent-dev build-essential yacc ncurses-dev
         RUN wget https://github.com/tmux/tmux/releases/download/${TMUX_CLI_VERSION:-3.4}/tmux-${TMUX_CLI_VERSION:-3.4}.tar.gz
@@ -1535,12 +1578,12 @@ loadf/%:
 	&& eval "$${LOADF}" > $${tmpf} \
 	&& ${make} io.file.preview/$${tmpf} 2>&1 | make stream.indent \
 	&& ( \
-		printf "$${header} $${tmpf} ${SEP} ${DIM} validating services\n" \
+		printf "$${header} $${tmpf} ${SEP} ${DIM} validating services${NO_ANSI}\n" \
 		&& make -f $${tmpf} $${stem}.services ) | make stream.indent.stderr \
 	&& first=`make -f $${tmpf} $${stem}.services \
 		| head -5 | xargs -I% printf "% " \
 		| sed 's/ /,/g' | sed 's/,$$//'` \
-	&& printf "$${header} $${tmpf} ${SEP} ${DIM} pane targets: $${first}\n" | make stream.indent.stderr \
+	&& printf "$${header} $${tmpf} ${SEP} ${DIM} pane targets: $${first}${NO_ANSI}\n" | make stream.indent.stderr \
 	&& make gum.style text="Starting TUI" \
 	&& set -x \
 	&& make -f $${tmpf} $${words:-crux.ui/$${first}}

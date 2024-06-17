@@ -80,28 +80,6 @@ flux.tmux/%:; make crux.mux/${*}
 	@# depends on compose-services at k8s-tools.yml, so it's part of 'k8s.mk'
 	@#
 
-# Gum macros/targets.  (See https://github.com/charmbracelet/gum)
-define gum.style
-make gum.style text="${1}"
-endef 
-define gum.style.target
-$(call gum.style,${@})
-endef 
-gum.style: 
-	@# Helper for formatting text and banners using 'gum style'.
-	@# See https://github.com/charmbracelet/gum for more details.
-	@#
-	@# There's an optimization here where we attempt to use 
-	@# gum on the host if it's available, falling back to using 
-	@# it from the 'gum'container
-	@#
-	@# USAGE:
-	@#   make gum.style text="..."
-	@#
-	which gum > /dev/null \
-	&& gum style ${GUM_STYLE_DEFAULT} ${GUM_STYLE_DIV} "$${text}" 2>/dev/null \
-	|| COMPOSE_MK_DEBUG=0  cmd="style ${GUM_STYLE_DEFAULT} ${GUM_STYLE_DIV} \'$${text}\'" make k8s-tools/gum
-
 helm.repo.add/%:
 	@# Idempotent version 'helm repo add'
 	@#
