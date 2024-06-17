@@ -70,7 +70,7 @@ NO_ANSI_DIM:=${NO_ANSI}${DIM}
 CYAN_FLOW_LEFT:=${BOLD_CYAN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 GREEN_FLOW_LEFT:=${BOLD_GREEN}⋘${DIM}⋘${NO_ANSI_DIM}⋘${NO_ANSI}
 SEP:=${NO_ANSI}//
-export TERM?=xterm
+export TERM?=xterm-256color
 
 define _mk.interrupt
 kill -INT $${PPID}
@@ -306,15 +306,33 @@ io.bash:
 	@# by the parent environment, plus those set by this Makefile context.
 	@#
 	env bash -l
+
+stream.csv.pygmentize:; cat /dev/stdin | lexer=ini make stream.pygmentize
+
+export PYGMENTIZE:=docker run --rm --interactive \
+		-e TERM=$${TERM}  -v `pwd`:/workspace -w /workspace \
+		--entrypoint pygmentize lambdalab/pygments:0.7.34
+stream.pygmentize:
+	@# 
+	@#
+	@# https://hub.docker.com/r/backplane/pygmentize
+	@# https://pygments.org/styles/
+	lexer=`[ -z $${lexer:-} ] && echo '-g' || echo -l $${lexer}` \
+	&& style="-Ostyle=$${style:-trac}" \
+	&& cat /dev/stdin | ${PYGMENTIZE} $${style} $${lexer} -f terminal256 
+
+io.file.pygmentize/%:
+	lexer=`[ -z $${lexer:-} ] && echo '-g' || echo -l $${lexer}` \
+	&& style="-Ostyle=$${style:-trac}" \
+	&& ${PYGMENTIZE} $${style} $${lexer} -f terminal256 ${*}
+
 io.file.preview/%:
 	@#
 	@# https://hub.docker.com/r/backplane/pygmentize
 	@# https://pygments.org/styles/
 	header="${GLYPH_IO} io.file.preview${NO_ANSI}" \
 	&& printf "$${header} ${SEP} ${DIM}${BOLD}${*}${NO_ANSI}\n" > ${stderr} \
-	&&  docker run --rm --interactive --volume "`pwd`:/work" -w /work \
-		--entrypoint pygmentize lambdalab/pygments:0.7.34 \
-		-f terminal256 -Ostyle=$${pygments_style:-trac} "${*}" \
+	&& style=trac make io.file.pygmentize/${*} \
 	| make stream.nl.enum | make stream.indent.stderr
 # && ( cat ${*} | make stream.nl.enum && echo )
 
@@ -411,6 +429,8 @@ io.time.wait/%:
 	@#
 	printf "${GLYPH_IO} io.wait${NO_ANSI} ${SEP} ${DIM}Waiting for ${*} seconds..${NO_ANSI}\n" > ${stderr} \
 	&& sleep ${*}
+
+
 
 ## END 'io.*' targets
 ## BEGIN 'mk.*' targets
@@ -1319,7 +1339,7 @@ ${compose_file_stem}/$(compose_service_name)/get_shell:
 		|| ( \
 			export err="${YELLOW}Neither 'bash' nor 'sh' are available!\n" \
 			&& err+="(service=$${compose_service_name} @ $${compose_file})\n${NO_ANSI}" \
-			&& printf "$${err}" > ${stderr} )
+			&& printf "$${err}" > ${stderr} ; exit 1)
 
 ${compose_file_stem}/$(compose_service_name)/shell:
 	@# Invokes the shell
