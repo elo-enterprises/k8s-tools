@@ -913,7 +913,7 @@ export TUI_THEME_PRE_HOOK?=.crux.theme.custom
 export TUI_THEME_POST_HOOK?=.crux.theme.buttons
 export TUI_THEME_NAME?=powerline/double/cyan
 export TUI_COMPOSE_FILE?= .tmp.compose.mk.yml
-# export TUI_BOOTSTRAP?=tux.bootstrap
+export TUI_BOOTSTRAP?=tux.bootstrap
 export TUI_COMPOSE_EXTRA_ARGS?=
 export TUI_TMUXP_PROFILE_DATA = $(value _TUI_TMUXP_PROFILE)
 
@@ -959,36 +959,34 @@ crux.mux.detach/%:
 		-e TUI_TMUX_SESSION_NAME="${TUI_TMUX_SESSION_NAME}" \
 		-e TUI_INIT_CALLBACK="${TUI_INIT_CALLBACK}" \
 		-e TUI_LAYOUT_CALLBACK="${TUI_LAYOUT_CALLBACK}" \
+		-e TMUX=${TUI_TMUX_SOCKET} \
 		-e MAKE="${MAKE}" \
 		--entrypoint bash crux -x -c "\
-			env|grep MAKE||true \
-			&& TMUX=${TUI_TMUX_SOCKET} tmuxp load -d -S ${TUI_TMUX_SOCKET} $${TMUXP} \
-			&& ${make} tux.bootstrap \
-			&& TMUX=${TUI_TMUX_SOCKET} tmux list-sessions \
+			tmuxp load -d -S ${TUI_TMUX_SOCKET} $${TMUXP} \
+			&& ${make} ${TUI_BOOTSTRAP} \
+			&& tmux list-sessions \
 			&& $${reattach:-true}"
-
 export TMUXP:=.tmp.tmuxp.yml
-# 
 
-crux.shell: crux.shell/2
+crux.ui: crux.ui/2
 	@#
 	@#
 	@#
 
-crux.shell/%:
+crux.ui/%: ${TUI_BOOTSTRAP}
 	@# Starts a split-screen display of several panes inside a tmux (actually 'tmuxp') session.
-	@# (This works without a tmux requirement on the host, using the 'compose.mk:crux' container.)
+	@# (Works without a tmux requirement on the host, using the embedded 'compose.mk:crux' container.)
 	@#
-	@# If argument is an integer, opens the given number of shells in the 'k8s:krux' container.
-	@# Otherwise, executes one shell per pane for each of thecomma-delimited container-names.
+	@# If argument is an integer, opens the given number of shells in tmux.
+	@# Otherwise, executes one shell per pane for each of the comma-delimited container-names.
 	@# 
 	@# USAGE:
-	@#   make crux.shell/<svc1>,<svc2>
+	@#   make crux.ui/<svc1>,<svc2>
 	@#
 	@# USAGE:
-	@#   make crux.shell/<int>
+	@#   make crux.ui/<int>
 	@#
-	header="${GLYPH_IO} crux.shell ${SEP} ${*} ${SEP} " \
+	header="${GLYPH_IO} crux.ui ${SEP} ${*}" \
 	&& printf "$${header}\n" > ${stderr} \
 	&& case ${*} in \
 		''|*[!0-9]*) \
@@ -1498,21 +1496,17 @@ export TUI_TMUXP_PROFILE_DATA = $(value _TUI_TMUXP_PROFILE)
 
 ifeq ($(COMPOSE_MK_STANDALONE),1)
 export LOADF = $(value _loadf)
-crux/shell: 
-	make tux.bootstrap 
-	ls ${TUI_COMPOSE_FILE}
-	echo loadf/${TUI_COMPOSE_FILE} crux/shell
-loadf/%:
+loadf/%: 
 	@#
 	@# USAGE:
 	@#  make compose.loadf/<compose_file>
 	@# 2>&1 | make stream.indent > ${stderr}
-	header="${GLYPH_IO} loadf${NO_ANSI_DIM} ${SEP}" \
+	true \
+	&& make gum.style text="Preparing TUI" \
+	&& header="${GLYPH_IO} loadf${NO_ANSI_DIM} ${SEP}" \
 	&& printf "$${header} ${DIM_GREEN} ${*} ${NO_ANSI}\n" >${stderr} \
 	&& fname="${*}" \
-	&& ls $${fname} > /dev/null \
-	|| (printf "No such file"; exit 1) \
-	&& bdir=`dirname $${fname}` \
+	&& ls $${fname} > /dev/null || (printf "No such file"; exit 1) \
 	&& tmpf=.tmp.mk \
 	&& words=`echo "$${COMPOSE_MK_CLI#*loadf/}"` \
 	&& words=`printf "$${words}" | sed 's/ /\n/g' | tail -n +2` \
@@ -1524,12 +1518,11 @@ loadf/%:
 		printf "$${header} $${tmpf} ${SEP} ${DIM} validating services\n" \
 		&& make -f $${tmpf} $${stem}.services ) | make stream.indent.stderr \
 	&& first=`make -f $${tmpf} $${stem}.services \
-		| head -5 | xargs -I% printf "%/shell " \
-		| sed 's/ /,/g' \
-		| sed 's/,$$//'` \
+		| head -5 | xargs -I% printf "% " \
+		| sed 's/ /,/g' | sed 's/,$$//'` \
 	&& printf "$${header} $${tmpf} ${SEP} ${DIM} pane targets: $${first}\n" | make stream.indent.stderr \
-	&& make gum.style text="..................." \
+	&& make gum.style text="Starting TUI" \
 	&& set -x \
-	&& make -f $${tmpf} $${words:-crux.shell/$${first}}
+	&& make -f $${tmpf} $${words:-crux.ui/$${first}}
 	$(call _mk.interrupt)
 endif 
