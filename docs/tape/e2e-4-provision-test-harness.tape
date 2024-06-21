@@ -9,7 +9,7 @@ Set Height 950
 Set TypingSpeed 2.0
 Set PlaybackSpeed 20
 Set CursorBlink false
-Type "make provision.test_harness"
+Type "make deploy.test_harness"
 Enter
 Sleep 340
 

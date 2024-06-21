@@ -1,5 +1,4 @@
-# See also: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
+# See also: https://docs.github.com/en/actions
 name: Project Tests
 on:
   workflow_call: {}
@@ -10,7 +9,9 @@ on:
     paths-ignore:
       - '**.md'
       - '**.md.j2'
+      - '**.mmd'
       - '**.png'
+      - '**.svg'
       - '**.gif'
 permissions:
   contents: read
@@ -25,8 +26,19 @@ jobs:
       - name: Build
         run: make build
       - name: Integration Tests
+        # GitHub Actions run without a TTY device. This is a workaround to get one,
+        # based on https://github.com/actions/runner/issues/241#issuecomment-842566950.
+        # This is required for some of the integration tests that are using gum
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'
         run: make integration-test
+      - name: TUI Tests
+        # GitHub Actions run without a TTY device. This is a workaround to get one,
+        # based on https://github.com/actions/runner/issues/241#issuecomment-842566950.
+        # This is required for some of the integration tests that are using gum
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'
+        run: make tui-test
       - name: Smoke Tests
         run: make smoke-test
       - name: E2E Tests
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'
         run: make e2e-test

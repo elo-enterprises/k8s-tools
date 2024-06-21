@@ -1,2 +1,2 @@
-Makefile.compose.mk
+compose.mk
 k8s-tools.yml

@@ -9,7 +9,8 @@
   <tr>
     <td width=15%><img src=img/icon.png style="width:150px"></td>
     <td>
-      Dockerized version of a kubernetes toolchain
+      Completely dockerized version of a kubernetes toolchain, <br/>
+      plus a minimal automation framework for interacting with that toolchain.
       <br/><br/>
       {%for action in github.actions%}<a href="{{action.url}}"><img src="{{action.url}}/badge.svg"></a>{%endfor%}
     </td>
@@ -38,11 +39,11 @@
 
 ---------------------------------------------------------------
 
-{% include "makefile.compose.mk.md" %}
+{% include "compose.mk.md" %}
 
 ---------------------------------------------------------------
 
-{% include "makefile.k8s.mk.md" %}
+{% include "k8s.mk.md" %}
 
 ---------------------------------------------------------------
 
@@ -51,3 +52,7 @@
 ---------------------------------------------------------------
 
 {% include "limitations.md" %}
+
+---------------------------------------------------------------
+
+{% include "design-philosophy.md" %}

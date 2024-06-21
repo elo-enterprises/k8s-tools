@@ -9,7 +9,7 @@ Set Height 800
 Set TypingSpeed .42
 Set CursorBlink false
 Set PlaybackSpeed 10
-Type "make provision.helm"
+Type "make deploy.helm"
 Enter
 Enter
 Sleep 28

@@ -7,7 +7,7 @@ This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) i
 
 ----------------------------------------------
 
-### Boilerplate, Clean & Init 
+### Boilerplate, Overrides, Clean & Init 
 
 ```Makefile 
 # tests/Makefile.e2e.mk
@@ -19,7 +19,7 @@ Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml]
 
 The `KREW_PLUGINS` variable holds a space-separated list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  (Three plugins are always installed: [kubens](#), [kubectx](#), and [whoami](#), but here you can specify any extras.)  We'll add the [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods) and use that later.
 
-Note that when overrides like these are changed, [k8s-tools.yml](k8s-tools.yml) needs to be rebuilt.  (You can do that with `make k8s-tools/__build__` or `docker compose -f k8s-tools.yml build`)
+Note that when overrides like these are changed, [k8s-tools.yml](k8s-tools.yml) needs to be rebuilt.  (You can do that with `make k8s-tools.build` or `docker compose -f k8s-tools.yml build`)
 
 Next we organize some targets for cluster-operations.  Below you can see there are two public targets declared for direct access, and two private targets that run inside the `k3d` tool container.
 
@@ -55,7 +55,7 @@ But we also want operations to be idempotent, and blocking operations where that
 {% for line in sections[2].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
-Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from Makefile.k8s.mk (documented [here](#static-targets-for-makefilek8smk)) do all of the heavy lifting.  
+Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](#static-targets-for-k8smk)) do all of the heavy lifting.  
 
 Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.
 
@@ -104,7 +104,7 @@ What if you want to inspect or interact with things though?  The next block of t
 
 Again, no target bodies because `k8s.*` targets for stuff like this already exist, and we just need to pass in the parameters for our setup.  
 
-Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if Makefile.k8s.mk is included, but now there's an even-easier alias that makes our project more self-documenting.  
+Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if k8s.mk is included, but now there's an even-easier alias that makes our project more self-documenting.  
 
 <img src="img/e2e-interactive-shell.gif">
 
@@ -120,7 +120,7 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
-The [**`kubefwd.namespace/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
+The [**`kubefwd.start/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
 
 <img src="img/e2e-kubefwd.gif">
 
@@ -156,7 +156,7 @@ From here you'll probably want to get something real done.  Most likely you are 
 
 **Experimenting with private registries** might start with [compose-managed tags](https://docs.docker.com/reference/cli/docker/compose/push/) and a [local caching docker registry](https://docs.docker.com/docker-hub/mirror/)**, or you can push to a [k3d registry](https://k3d.io/v5.2.0/usage/registries/).  To use private, locally built images without a registry, see [`k3d image import`](https://k3d.io/v5.3.0/usage/commands/k3d_image_import/), or the equivalent [kind load](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
 
-**Extending the make/compose technique to completely different automation tasks is straightforward,** as long as you stick to the layout.  For example substituing `k8s-tools.yml` for a new `iac-tools.yml` compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then `Makefile.compose.mk` and `compose.import` generate targets as usual.  If necessary a new file `Makefile.iac.mk` can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  
+**Extending the make/compose technique to completely different automation tasks is straightforward,** as long as you stick to the layout.  For example substituing `k8s-tools.yml` for a new `iac-tools.yml` compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then `compose.mk` and `compose.import` generate targets as usual.  If necessary a new file `Makefile.iac.mk` can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  
 
  ----------------------------------------------
 

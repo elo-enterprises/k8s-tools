@@ -1,4 +1,5 @@
 .tmp.*
 *.profile.yaml
-tests/Makefile.k8s.mk
+tests/k8s.mk
 tests/Makefile
+docs/README.md
