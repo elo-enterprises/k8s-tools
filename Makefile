@@ -39,12 +39,11 @@ clean: k8s-tools.clean
 	@# Removes temporary files used by build / tests 
 	rm -f tests/compose.mk tests/k8s.mk tests/k8s-tools.yml
 
-
 init: make.stat docker.stat
 
-shell: krux.bootstrap
-	make gum.style text='Launching shell'
-	make tux.ui/tui,k8s,io.bash
+# shell:
+# 	make gum.style text='Launching shell'
+# 	make tux.ui/k8s,io.bash
 
 # testing entrypoints
 test: integration-test smoke-test tui-test e2e-test
@@ -65,6 +64,9 @@ itest: integration-test
 stest: smoke-test 
 
 tui-test: test-suite/tui 
+	@# TUI test-suite, exercising the embedded 'compose.mk:tux'
+	@# container and various ways to automate tmux.
+
 smoke-test: test-suite/stest
 	@# Smoke-test suite, exercising the containers we built.
 	@# This just covers the compose file at k8s-tools.yml, ignoring Makefile integration
@@ -80,7 +82,7 @@ e2e-test: test-suite/e2e
 
 mad: test-suite/mad-science
 	@# Polyglot tests.  These demonstrate some mad-science and other bad ideas 
-	@# that allows make targets to be written in real programming languages.
+	@# that allow make-targets to be written in real programming languages.
 
 docs: docs.jinja docs.mermaid
 	@# Builds all the docs
