@@ -1,5 +1,5 @@
 # This file describes terminal videos with the `vhs` tool (https://github.com/charmbracelet/vhs)
-Output img/e2e-provision-helm.gif 
+Output img/e2e-deploy-1.gif 
 Require "make"
 Require "docker"
 Set Shell "bash"
@@ -13,7 +13,11 @@ Type "make deploy.helm"
 Enter
 Enter
 Sleep 28
-Type "make k8s.pods.wait_until_ready"
+Type "make k8s.wait"
 Enter
+Sleep 30
+Type "# Now do it again to confirm idempotence."
+Enter
+Enter
+Type "make deploy.helm k8s.wait"
 Sleep 150
-

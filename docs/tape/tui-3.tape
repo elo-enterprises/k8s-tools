@@ -7,13 +7,15 @@ Set FontSize 16
 Set Width 1200
 Set Height 800
 Set TypingSpeed .055
-Set PlaybackSpeed 1
+Set PlaybackSpeed 2
 Set CursorBlink false
-Type "# Launches a split-screen shell context for each of the named make-targets"
+Type "# The 'loadf' target can open shells for each service in a given compose file."
 Enter
-Sleep 2
-Type "./compose.mk loadf tests/docker-compose.yml"
-Sleep 2.3
 Enter
-Sleep 20
+Sleep 3.3
+Set PlaybackSpeed 3
+Type "./compose.mk loadf docker-compose.yml"
+Sleep 2.8
+Enter
+Sleep 30
 

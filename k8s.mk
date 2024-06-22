@@ -40,47 +40,37 @@ cyan_flow_left:=${bold_cyan}⋘${dim}⋘${no_ansi_dim}⋘${no_ansi}
 sep:=${no_ansi}//
 _GLYPH_K8S=⑆${dim}
 GLYPH_K8S=${green}${_GLYPH_K8S}${dim}
-
 export TERM?=xterm
 
-# Defaults for working with charmbracelet/gum
-GUM_SPIN_DEFAULTS=--spinner.foreground=231 --spinner meter
-GUM_STYLE_DEFAULT:=--border double --foreground 139 --border-foreground 109
-GUM_STYLE_DIV:=--border double --align center --width `echo "x=\`tput cols\` - 5;if (x < 0) x=-x; default=30; if (default>x) default else x" | bc`
+# Hints for compose files to fix file permissions (see k8s-tools.yml for an example of how this is used)
+OS_NAME:=$(shell uname -s)
+ifeq (${OS_NAME},Darwin)
+export MAKE_CLI:=$(shell echo `which make` `ps -o args -p $$PPID | tail -1 | cut -d' ' -f2-`)
+else 
+export MAKE_CLI:=$(shell \
+	( cat /proc/$(strip $(shell ps -o ppid= -p $$$$ 2> /dev/null))/cmdline 2>/dev/null \
+		| tr '\0' ' ' ) ||echo '?')
+endif
+
+ifeq ($(findstring k8s.mk, ${MAKE_CLI}),)
+export K8S_MK_LIB=1
+export K8S_MK_STANDALONE=0
+else
+export K8S_MK_SRC=$(shell echo ${MAKEFILE_LIST}|sed 's/ /\n/g' | grep k8s.mk)
+export K8S_MK_LIB=0
+export K8S_MK_STANDALONE=1
+export K8S_MK_SRC=$(findstring k8s.mk, ${MAKE_CLI})
+endif
+
+# Import compose.mk iff we're stand-alone mode.
+ifeq ($(K8S_MK_STANDALONE),1)
+include $(shell dirname ${K8S_MK_SRC})/compose.mk
+endif
 
 # How long to wait when checking if namespaces/pods are ready (yes, 'export' is required.)
 export K8S_POLL_DELTA?=23
 
 export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
-
-# Define 'help' target iff it's not already defined.  This should be inlined 
-# for all files that want to be simultaneously usable in stand-alone 
-# mode + library mode (with 'include')
-_help_id:=$(shell (uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s) | head -c 8 | tail -c 8)
-define _help_gen
-(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true)
-endef
-_help_${_help_id}:
-	@# Attempts to autodetect the targets defined in this Makefile context.  
-	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
-	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
-	@#
-	@$(call _help_gen)
-_help_namespaces_${_help_id}:
-	@# Returns only the top-level target namespaces
-	@$(call _help_gen) | cut -d. -f1 |cut -d/ -f1 | uniq|grep -v ^all$$
-_help_private_${_help_id}:
-	@# Returns all targets, including private ones
-	(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#]") {print $$1}}' | sort | grep -E -v -e '^_help' -e '^$@$$' || true)
-$(eval help: _help_${_help_id})
-$(eval help.private: _help_private_${_help_id})
-$(eval help.namespaces: _help_namespaces_${_help_id})
-
-flux.tmux/%:; make tux.mux/${*}
-	@# This alias is an extension of the 'flux.*' API in compose.mk, 
-	@# since the names/arguments are so similar.  Still, this strictly
-	@# depends on compose-services at k8s-tools.yml, so it's part of 'k8s.mk'
-	@#
 
 helm.repo.add/%:
 	@# Idempotent version 'helm repo add'
@@ -102,6 +92,18 @@ helm.chart.install/%:
 	&& ( helm list | grep ${*} ) \
 	|| helm install ${*} $${chart}
 
+k3d.cluster.delete/%:
+	@# Idempotent version of k3d cluster delete 
+	@#
+	@# USAGE:
+	@#   k3d.cluster.delete/<cluster_name>
+	@#
+	@( k3d cluster list | grep ${*} > /dev/null ) \
+	&& ( set -x && k3d cluster delete ${*} ) || true
+
+k3d.help: help.namespace/k3d
+	@# Shows targets for just the 'k3d' namespace.
+
 k3d.panic:
 	@# Non-graceful stop for everything that is k3d related. 
 	@# 
@@ -121,37 +123,34 @@ k3d.ps:
 	| grep ^k3d- \
 	|| printf "${yellow}No containers found.${no_ansi}\n" > /dev/stderr )
 
+
+k3d.help: help.namespace/k3d
+ICON_K3D:=https://github.com/elo-enterprises/k8s-tools/raw/master/img/k3d_logo_black_blue.svg
+k3d.commander:
+	@# Starts a 4-pane TUI dashboard, using the commander layout.  
+	@# This opens 'lazydocker', 'ktop', and other widgets that are convenient for working with k3d.
+	@#
+	@# USAGE:  
+	@#   make k3d.commander/<namespace>
+	@# 
+	printf "${GLYPH_K8S} k3d.commander ${sep} ${no_ansi_dim}Opening commander TUI for k3d...${no_ansi}\n" > ${stderr}
+	TUI_LAYOUT_CALLBACK=.k3d.commander.layout make docker.commander
+.k3d.commander.layout: .docker.commander.layout
+	@#
+	@# USAGE:  
+	@#   make k3d.commander/<namespace>
+	@# 
+	printf "${GLYPH_K8S} .k3d.commander.layout ${sep} ${no_ansi_dim}${no_ansi}\n" > ${stderr}
+	make .tux.pane/2/flux.loopw/k3d.stat
+	make .tux.pane/3/flux.loopw/io.envp
+
 k3d.stat:
 	@# Show status for k3d.
 	@# 
 	@#
 	printf "${GLYPH_K8S} k3d.stat ${no_ansi_dim}\n" > /dev/stderr
-	(printf "${dim}⑆ k3d.ps ${no_ansi}${no_ansi}\n" \
+	(printf "${dim}${_GLYPH_K8S} k3d.ps ${no_ansi}${no_ansi}\n" \
 	&& make k3d.ps 2>/dev/null | make stream.dim.indent) | make stream.indent
-
-k3d.cluster.delete/%:
-	@# Idempotent version of k3d cluster delete 
-	@#
-	@# USAGE:
-	@#   k3d.cluster.delete/<cluster_name>
-	@#
-	@( k3d cluster list | grep ${*} > /dev/null ) \
-	&& ( set -x && k3d cluster delete ${*} ) || true
-
-k3d.tui/%:
-	@# A split-screen TUI dashboard that opens 'lazydocker' and 'ktop'.
-	@#
-	@# This requires `tmux` on the host, and use assumes `compose.import` has 
-	@# already made `ktop` & `lazydocker` targets available.
-	@#
-	@# USAGE:  
-	@#   make k3d.commander/<namespace>
-	@# 
-	make tux.ui/ktop/${*},lazydocker
-
-k3d.tui: 
-	@# Opens k3d.tui for the "default" namespace
-	make k3d.tui/default
 
 k8s.get/%:
 	@# Returns resources under the given namespace, for the given kind.
@@ -201,8 +200,11 @@ k8s.graph.tui.loop: k8s.graph.tui.loop/kube-system/pods
 	@# Loops the graph for the kube-system namespace
 
 k8s.graph.tui.loop/%:
+	@# Display an updating, low-resolution image of the given namespace topology.
 	@#
-	@#
+	@# USAGE:  
+	@#   make k8s.graph.tui.loop/<namespace>
+	@# 
 	failure_msg="${yellow}Waiting for cluster to get ready..${no_ansi}" \
 	make flux.loopf/k8s.graph.tui/${*}
 
@@ -226,7 +228,7 @@ k8s.graph.tui/%:
 	; case $${COMPOSE_MK_DIND} in \
 		0) \
 			script="make .k8s.graph.tui/${*}" \
-			target=krux/shell/pipe \
+			target=dux/shell/pipe \
 			make compose.dind.stream; ;; \
 		*) \
 			make .k8s.graph.tui/${*}; ;; \
@@ -501,6 +503,8 @@ k8s.shell/%:
         esac
 k8s.wait: k8s.namespace.wait/all
 	@# Alias for 'k8s.namespace.wait/all'
+k8s.help: help.namespace/k8s
+	@# Shows targets for just the 'k8s' namespace.
 
 kubefwd.panic:
 	@# Non-graceful stop for everything that is kubefwd related.
@@ -546,6 +550,11 @@ self.kubefwd.container_name/%:
 ## BEGIN 'stream.*' targets
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-stream
+
+
+kubefwd.help: help.namespace/kubefwd
+	@# Shows targets for just the 'kubefwd' namespace.
+
 
 kubefwd.stop/%:
 	@# Stops the named kubefwd instance.
@@ -653,112 +662,85 @@ k9: k9s
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/#api-tui
 
-# export TUI_THEME_PRE_HOOK:=.krux.theme.custom
+# export TUI_THEME_HOOK_PRE:=.dux.theme.custom
 export TUI_COMPOSE_EXTRA_ARGS:=-f k8s-tools.yml
-export TUI_CONTAINER_NAME:=krux
-export TUI_THEME_NAME:=powerline/double/cyan
-export TUI_THEME_POST_HOOK:=.tux.theme.buttons
-export TUI_THEME_PRE_HOOK=.krux.theme.custom
+export TUI_SVC_NAME:=dux
+# export TUI_THEME_NAME:=powerline/double/green
 # export TUI_LAYOUT_CALLBACK:=.tui.k8s.commander.layout
-# export TUI_INIT_CALLBACK:=.tui.init
-export TUI_THEME_NAME:=powerline/default/cyan
+# export TUI_THEME_NAME:=powerline/default/cyan
+export TUI_THEME_HOOK_POST:=.tux.theme.buttons
+export TUI_THEME_HOOK_PRE=.dux.theme.custom
 
-.krux.theme.custom: .tux.theme.custom
+export TUI_CONTAINER_IMAGE:=k8s:dux
+
+# TUI_CONTAINER_IMAGE?=compose.mk:tux
+
+.dux.theme.custom: .tux.init.theme
 	setter="tmux set -goq" \
 	&& $${setter} @theme-status-interval 1 \
 	&& $${setter} @themepack-status-left-area-middle-format \
 		"ctx=#(kubectx -c||echo ?) ns=#(kubens -c||echo ?)" \
 
 k8s.commander:
-	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tux.ui/4
+	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout make tux.commander
 
-tui.pane/%:
-	@# Sends a make-target into a pane.
-	@# This is a public interface safe to call from the docker-host.
-	@# It works by dispatching commands into the 
-	@# k8s:krux container to work with tmux.
-	pane_id=`printf "${*}"|cut -d/ -f1` \
-	&& target=`printf "${*}"|cut -d/ -f2-` \
-	&& make k8s-tools.dispatch/krux/.tux.pane/${*}
-
+k8s.commander/%:
+	export k8s_commander_targets="${*}" \
+	&& make k8s.commander
 .tui.k8s.commander.layout: 
 	make .tux.pane/4/.tui.widget.k8s.topology.clear/kube-system
 	make .tux.pane/3/.tui.widget.k8s.topology.clear/default
-	make .tux.pane/2/flux.loopf/
-	make .tux.pane/1/flux.wrap/docker.stat,k8s.stat
+	make .tux.pane/2/flux.loopf/.tui.widget.env
+	make .tux.pane/1/flux.wrap/docker.stat,k8s.stat,$${k8s_commander_targets:-flux.ok}
 	make .tux.commander.layout
 	title="main" make .tux.pane.title/1
 	title="default namespace" make .tux.pane.title/3
 	title="kube-system namespace" make .tux.pane.title/4
 
-.tui.widget.k8s.topology.clear/%:; clear="--clear" make .tui.widget.k8s.topology/${*}
-.tui.widget.k8s.topology/%: io.time.wait/2
-	make gum.style text="${*} topology"; 
-	make flux.loopf/k8s.graph.tui/${*}/pod
 
 tui.help:
 	@# Shows help information for 'tui.*' targets
 	make help.private | grep -E '^(tui|[.]tui)' | uniq | sort --version-sort
 
+
 tui.panic: 
-	@# Non-graceful stop for the TUI (i.e. all the 'k8s:krux' containers).
+	@# Non-graceful stop for the TUI (i.e. all the 'k8s:dux' containers).
 	@#
 	printf "${GLYPH_K8S} tui.panic ${sep} ... ${no_ansi}\n" > /dev/stderr
 	make tux.ps | xargs -I% sh -c "id=% make docker.stop"
 
-TUI_CONTAINER_IMAGE:=k8s:krux
-# TUI_CONTAINER_IMAGE?=compose.mk:tux
+.tui.widget.env:
+	${make} io.env | lexer=ini ${make} stream.pygmentize
 
-tux.ps:
-	@# Lists ID's for containers related to the TUI.
+.tui.widget.k8s.topology.clear/%:
+	clear="--clear" make .tui.widget.k8s.topology/${*}
+
+.tui.widget.k8s.topology/%: io.time.wait/2
+	make gum.style label="${*} topology"; 
+	make flux.loopfq/k8s.graph.tui/${*}/pod
+
+## END ,tui
+## BEGIN help targets and macros
+# Define 'help' target iff it's not already defined.  This should be inlined 
+# for all files that want to be simultaneously usable in stand-alone 
+# mode + library mode (with 'include')
+_help_id:=$(shell (uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s) | head -c 8 | tail -c 8)
+define _help_gen
+(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$' || true)
+endef
+_help_${_help_id}:
+	@# Attempts to autodetect the targets defined in this Makefile context.  
+	@# Older versions of make dont have '--print-targets', so this uses the 'print database' feature.
+	@# See also: https://stackoverflow.com/questions/4219255/how-do-you-get-the-list-of-targets-in-a-makefile
 	@#
-	set -x && docker ps --format json |jq -r 'select(.Image=="${TUI_CONTAINER_IMAGE}").ID'
-
-tui.all: \
-	flux.delay/2/tui.pane/1/panel1 \
-	k8s.commander 
-
-# pane2:
-# 	make io.bash
-pane3: 
-	curl -sL https://github.com/elo-enterprises/k8s-tools/raw/master/img/icon.png|chafa --size 30
-	make gum.style text='kube-system topology'; sleep 5
-
-## BEGIN '.tui.*' targets
-## These targets require tmux, and so are only executed *from* the 
-## TUI, i.e. inside either the compose.mk:tux container, or inside k8s:krux.  
-## See instead 'tui.*' for public (docker-host) entrypoints.
-
-.tui.init: 
-	@# Initialization for the TUI (a tmuxinator-managed tmux session).
-	@# This needs to be called from inside the TUI container, with tmux already running.
-	@#
-	@# Typically this is used internally during TUI bootstrap, but you can call this to 
-	@# rexecute the main setup for things like default key-bindings and look & feel.
-	@#
-	printf "${GLYPH_K8S} .tui.init ${sep} ... ${no_ansi}\n" > /dev/stderr
-	make .tux.config 
-
-	
-# run-shell ~/.tmux/plugins/tmux-sidebar/sidebar.tmux
-# set -g @sidebar-tree-command 'make k8s.namespace.list'
-# set -g @sidebar-tree-command 'tree -C'
-
-
-# k8s.graph.ez/%:
-# 	@#
-# 	@#
-# 	$(call io.mktemp) && \
-# 	make ▰/k8s/k8s.graph/${*} > $${tmpf} \
-# 	&& ./k8s-tools.yml run graph-easy $${tmpf}
-
-# primitive metrics with no deps: https://stackoverflow.com/questions/54531646/checking-kubernetes-pod-cpu-and-memory-utilization
-# k8s.metrics:
-# 	kubectl exec -it pod_name -n namespace -- /bin/bash
-# 	Run cat /sys/fs/cgroup/cpu/cpuacct.usage for cpu usage
-# 	Run cat /sys/fs/cgroup/memory/memory.usage_in_bytes
-
-k8s.help: help.namespace/k8s
-k3d.help: help.namespace/k3d
-kubefwd.help: help.namespace/kubefwd
+	@$(call _help_gen)
+_help_namespaces_${_help_id}:
+	@# Returns only the top-level target namespaces
+	@$(call _help_gen) | cut -d. -f1 |cut -d/ -f1 | uniq|grep -v ^all$$
+_help_private_${_help_id}:
+	@# Returns all targets, including private ones
+	(LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#]") {print $$1}}' | sort | grep -E -v -e '^_help' -e '^$@$$' || true)
+$(eval help: _help_${_help_id})
+$(eval help.private: _help_private_${_help_id})
+$(eval help.namespaces: _help_namespaces_${_help_id})
 

@@ -3,9 +3,9 @@ Output img/demo-double-dispatch.gif
 Require "make"
 Require "docker"
 Set Shell "bash"
-Set FontSize 18
+Set FontSize 17
 Set Width 1000
-Set Height 400
+Set Height 450
 Set PlaybackSpeed 3.3
 Set TypingSpeed .32
 Set CursorBlink false

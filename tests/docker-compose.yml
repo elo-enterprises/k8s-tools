@@ -11,20 +11,18 @@ services:
         FROM debian
         RUN apt-get update && apt-get install -y make procps
     entrypoint: bash
+    environment: {"PS1": '\u@\[\033[1;97;4m\]\h\[\033[0m\]:\w\$ '}
     working_dir: /workspace
     volumes:
       - ${PWD}:/workspace
-  ubuntu: &base
+  ubuntu: 
+    <<: *base
     hostname: ubuntu
     build:
       context: .
       dockerfile_inline: |
         FROM ubuntu
         RUN apt-get update && apt-get install -y make procps
-    entrypoint: bash
-    working_dir: /workspace
-    volumes:
-      - ${PWD}:/workspace
   alpine:
     <<: *base
     hostname: alpine

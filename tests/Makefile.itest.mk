@@ -24,13 +24,13 @@ $(eval $(call compose.import, ▰, FALSE, cm-tools.yml))
 
 # Load all services from two files into 1 namespace.
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
-$(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
+$(eval $(call compose.import, ▰, FALSE, k8s-tools.yml))
 
 .DEFAULT_GOAL := all 
-all: docker-compose.qbuild k8s-tools.qbuild/k8s k8s-tools.qbuild/k3d
+all: docker-compose.qbuild #k8s-tools.qbuild/k8s k8s-tools.qbuild/k3d
 	printf '\n' && set -x \
 	&& make demo demo-double-dispatch \
-	&& make \
+	&& make test.docker.run \
 		test.containerized.tty.output \
 		test.flux.lib test.dispatch \
 		test.compose.pipes \
@@ -54,7 +54,7 @@ demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 test.containerized.tty.output: 
 	cmd='sleep 2' \
-	title='testing gum spinner inside container' \
+	label='testing gum spinner inside container' \
 	make gum.spin
 
 test.import.root:
@@ -64,7 +64,7 @@ test.import.root:
 	# import-to-root-namespace is honored
 	! echo uname | make ansible/pipe 2>/dev/null
 	echo uname | make cm-tools/ansible/pipe 2>/dev/null
-	echo uname | make k3d/shell/pipe
+	echo uname | make k8s-tools/k3d/shell/pipe
 
 test.main.bridge:
 	make io.print.div label="${cyan}${@}${no_ansi}"
@@ -83,7 +83,7 @@ test.multiple.compose.files:
 test.compose.pipes:
 	make io.print.div label="${cyan}${@}${no_ansi}"
 	printf "\n${dim_cyan}Streaming commands to container\nTarget @ <svc>/shell/pipe ${no_color}\n"
-	echo uname -n -v | make k8s/shell/pipe
+	echo uname -n -v | make k8s-tools/k8s/shell/pipe
 	printf "\n${dim_cyan}Test streaming commands to container\nTarget @ <compose_file_stem><svc>/shell/pipe ${no_color}\n"
 	echo uname -n -v | make k8s-tools/k8s/shell/pipe
 	printf "\n${dim_cyan}Test streaming data to container\nTarget @ <svc>/shell/pipe ${no_color}\n"
@@ -100,11 +100,11 @@ test.compose.services:
 test.dispatch:
 	make io.print.div label="${cyan}${@}${no_ansi}"
 	printf "\n${dim_cyan}Dispatch using private base target:${no_color}\n"
-	echo uname | pipe=yes make ▰/k8s
-	printf "\n${dim_cyan}Dispatch using k8s container:${no_color}\n"
-	make ▰/k8s/self.container.dispatch
-	printf "\n${dim_cyan}Dispatch using k3d container:${no_color}\n"
-	make ▰/k3d/self.container.dispatch
+	echo uname | pipe=yes make ▰/debian
+	printf "\n${dim_cyan}Dispatch using debian container:${no_color}\n"
+	make ▰/debian/self.container.dispatch
+	printf "\n${dim_cyan}Dispatch using alpine container:${no_color}\n"
+	make ▰/alpine/self.container.dispatch
 self.container.dispatch:
 	printf "in container `hostname`, platform info: `uname`\n"
 
@@ -131,8 +131,8 @@ test.flux.loop:
 	make k8s-tools.dispatch/k8s/flux.loop/2/io.time.wait
 
 test.flux.dmux:
-	echo {} | make flux.dmux/yq,jq
-	echo {} | make flux.split/yq,jq
+	echo {} | make flux.dmux/k8s-tools/yq,k8s-tools/jq
+	echo {} | make flux.split/k8s-tools/yq,k8s-tools/jq
 
 test.flux.retry:
 	! interval=1 make flux.retry/3/flux.fail
@@ -144,3 +144,15 @@ test.flux.mux:
 	make flux.mux targets="io.time.wait,io.time.wait,io.time.wait/2" | jq .
 	make flux.join targets="io.time.wait,io.time.wait,io.time.wait/2" | jq .
 	make flux.mux/io.time.wait
+
+test.docker.run:
+	make docker.run/flux.ok/python:3.11-bookworm
+	echo hello-python-docker1 | make test.docker.run.script
+	echo hello-python-docker2 | entrypoint=cat cmd=/dev/stdin make docker.run.sh/python:3.11-slim-bookworm
+	entrypoint=python cmd='--version' make docker.run.sh/python:3.11-slim-bookworm
+
+test.docker.run.script:; entrypoint=python make docker.run.script/${@}/python:3.11-slim-bookworm
+define script.demo.docker.run.script 
+import sys
+print(['input',sys.stdin.read().strip()])
+endef

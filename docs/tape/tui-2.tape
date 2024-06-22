@@ -2,22 +2,25 @@
 Output img/tui-2.gif 
 Require "make"
 Require "docker"
-Set Shell "bash --norc --noprofile"
+Set Shell "env -i PATH=$${PATH} HOME=$${HOME} bash --norc --noprofile"
 Set FontSize 16
-Set Width 1200
+Set Width 1300
 Set Height 800
 Set TypingSpeed .055
 Set PlaybackSpeed 1
 Set CursorBlink false
-Type "# Launches a split-screen shell context for each of the named make-targets"
+Type "# Let's launch a split-screen shell context for each of the named make-targets."
 Enter
-Sleep 2
-Type "# This combines several instances of the 'io.time.wait/<seconds>' target, "
-Type "# into separate tmux panels.  Each exists, leaving only the default shell at the end."
+Sleep 1.5
+Type "# This combines several instances of the 'io.wait/<seconds>' target "
 Enter
+Type "# into separate tmux panels.  Each exits, leaving only the default shell."
+Enter
+Enter
+Sleep 2.2
+Set PlaybackSpeed 2
+Type "./compose.mk tux.mux/io.bash,io.wait/5,io.wait/7,io.wait/9,io.wait/11"
 Sleep 3
-Type "make tux.mux/io.time.wait/5,io.time.wait/7,io.time.wait/9,io.time.wait/11"
-Sleep 2.3
 Enter
 Sleep 35
 

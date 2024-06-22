@@ -28,6 +28,7 @@ services:
       DOCKER_UGNAME: ${DOCKER_UGNAME:-root}
       DOCKER_HOST_WORKSPACE: ${DOCKER_HOST_WORKSPACE:-${PWD}}
       TERM: ${TERM:-xterm-256color}
+      PS1: '\u@\[\033[1;97;4m\]\h\[\033[0m\]:\w\$ '
     build:
       tags: ['k8s:base']
       context: .
@@ -66,6 +67,8 @@ services:
       # Share the working directory with containers.  
       # Overrides are allowed for the workspace, which is occasionally useful with DIND
       - ${workspace:-${PWD}}:/workspace
+      # OSX tmpfiles
+      - /var/folders/:/var/folders/
       # NB: `.cache` and `.config` as below are used by helm, maybe others?
       # - ${HOME}/.cache:/home/${DOCKER_UGNAME:-root}/.cache
       # - ${HOME}/.config/helm:/home/${DOCKER_UGNAME:-root}/.config/helm
@@ -403,17 +406,18 @@ services:
           /usr/bin/krew /usr/bin/gum \
           /usr/bin 
         USER ${DOCKER_UGNAME:-root}
-    entrypoint: bash 
+    entrypoint: bash
   
-  krux: 
+  dux: 
     <<: *base
-    hostname: k8s:krux
+    hostname: k8s:dux
     environment:
       <<: *base_environment
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
       COMPOSE_MK_DIND: "1"
+    image: k8s:dux
     build:
-      tags: ['k8s:krux']
+      tags: ['k8s:dux']
       context: . 
       dockerfile_inline: |
         FROM k8s:dind as dind_base

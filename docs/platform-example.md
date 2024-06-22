@@ -50,15 +50,15 @@ bootstrap:
     make platform1.setup | make flux.dmux/logging,metrics,events
 ```
 
-Above, the builtin [flux.dmux target](#flowdmux) is used to send platform-setup's output into our three backend handlers.  This is just syntactic sugar fora 1-to-many pipe, aka a demultiplexer, or "dmux").  Then each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
+Above, the builtin [flux.dmux target](#fluxdmux) is used to send platform-setup's output into our three backend handlers.  This is just syntactic sugar fora 1-to-many pipe, aka a demultiplexer, or "dmux").  Then each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
 
 This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
 
-<img src=img/example-platform-1.png>
+<img src=docs/example-platform-1.png>
 
 Whew.  We know what happens next is probably *more* platforms, more tools/containers, and more flows.  Not to belabor the point but let's watch how it blows up:
 
-<img src=img/example-platform-2.png>
+<img src=docs/example-platform-2.png>
 
 The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weights in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
 
@@ -87,9 +87,9 @@ self.events:
 
 There's other `flux.*` targets ([see the API docs](#apicomposemkflux)), and while it's not recommended to go crazy with this stuff, when you need it you need it.  
 
-This kind of really elegant expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF crowds.  **But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless.**  At the same time, it neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔
+This tight expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF users.  *But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless!*  It neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔
 
-It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but  act like This example pretty much works as written, although we're missing the *actual* containers just because this stuff is out of scope for k8s-tools.yml.  
+It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but it's not made for ETLs.
 
 If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).  
 

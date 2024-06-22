@@ -7,7 +7,7 @@ Set FontSize 16
 Set Width 1100
 Set Height 800
 Set TypingSpeed .15
-Set PlaybackSpeed 5
+Set PlaybackSpeed 3
 Set CursorBlink false
 Type "make test"
 Enter

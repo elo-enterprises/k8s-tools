@@ -1,0 +1,17 @@
+
+{% macro parse_help(fname, namespace) -%}
+*This documentation is pulled automatically from [source]({{fname}}). {{help_extra|default("")}}*
+
+{% set targets=bash('pynchon makefile parse '+fname+'| jq \'with_entries(select(.key | startswith("'+namespace+'")))\'', load_json=True) %}
+{% for tname in targets %} {%set tdata=targets[tname]%}
+#### **`{{tname.replace('%','<arg>')}}`**
+
+{%if tdata['alias']|default(false)%}{%set primary=(tdata.primary|default('?')).replace('%','<arg>') %} {% set primary_slug=primary.replace('<','').replace('>','').replace('/','').replace('-', '').replace('.','')%}
+( Alias for [{{primary}}](#{{primary_slug}}) )
+{% else %}
+```bash 
+{{ "\n".join(tdata.docs).strip()}}
+```
+{%endif%}
+{% endfor %}
+{%- endmacro -%}

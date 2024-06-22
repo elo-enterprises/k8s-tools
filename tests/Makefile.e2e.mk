@@ -31,39 +31,37 @@ $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 # Default target should do everything, end to end.
 all: build clean cluster deploy test
 
-# Forces an orderly rebuild on tools containers
-build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,krux
-
 ###############################################################################
 
 # Top level public targets for cluster operations.
 # These run private subtargets inside the named 
 # tool containers (like `k3d` or `helm`).
 clean: ▰/k3d/self.cluster.clean
+
 cluster: ▰/k3d/self.cluster.init
 
 # Private targets for low-level cluster-ops.
 # Host has no `k3d` command, so these targets
 # run inside the `k3d` service from k8s-tools.yml
 self.cluster.init:
-	make gum.style text="Cluster Setup"
-	( \
-		k3d cluster list | grep $${CLUSTER_NAME} \
-		|| k3d cluster create $${CLUSTER_NAME} \
+	make gum.style label="Cluster Setup"
+	( k3d cluster list | grep $${CLUSTER_NAME} \
+	  || k3d cluster create $${CLUSTER_NAME} \
 			--servers 3 --agents 3 \
 			--api-port 6551 --port '8080:80@loadbalancer' \
 			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait \
-	) | make io.print.indent
+	)
+
 self.cluster.clean:
-	make gum.style text="Cluster Clean"
-	set -x && k3d cluster delete $${CLUSTER_NAME} | make io.print.indent
+	make gum.style label="Cluster Clean"
+	set -x && k3d cluster delete $${CLUSTER_NAME}
 
 ###############################################################################
 
 # You can expand this to include usage of `kustomize`, etc.
 # Volumes are already setup, so you can `kubectl appply` from the filesystem.
 deploy: 
-	# make gum.style text="Cluster Deploy"
+	# make gum.style label="Cluster Deploy"
 	make deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
@@ -88,14 +86,14 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
 test: test.cluster test.contexts 
 test.cluster: 
 	@# Waits for anything in the default namespace to finish and show cluster info
-	text="Waiting for all namespaces to be ready" make gum.style 
+	label="Waiting for all namespaces to be ready" make gum.style 
 	make k8s/dispatch/k8s.namespace.wait/all
-	text="Showing kubernetes status" make gum.style 
+	label="Showing kubernetes status" make gum.style 
 	make k8s/dispatch/k8s.stat 
-	text="Previewing topology for kube-system namespace" make gum.style 
-	make krux/qdispatch/k8s.graph.tui/kube-system/pod
-	text="Previewing topology for default namespace" make gum.style 
-	make krux/qdispatch/k8s.graph.tui/default/pod
+	label="Previewing topology for kube-system namespace" make gum.style 
+	make ${TUI_SVC_NAME}/qdispatch/k8s.graph.tui/kube-system/pod
+	label="Previewing topology for default namespace" make gum.style 
+	make ${TUI_SVC_NAME}/qdispatch/k8s.graph.tui/default/pod
 
 test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
 	@# Helpers for displaying platform info 
@@ -117,28 +115,28 @@ get.pod.ctx:
 
 cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
 	@# Interactive shell for the test-harness pod 
-	@# (See also'deploy' steps for the setup of same)
+	@# (See the 'deploy' steps for the setup of same)
 
-cluster.show: k3d.tui
+cluster.show: k3d.commander
 	@# TUI for browsing the cluster 
 
-test.flux.tmux:
-	make flux.tmux/io.time.wait/10,io.time.wait/7,io.time.wait/6,io.time.wait/5,io.time.wait/4
+test.tux.mux:
+	make tux.mux/io.time.wait/10,io.time.wait/7,io.time.wait/6,io.time.wait/5,io.time.wait/4
 
 ###############################################################################
 
 pane1: 
 	sleep 2;
-	make gum.style text='Cluster Create / Deploy / Test'
+	make gum.style label='Cluster Create / Deploy / Test'
 	make docker.stat 
 	make cluster deploy test
-	make gum.style text='k8s.stat'
+	make gum.style label='k8s.stat'
 	make flux.loopu/k8s.stat
-	make gum.style text='k8s.wait'
+	make gum.style label='k8s.wait'
 	make flux.loopf/k8s.wait
 	sleep 10; make k9s/kube-system
 tui:
-	make tux.mux/io.bash
+	make tux.mux/pane1,io.bash
 
 export PROMETHEUS_CLI_VERSION?=v2.52.0
 export PROMETHEUS_HELM_REPO?=prometheus-community
@@ -148,3 +146,5 @@ prometheus: k8s-tools.dispatch/k8s/.prometheus
 	make helm.repo.add/$${PROMETHEUS_HELM_REPO} url=$${PROMETHEUS_HELM_REPO_URL}
 	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
 
+# Forces an orderly rebuild on tools containers
+build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,dux

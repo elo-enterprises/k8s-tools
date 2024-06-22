@@ -1,7 +1,7 @@
 
-----------------------------------------------------
+# Motivation & Design Philosophy
 
-## Motivation & Design Philosophy
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 ### Why compose.mk?
 
@@ -54,7 +54,7 @@ For both `make` and `docker compose`, much ink (and maybe some blood) has been s
 
 If you're still unconvinced, try skipping around the docs to check out [this small example,](#), [this more detailed tutorial](#), or this [full project](#) that's building on these techniques.  
 
-----------------------------------------------------
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 ### Why k8s.mk?
 
@@ -100,7 +100,7 @@ Frustratingly, none of this actually has anything to do with `helm`, or the prob
 
 #### Just Use Project-local Clusters
 
-Convenient local development workflows is something application/pipeline developers want, and they want it to be as close to production as possible.  It's common that the answer for this is some kind of "host local" kubernetes, where you minikube, or docker-desktop, or rancher-desktop your way to development bliss.
+Convenient local development workflows are something application/pipeline developers want, and they want it to be as close to production as possible.  It's common that the answer for this is some kind of "host local" kubernetes, where you minikube, or docker-desktop, or rancher-desktop your way to development bliss.
 
 This abstraction is awkward if not exactly bad.  For one thing, all the solutions in this space are pretty resource-hungry and still threaten to set laptops on fire.  Working on multiple projects or having a lot of churn in just one project involves lots of cluster bootstrap/teardown, which is time-consuming, and in some cases will make docker itself unavailable for the duration.  If you *don't* tear-down your host-local cluster constantly, then it's probably accumulating state that you're not sure you can reproduce from scratch, some of that state is unused clutter that's bogging it down, and now the host is getting overwhelmed and you either need a faster laptop or you need to go back to the cloud.  This puts more traffic in your cloud's dev environment, which isn't great for costs or stability.   It can also mean that developers are waiting in line for feature environments, or getting frustrated by constant breakage in shared environments.
 
@@ -116,8 +116,10 @@ If we're being honest, the dream of using kubernetes/docker to provide "runs any
 1. Rancher Desktop tooling like [rdctl](https://docs.rancherdesktop.io/references/rdctl-command-reference/) doesn't always cover configuration options available inside the UI
 1. IDEs or IDE plugins, open or otherwise, which are scope-creeping their way towards various pod & cluster-management duties
 
-Options are good, but in practice we often get dragged into negotiating with or debugging our tools instead of just using them.  Just getting location and contents for the kubeconfig file will be different for the scenarios above.  But to illustrate, let's consider a slightly more complex task like forwarding cluster ports for local-development.  
+Options are good, but in practice we often get dragged into negotiating with or debugging our tools instead of just using them.  Just getting location/contents for the kubeconfig file will be different for the scenarios above.  But to illustrate, let's consider a slightly more complex task like forwarding cluster ports for local-development.  
 
-You'll probably have at least 1 developer using each of the approaches above, so there's at least 3 ways ways to do this.  Automating *or* documenting the "idiomatic way" to port-forward in each of these systems is tedious, because if that's doable outside of the GUI at all, then there's probably 6 different paths that need to be addressed (3 systems, each with different config-locations on each of MacOS/Linux).  And it's all a moving target, because what works today will very likely break tomorrow.  And yet if you refuse to automate/document every path, then you're increasing bootstrap friction for new developers on your project, and support-requests for newbies just getting started will become a time-suck for more senior people.  Yuck.
+Somce you may have at least 1 developer using each of the approaches above, there's at least 3 ways ways to do this.  Automating *or* documenting the "idiomatic way" to port-forward in [each](https://docs.k8slens.dev/cluster/use-port-forwarding/) of [these](https://docs.rancherdesktop.io/ui/port-forwarding/) systems is [tedious](https://minikube.sigs.k8s.io/docs/handbook/accessing/), because if that's doable outside of the GUI at all, then there's probably 6 different paths that need to be addressed (3 systems, each with different config-locations on each of MacOS/Linux).  And it's all a moving target, because what works today will very likely break tomorrow.  And yet if you refuse to automate/document every path, then you're increasing bootstrap friction for new developers on your project, and support-requests for newbies just getting started will become a time-suck for more senior people.  Yuck.
 
-There's no reason a task as simple as port-forwarding should be mixed up with these choices for backends though.  Preferring simple tools that are automation friendly and promote correct coupling pays off.  **The fix for this scenario is to just use classic `kubefwd` for iterative local development, and completely avoid dealing with all this churn.**  The only challenges for using `kubefwd` for local development is context-management (like what KUBECONFIG/namespace/services to target), and how to foreground / background the port-forwarding while ensuring it can be cleanly torn down later.  A bit of helper automation goes a long way here to reduce bootstrap friction & documentation burden, especially if you're up for adopting project-local clusters.  See the [Cluster Demo docs, Development section](#development) for an example.
+There's no reason a task as simple as port-forwarding should be mixed up with these choices for backends though.  Preferring simple tools that are automation friendly and promote correct coupling pays off, because you'll want integration tests that's using these forwarded ports anyway.  **The fix for this scenario is use simple tools and completely avoid dealing with all this churn**.  You could go with [`kubectl port-forward`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/) directly, but working with [kubefwd can be a nicer alternative](#api-kubefwd). The only challenges for using `kubefwd` for local development are context-management (like what KUBECONFIG/namespace/services to target), and how to foreground / background the port-forwarding while ensuring it can be cleanly torn down later.  A bit of helper automation goes a long way here to reduce bootstrap friction & documentation burden, especially if you're up for adopting project-local clusters.  For an example of working with forwarded ports, see [the Cluster Demo docs](#development).
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">

@@ -11,11 +11,13 @@ Set PlaybackSpeed 1
 Set CursorBlink false
 Type "# Let's launch a split-screen shell context, one pane for each of the named tool containers."
 Enter
-Type "# The names here will come from the services defined in k8s-tools.yml."
+Type "# The comma-delimited names below must be services that are actually defined in k8s-tools.yml."
+Enter
 Enter
 Sleep 3
-Type "make tui.shell/k8s,eksctl,argo,kn"
-Sleep 2.3
+Set PlaybackSpeed 3
+Type "./compose.mk loadf k8s-tools.yml tux.mux.svc/k8s,eksctl,kn,argo"
+Sleep 3
 Enter
 Sleep 30
 
