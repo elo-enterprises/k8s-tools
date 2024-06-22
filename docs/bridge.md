@@ -149,7 +149,8 @@ Using the `<compose_stem>.services` target, it's easy to map a command onto ever
 $ make docker-compose.services | xargs -n1 -I% sh -x -c "echo uname -n |make docker-compose/%/shell/pipe"
 ```
 
-This pipeline is serial, but the [io.tee targets](#ioteetargets) providers some sugar for working with pipes in parallel.
+This pipeline is serial, but the [io.tee targets](#ioteetargets) provides some sugar for working with pipes in parallel.
+
 ----------------------------------------------------
 
 #### Target: Misc
