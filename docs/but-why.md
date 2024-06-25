@@ -1,4 +1,38 @@
 
+
+
+
+
+
+<table align=center style="width:100%">
+  <tr>
+    <td colspan=2><strong>k8s-tools &nbsp; // &nbsp; <strong>But Why?</strong></strong>&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+  <tr>
+    <td align=center width=10%>
+      <center>
+        <img src=../img/docker.png style="width:75px"><br/>
+        <img src=../img/kubernetes.png style="width:75px"><br/>
+        <img src=../img/make.png style="width:75px"><br/>
+      </center>
+    </td>
+    <td width=90%>
+      <table align=center border=1>
+        <tr align=center><td align=center width="13%"><a href=/README.md#overview>Overview</a></td>
+<td align=center width="13%"><a href=/README.md#features>Features</a></td>
+<td align=center width="13%"><a href=/README.md#integration>Integration</a></td>
+<td align=center width="13%"><a href=/README.md#composemk>compose.mk</a></td>
+<td align=center width="13%"><a href=/README.md#k8smk>k8s.mk</a></td>
+<td align=center width="13%"><a href=/docs/api/>API</a></td>
+<td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
+      </table>
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
+    </td>
+  </tr>
+</table><hr/><center><span align=center>Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.  Project-local clusters, customized TUIs, and more.</span></center>
+
+
 # Motivation & Design Philosophy
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -28,7 +62,7 @@ Whether you're running ansible, cloudformation, docker, docker-compose or eksctl
 
 Having a well defined "top" of your stack that sets some context, and provides aliased entrypoints for cumbersome-but-common stuff becomes really important.  Just as important, that context needs to be project based, and shouldn't leak out into your shell in general.  **Makefiles are the obvious choice here,** because they enable everything and require nothing, allowing for a pretty seamless mixture of config, overrides, entrypoint aliases, context management, task orchestration, and new automation layers that connect and recombine existing ones.
 
-{#Suppose you want to make no assumptions about python/node/maven availability for a build context. is easily done by **versioning those platforms explicitly in your compose file**, then calling them with [target dispatch](#container-dispatch).  This gives a frictionless local-dev experience at the same time that it frees you up from worrying about whether automation and images are in sync for local-dev / Jenkins / Github.#}
+
 
 #### No Golden Version for Frameworks
 
@@ -120,6 +154,6 @@ Options are good, but in practice we often get dragged into negotiating with or 
 
 Somce you may have at least 1 developer using each of the approaches above, there's at least 3 ways ways to do this.  Automating *or* documenting the "idiomatic way" to port-forward in [each](https://docs.k8slens.dev/cluster/use-port-forwarding/) of [these](https://docs.rancherdesktop.io/ui/port-forwarding/) systems is [tedious](https://minikube.sigs.k8s.io/docs/handbook/accessing/), because if that's doable outside of the GUI at all, then there's probably 6 different paths that need to be addressed (3 systems, each with different config-locations on each of MacOS/Linux).  And it's all a moving target, because what works today will very likely break tomorrow.  And yet if you refuse to automate/document every path, then you're increasing bootstrap friction for new developers on your project, and support-requests for newbies just getting started will become a time-suck for more senior people.  Yuck.
 
-There's no reason a task as simple as port-forwarding should be mixed up with these choices for backends though.  Preferring simple tools that are automation friendly and promote correct coupling pays off, because you'll want integration tests that's using these forwarded ports anyway.  **The fix for this scenario is use simple tools and completely avoid dealing with all this churn**.  You could go with [`kubectl port-forward`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/) directly, but working with [kubefwd can be a nicer alternative](#api-kubefwd). The only challenges for using `kubefwd` for local development are context-management (like what KUBECONFIG/namespace/services to target), and how to foreground / background the port-forwarding while ensuring it can be cleanly torn down later.  A bit of helper automation goes a long way here to reduce bootstrap friction & documentation burden, especially if you're up for adopting project-local clusters.  For an example of working with forwarded ports, see [the Cluster Demo docs](#development).
+There's no reason a task as simple as port-forwarding should be mixed up with these choices for backends though.  Preferring simple tools that are automation friendly and promote correct coupling pays off, because you'll want integration tests that's using these forwarded ports anyway.  **The fix for this scenario is use simple tools and completely avoid dealing with all this churn**.  You could go with [`kubectl port-forward`](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/) directly, but working with [kubefwd can be a nicer alternative](/docs/api#api-kubefwd). The only challenges for using `kubefwd` for local development are context-management (like what KUBECONFIG/namespace/services to target), and how to foreground / background the port-forwarding while ensuring it can be cleanly torn down later.  A bit of helper automation goes a long way here to reduce bootstrap friction & documentation burden, especially if you're up for adopting project-local clusters.  For an example of working with forwarded ports, see [the Cluster Demo docs](#development).
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">

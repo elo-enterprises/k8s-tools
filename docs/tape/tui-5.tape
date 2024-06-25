@@ -6,7 +6,7 @@ Set Shell "bash --norc --noprofile"
 Set FontSize 15
 Set Width 1200
 Set Height 900
-Set TypingSpeed .055
+Set TypingSpeed .035
 Set PlaybackSpeed 1
 Set CursorBlink false
 Type "# Demonstrating custom TUIs.  "
@@ -19,10 +19,4 @@ Enter
 Sleep 1.3
 Type "./compose.mk docker.commander"
 Enter
-Sleep 8
-Down 1
-Sleep 4
-Down 1
-Sleep 3
-Down 2
-Sleep 6
+Sleep 22

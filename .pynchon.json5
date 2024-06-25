@@ -1,6 +1,6 @@
 // configuration for pynchon (a docs-generation tool )
 {
-  "plugins": ["vhs","mermaid"],
+  "plugins": ["vhs","mermaid","github"],
   "mermaid":{
     output_mode: "png",
     mermaid_args: [

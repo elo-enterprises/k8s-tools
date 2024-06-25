@@ -3,7 +3,7 @@
 
 *`compose.mk`* provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.  
 
-Let's forget about the k8s-tools.yml for now and walk through a more minimal example, starting with a hypothetical compose file:
+Let's set aside the tool containers described inside k8s-tools.yml for now and walk through a much more minimal example, starting with a hypothetical compose file:
 
 ```yaml 
 # example docker-compose.yml
@@ -22,7 +22,7 @@ include compose.mk
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 ```
 
-The arguments *`(▰, TRUE)`* above allow for control of namespacing and syntax.  *More on that later in the [Macro Arguments section](#macro-arguments).*
+The arguments *`(▰, TRUE)`* above allow for control of namespacing and syntax.  *(More on that later in the [Macro Arguments section](#macro-arguments).)*  The final argument is just the (unquoted) name of the file you want to import services from.  
 
 That's it for the Make/Compose boilerplate, but we already have lots of interoperability.  
 

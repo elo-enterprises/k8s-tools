@@ -1,23 +1,28 @@
 #!/usr/bin/env -S docker compose -f
-# k8s-tools: 
-#  Collect, pin & customize versions for your whole k8s toolchain in one place
+# k8s-tools.yml: 
 #
-# This docker compose file describes various tool containers, sets up reasonable
-# defaults for volumes, includes fixes for root-container permissions, etc.
+#   Collect, pin & customize versions for your whole k8s toolchain in one place
+#   This docker-compose file describes various tool containers, sets up reasonable
+#   defaults for volumes, includes fixes for root-container permissions, allows 
+#   for version-overrides without editing[2], etc.
 #
-# Docs: https://github.com/elo-enterprises/k8s-tools
-# Latest: https://github.com/elo-enterprises/k8s-tools/tree/master/k8s-tools.yml
+# DOCS: https://github.com/elo-enterprises/k8s-tools#features
+# LATEST: https://github.com/elo-enterprises/k8s-tools/tree/master/k8s-tools.yml
 #
-# Local parts of the tool bundle:
-#   helmify, kompose, kubefwd, lazydocker,
-#   kind, argocli, kn, k3d, k9s, fission, rancher
+# MANIFEST:
+#   Local parts of the tool bundle:
+#     helmify, kompose, kubefwd, lazydocker,
+#     kind, argocli, kn, k3d, k9s, fission, rancher,
+#     plus the TUI / DIND base images.
+#   Upstream part of the tool bundle (See alpine/k8s docs):
+#     kubectl, kustomize, krew, vals, kubeconform, kubeseal, 
+#     helm, helm-diff, helm-unittest, helm-push, eksctl, 
+#     aws-iam-authenticator, awscli v1
 #
-# Upstream part of the tool bundle (See alpine/k8s docs)
-#   kubectl, kustomize, krew, vals, kubeconform, kubeseal, 
-#   helm, helm-diff, helm-unittest, helm-push, eksctl, 
-#   aws-iam-authenticator, awscli v1
+# REFS:
+#   [1] https://docs.docker.com/compose/environment-variables/set-environment-variables/#cli
+#   [2] https://github.com/elo-enterprises/k8s-tools/tree/master/docs/env-vars.md#k8s-toolsyml
 #
-# See also: https://docs.docker.com/compose/environment-variables/set-environment-variables/#cli
 services:
   k8s: &base
     hostname: k8s-base
@@ -269,7 +274,7 @@ services:
       tags: ['k8s:kubefwd']
       context: . 
       dockerfile_inline: |
-        FROM txn2/kubefwd as builder 
+        FROM txn2/kubefwd:${KUBEFWD_VERSION:-1.22.5} as builder 
         FROM k8s:base
         COPY --from=builder /kubefwd /usr/bin/kubefwd
     entrypoint: kubefwd
@@ -332,18 +337,17 @@ services:
 
   # https://k9scli.io/
   k9s:
-    # NB: no inheritance from `base` since `build` conflicts with `image`.
-    image: derailed/k9s
+    <<: *base 
     hostname: k8s:k9s
+    build:
+      tags: ['k8s:k9s']
+      dockerfile_inline: |
+        # Needs bugfix for missing 'infocmp' in latest release?
+        FROM derailed/k9s:${K9S_VERSION:-v0.32.4}
+        RUN apk add ncurses
+        RUN which infocmp
     tty: true
     network_mode: host
-    volumes:
-      - type: bind
-        source: ${KUBECONFIG:-~/.kube/config}
-        target: /kubeconfig.conf
-      - ${DOCKER_SOCKET:-/var/run/docker.sock}:${DOCKER_SOCKET:-/var/run/docker.sock}
-    environment:
-      KUBECONFIG: "/kubeconfig.conf"
     entrypoint: k9s
   
   # https://github.com/rancher/cli
@@ -377,12 +381,12 @@ services:
 
   yq:
     # NB: included in base, but this option is slimmer
-    image: mikefarah/yq:4.43.1
+    image: mikefarah/yq:${YQ_VERSION:-4.43.1}
 
   jq:
     # NB: included in base, but this option is slimmer
-    image: ghcr.io/jqlang/jq:1.7.1
-    
+    image: ghcr.io/jqlang/jq:${JQ_VERSION:-1.7.1}
+  
   
   # https://github.com/tsub/docker-graph-easy
   graph-easy:
@@ -391,6 +395,7 @@ services:
     volumes: 
       - ${PWD}:${workspace:-/workspace}
 
+  # https://github.com/elo-enterprises/k8s-tools#embedded-tui
   dind: &dind
     <<: *base 
     depends_on: ['k8s']
@@ -408,16 +413,17 @@ services:
         USER ${DOCKER_UGNAME:-root}
     entrypoint: bash
   
-  dux: 
+  # https://github.com/elo-enterprises/k8s-tools#embedded-tui
+  tui: 
     <<: *base
-    hostname: k8s:dux
+    hostname: k8s:tui
     environment:
       <<: *base_environment
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
       COMPOSE_MK_DIND: "1"
-    image: k8s:dux
+    image: k8s:tui
     build:
-      tags: ['k8s:dux']
+      tags: ['k8s:tui']
       context: . 
       dockerfile_inline: |
         FROM k8s:dind as dind_base

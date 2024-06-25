@@ -9,10 +9,10 @@ $ ./compose.mk loadf <path_to_compose_file> <other_instructions>
 
 Since `make` can't modify available targets from inside recipes, this basically works by creating temporary files that use the [compose.import macro](#macro-arguments) on the given compose file, then proxying subsequent CLI arguments over to *that* automation.  When no other instructions are provided, the default is to [open container shells in the TUI](#embedded-tui).
 
-<img src=img/tui-3.gif>
+<a href=img/tui-3.gif><img src=img/tui-3.gif></a>
 
-Actually any type of instructions you pass will get the compose-file context, so you can use any of the other targets documented as [part of the bridge](#make-compose-bridge) or the [static targets](#api-compose.mk).  For example:
+Actually any type of instructions you pass will get the compose-file context, so you can use any of the other targets documented as [part of the bridge](#make-compose-bridge) or the [static targets](/docs/api#api-compose.mk).  For example:
 
-<img src=img/tui-4.gif>
+<a href=img/tui-4.gif><img src=img/tui-4.gif></a>
 
 Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the [Embedded TUI](#embedded-tui) docs for other examples that are using `loadf`.

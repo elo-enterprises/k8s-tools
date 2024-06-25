@@ -1,0 +1,10 @@
+{% import 'macros.j2' as macros -%}
+{% set img_base =  img_base | default('../img/') %}
+{% set subtitle = "Demos" %}
+{% include "header.md" %}
+
+## Demos 
+
+{% include "demo-cluster.md" %}
+
+{% include "demo-platform.md" %}
