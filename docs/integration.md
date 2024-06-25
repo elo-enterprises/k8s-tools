@@ -85,3 +85,9 @@ self.test:
 ```
 {% endset %}
 {{integration_block}}
+
+----------------------------------------------------
+
+### Stand-Alone Tools
+
+If you're not interested in custom automation that requires project-Makefile integration, some features of `compose.mk` and `k8s.mk` can be used without that.  See the docs for [Loading Compose Files](#loading-compose-files) for more details.

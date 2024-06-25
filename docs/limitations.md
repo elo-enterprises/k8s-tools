@@ -30,7 +30,7 @@ If you're not working with Makefiles at all, you can export appropriate values i
 
 ### MacOS, Docker Sockets, and DinD
 
-As long as docker is working, any kind of setup (Docker Desktop, Rancher Desktop, Colima) should work with `compose.mk` for container-dispatch.  But for working with `k8s-tools.yml` containers specifically, the docker-socket sharing *must also be working*.  If you're having problems that might be related to this, first make sure that your setup can correctly run this command:
+As long as docker is working, any kind of setup (Docker Desktop, Rancher Desktop, Colima) can work with `compose.mk` for container-dispatch.  But for working with `k8s-tools.yml` containers specifically, the docker-socket sharing *must also be working*.  If you're having problems that might be related to this, first make sure that your setup can correctly run this command:
 
 ```bash 
 $ docker run -v /var/run/docker.sock:/var/run/docker.sock -ti docker ps
@@ -38,8 +38,15 @@ $ docker run -v /var/run/docker.sock:/var/run/docker.sock -ti docker ps
 
 If the volume mount is working correctly, the result here should look the same as `docker ps` from your host.  If your docker socket is in a different place (like `~/.rd/docker.sock` for Rancher Desktop), you may need to symlink the file.
 
-MacOS Docker desktop can be especially annoying here, and it seems likely the same is true for windows.  YMMV, but as of 2024 sharing the socket may mean required changes from the UI preferences, and/or enabling/disabling virtualization backends.  If you want better parity with docker in Linux, you might like to checkout Colima/Rancher.
+MacOS Docker desktop can be especially annoying here, and it seems likely the same is true for windows.  YMMV, but as of 2024 sharing the socket may mean required changes from the UI preferences, and/or enabling/disabling virtualization backends.  Another way the problem can manifest is an error like this:
+
+```ini 
+You can configure shared paths from Docker -> Preferences... -> Resources -> File Sharing.
+See https://docs.docker.com/desktop/mac for more info.
+```
+
+If you want better parity with docker in Linux, you might like to checkout Colima/Rancher.
 
 ### Pipes & Temp Files 
 
-Working with streaming pipes generates temporary files with `mktemp`, removing them when the process exits with `trap`.  Pure streams would be better.
+Working with streaming pipes generates temporary files with `mktemp`, removing them when the process exits with `trap`.  Pure streams would be better.  Also in many cases tmp files need to be in the working directory, otherwise they can't be shared by docker volumes.  Moving to a temp-dir based approach would be better.

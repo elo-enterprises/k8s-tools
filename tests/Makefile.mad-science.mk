@@ -42,3 +42,13 @@ endef
 
 
 demo.env: io.env
+
+make.def.dispatch.python/%:; make make.def.dispatch/python3/${*}:
+	@#
+	@#
+	@#
+
+make.def.dispatch.python.pipe/%:; cat /dev/stdin | make make.def.dispatch.python/${*}
+	@#
+	@#
+	@#

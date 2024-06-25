@@ -1,6 +1,7 @@
+
 ## k8s.mk
 
-`Makefiles.k8s.mk` includes lots of helper targets for working with kubernetes.  It works best in combination with compose.mk and k8s-tools.yml, but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  There are a small number of macros available, but most of the public interface is static targets.
+`k8s.mk` includes lots of helper targets for working with kubernetes.  It works best in combination with [compose.mk](#composemk) and [k8s-tools.yml](#), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  There are a small number of macros available, but most of the public interface is static targets.
 
 The focus is on simplifying few categories of frequent interactions:
 
@@ -12,9 +13,7 @@ The focus is on simplifying few categories of frequent interactions:
 
 ### But Why?
 
-There's many reasons why you might want these capabilities if you're working with cluster-lifecycle automation.  People tend to have strong opions about this topic, and it's kind of a long story.  
-
-The short version is this: 
+There's many reasons why you might want these capabilities if you're working with cluster-lifecycle automation.  People tend to have strong opions about this topic, and it's kind of a long story.  The short version is this: 
 
 * Tool versioning, idempotent operations, & deterministic cluster bootstrapping are all hard problems, but not really the problems we *want* to be working on.
 * IDE-plugins and desktop-distros that offer to manage Kubernetes are hard for developers to standardize on, and tend to resist automation.  
@@ -23,7 +22,7 @@ The short version is this:
 
 k8s.mk, especially combined with k8s-tools.yml and compose.mk, is aimed at fixing this stuff.  Less fighting with tools, more building things.
 
-If you're interested in the gory details of the longer-format answer, there's more detailed discussion in the [Design Philosophy section](#why-k8smk).
+If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
 Documentation per-target is included in the next section, but these tools aren't that interesting in isolation.  See the [Cluster Automation Demo](#demo-cluster-automation) for an example of how you can put all this stuff together.
 
@@ -31,7 +30,7 @@ Documentation per-target is included in the next section, but these tools aren't
 
 ### k8s.mk API 
 
-This is the complete list of namespaces & targets available from k8s.mk, along with their documentation.  All documentation is pulled automatically from [the latest source](k8s.mk).
+This is the complete list of namespaces & targets available from k8s.mk, along with their documentation.
 
 First, some important notes about how these targets work.
 

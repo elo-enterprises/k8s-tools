@@ -5,7 +5,7 @@ Require "docker"
 Set Shell "bash"
 Set FontSize 18
 Set Width 1000
-Set Height 360
+Set Height 400
 Set TypingSpeed .32
 Set PlaybackSpeed 4
 Set CursorBlink false

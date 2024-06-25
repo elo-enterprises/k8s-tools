@@ -9,7 +9,7 @@ Set Height 500
 Set TypingSpeed .55
 Set PlaybackSpeed 8
 Set CursorBlink false
-Type "make init"
+Type "make cluster"
 Enter
 Sleep 76
 

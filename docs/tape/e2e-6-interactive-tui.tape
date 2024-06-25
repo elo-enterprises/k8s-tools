@@ -9,7 +9,7 @@ Set Height 900
 Set TypingSpeed .25
 Set PlaybackSpeed 2
 Set CursorBlink false
-Type "make k3d.tui"
+Type "make k3d.commander"
 Enter
 Sleep 4
 Down 1
