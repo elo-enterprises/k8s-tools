@@ -1,35 +1,23 @@
+{% import 'macros.j2' as macros -%}
+{% include "header.md" %}
 
-<table style="width:100%">
-  <tr>
-    <td colspan=2><strong>
-    k8s-tools
-      </strong>&nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-  </tr>
-  <tr>
-    <td width=15%><img src=img/icon.png style="width:150px"></td>
-    <td>
-      Completely dockerized version of a kubernetes toolchain, <br/>
-      plus a minimal automation framework for interacting with that toolchain.
-      <br/><br/>
-      {%for action in github.actions%}<a href="{{action.url}}"><img src="{{action.url}}/badge.svg"></a>{%endfor%}
-    </td>
-  </tr>
-</table>
+--------------------------------
 
--------------------------------------------------------------
+{{macros.img_link("img/e2e-k3d.commander.gif", "90%")}}
+
+--------------------------------
 
 {%raw%}{{markdown_toc(__template__, level=3)}}{%endraw%}
 
--------------------------------------------------------------
+--------------------------------
 
 {% include "overview.md" %}
 
--------------------------------------------------------------
+--------------------------------
 
 {%include "features.md" %}
 
--------------------------------------------------------------
+--------------------------------
 
 {%include "quickstart.md" %}
 
@@ -37,20 +25,24 @@
 
 {% include "integration.md" %}
 
----------------------------------------------------------------
+----------------------------------
 
 {% include "compose.mk.md" %}
 
----------------------------------------------------------------
+----------------------------------
 
 {% include "k8s.mk.md" %}
 
----------------------------------------------------------------
+----------------------------------
+
+## Demos 
 
 {% include "demo-cluster.md" %}
 
----------------------------------------------------------------
+{% include "demo-platform.md" %}
+
+----------------------------------
 
 {% include "limitations.md" %}
 
----------------------------------------------------------------
+----------------------------------

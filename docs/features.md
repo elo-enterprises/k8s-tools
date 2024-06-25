@@ -21,7 +21,7 @@
   * <ins>General Utilities:</ins> Such as bash, curl, jq, yq, etc
 * **Versioning for Tools:**
   * *Tooling in the local bundle is all versioned independently:*
-    * Defaults are provided, but overrides allowed from environment variables.
+    * Defaults are provided, but [overrides allowed from environment variables](docs/env-vars.md#k8stoolsyml).
   * *Upstream tool versioning is determined by the alpine-k8s base,*
     * But *k8s-tools.yml* has service-stubs and layout that can be easily changed if you need something specific.
 * **Other Features:**
@@ -53,10 +53,10 @@ After you've made your whole tool chain portable in one swipe, you might also be
       * [Multiple compose-files are supported](#multiple-compose-files)
 * **Other Features:** 
   * **[Curated collection of reusable utility targets](#composemk-api)**, which are arranged into a few namespaces:
-    * [**`flux.*` targets:**](#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides concurrency/staging operators that compose over make-target names.
-    * [**`stream.*`:**](#api-stream) Primitives for working with streams, including support for newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It's not what you'd call "typed", but it reduces error-prone parsing and moves a little bit closer to structured data.
-    * [**`docker.*`:**](#api-docker) A small interface for working with docker.  
-    * [**`io.*`:**](#api-io) Misc. utilities for printing, formatting, timers, etc.
+    * [**`flux.*` targets:**](/docs/api#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides concurrency/staging operators that compose over make-target names.
+    * [**`stream.*`:**](/docs/api#api-stream) Primitives for working with streams, including support for newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It's not what you'd call "typed", but it reduces error-prone parsing and moves a little bit closer to structured data.
+    * [**`docker.*`:**](/docs/api#api-docker) A small interface for working with docker.  
+    * [**`io.*`:**](/docs/api#api-io) Misc. utilities for printing, formatting, timers, etc.
     * [**`tux.*` targets:**](#) Control-surface for a tmux-backed console geometry manager.
       * **No host dependencies.** This uses the `compose.mk:tux` tool container to dockerize tmux itself.
       * **Supports docker-in-docker style host-socket sharing with zero configuration,** so your TUI can generally do all the same container orchestration tasks as the docker host.
@@ -78,7 +78,7 @@ Both `compose.mk` and `k8s-tools.yml` files are a soft-dependency for `k8s.mk`, 
     * Stream and pipe commands to/from pods, or between pods
 * **Other Features:** 
   * **[Curated collection of automation interfaces](#k8smk-api)**, arranged into a few namespaces:
-    * [**`k8s.*` targets:**](#api-k8s) Default namespace with debugging tools, cluster life-cycle primitives, etc.
+    * [**`k8s.*` targets:**](/docs/api#api-k8s) Default namespace with debugging tools, cluster life-cycle primitives, etc.
     * Plus more specific interfaces to [k3d](#), [kubefwd](#), etc. [Full API here.](#k8smk-api)
   * 🚀 *Executable file:*
     * `./k8s.mk ...  <==> make -f k8s.mk ...`

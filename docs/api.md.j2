@@ -1,0 +1,25 @@
+{% import 'macros.j2' as macros -%}
+{% set img_base =  img_base | default('../img/') %}
+
+{% include "header.md" %}
+
+----------------------------------------------------
+
+{% include "api-compose.md" %}
+
+----------------------------------------------------
+
+##### TUI Private API
+
+The [public API for `tux.*` targets](/docs/api#api-tux) describes several lower-level operations that can safely be performed inside or outside of the TUI (i.e. on the docker host).
+
+There's also a "private" API, which targets are under the namespace `.tux.*`, and which is characterized by actually issuing commands to tmux directly.  The private API is intended to be used from *inside* the `tux` container or containers that extend it.  This ensures that your host doesn't actually require a tmux stack, and also ensures that usage of the TUI is always relatively stateless.  (It's not extensively tested yet, but in theory it should be generally safe to run multiple copies of the TUI, and embed TUIs in TUIs, etc.)
+
+See the [API docs](/docs/api#tui-private-api)
+
+{{macros.parse_help('compose.mk', '.tux', include_private=True)}}
+
+----------------------------------------------------
+
+{% include "api-k8s.md" %}
+

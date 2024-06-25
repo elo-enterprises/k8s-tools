@@ -4,8 +4,8 @@ A tool / library / automation framework for working with containers.
 
   * Library-mode extends `make`, adding native support for working with (external) container definitions
   * Stand-alone mode also available, i.e. a tool that requires no external Makefile / compose file.
-  * A minimal, elegant, and dependency-free approach to describing workflow pipelines. (See the [flux.* API](#api-flux))
-  * A small-but-powerful built-in TUI framework with no host dependencies. (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](#api-tux))
+  * A minimal, elegant, and dependency-free approach to describing workflow pipelines. (See the [flux.* API](/docs/api#api-flux))
+  * A small-but-powerful built-in TUI framework with no host dependencies. (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
   * **Zero host-dependencies,** as long as you have docker + make.  Even the [TUI backend](#embedded-tui) is dockerized.
   * **Container-dependencies are minimal too,** so that almost any base can work with [container-dispatch](#container-dispatch).
 
@@ -20,7 +20,8 @@ If you prefer to learn from examples, you might want to just [get started](#make
 
 There's many reasons why you might want these capabilities if you're working with tool-containers, builds, deploys, and complex task orchestration.  People tend to have strong opions about this topic, and it's kind of a long story.  
 
-The short version is this: Makefiles run practically everywhere and most people can read/write them.  They're also really good at describing DAGs, and lots of automation, but *especially life-cycle automation*, is a natural fit for this paradigm.  The only trouble is that a) *make has nothing like native support for tasks in containers*, and b) *describing the containers themselves is even further outside of it's domain*.  Meanwhile, docker-compose is exactly the opposite.Make/Compose are already a strong combination for this reason, and by adding some syntactic sugar using compose.mk, you can orchestrate make-targets across several containers without cluttering your host.  More than that, you can also bootstrap surprisingly sophisticated automation-APIs with surprisingly little effort.
+The short version is this: Makefiles run practically everywhere and most people can read/write them.  They're also really good at describing DAGs, and lots of automation, but *especially life-cycle automation*, is a natural fit for this paradigm.  The only trouble is that **a)** *make has nothing like native support for tasks in containers*, and **b)** *describing the containers themselves is even further outside of its domain*.  Meanwhile, docker-compose is exactly the opposite.  
+Make & Compose are already a strong combination for this reason, and by adding some syntactic sugar using compose.mk, you can orchestrate make-targets across several containers without cluttering your host.  More than that.. you can also bootstrap surprisingly sophisticated automation-APIs with surprisingly little effort.
 
 If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
@@ -29,7 +30,6 @@ If you're interested in the gory details of a longer-format answer, see [the Des
 {% include "bridge.md" %}
 
 ----------------------------------------------------
-
 
 {% include "container-dispatch.md" %}
 
@@ -52,12 +52,3 @@ If you're interested in the gory details of a longer-format answer, see [the Des
 ----------------------------------------------------
 
 {% include "embedded-tui.md" %}
-
-----------------------------------------------------
-
-{% include "platform-example.md" %}
-
-----------------------------------------------------
-
-{% include "api-compose.md" %}
-

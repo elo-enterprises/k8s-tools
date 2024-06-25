@@ -20,8 +20,8 @@ export _:=$(shell umask 066;touch ${KUBECONFIG})
 # Chart & Pod details that we'll use later during deploy
 export HELM_REPO:=https://helm.github.io/examples
 export HELM_CHART:=examples/hello-world
-export POD_NAME:=test-harness
-export POD_NAMESPACE:=default
+export POD_NAME?=test-harness
+export POD_NAMESPACE?=default
 
 # Include and invoke the `compose.import` macro 
 # so we have targets for k8s-tools.yml services
@@ -43,7 +43,7 @@ cluster: ▰/k3d/self.cluster.init
 # Private targets for low-level cluster-ops.
 # Host has no `k3d` command, so these targets
 # run inside the `k3d` service from k8s-tools.yml
-self.cluster.init:
+self.cluster.init:; ${make} flux.stage/${@}
 	make gum.style label="Cluster Setup"
 	( k3d cluster list | grep $${CLUSTER_NAME} \
 	  || k3d cluster create $${CLUSTER_NAME} \
@@ -52,16 +52,15 @@ self.cluster.init:
 			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait \
 	)
 
-self.cluster.clean:
-	make gum.style label="Cluster Clean"
-	set -x && k3d cluster delete $${CLUSTER_NAME}
+self.cluster.clean:; ${make} flux.stage/${@} 
+	set -x && echo k3d cluster delete $${CLUSTER_NAME}
 
 ###############################################################################
 
 # You can expand this to include usage of `kustomize`, etc.
 # Volumes are already setup, so you can `kubectl appply` from the filesystem.
 deploy: 
-	# make gum.style label="Cluster Deploy"
+	make gum.style label="Cluster Deploy"
 	make deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
@@ -75,33 +74,29 @@ self.cluster.deploy_helm_example:
 
 self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${POD_NAMESPACE}/${POD_NAME}
 	@# Prerequisites above create & activate the `default` namespace 
-	@# and then a pod named `test-harness` into it, using a default image.
+	@# and then deploy a pod named `test-harness` into it, using a default image.
 	@#
 	@# Below, we'll deploy a simple nginx service into the default namespace.
 	kubectl apply -f nginx.svc.yml
-	make k8s.namespace.wait/default 
 
 ###############################################################################
-
+cluster.wait: k8s.cluster.wait
 test: test.cluster test.contexts 
-test.cluster: 
+test.cluster cluster.test: 
 	@# Waits for anything in the default namespace to finish and show cluster info
 	label="Waiting for all namespaces to be ready" make gum.style 
 	make k8s/dispatch/k8s.namespace.wait/all
 	label="Showing kubernetes status" make gum.style 
 	make k8s/dispatch/k8s.stat 
 	label="Previewing topology for kube-system namespace" make gum.style 
-	make ${TUI_SVC_NAME}/qdispatch/k8s.graph.tui/kube-system/pod
+	make k8s.graph.tui/kube-system/pod
 	label="Previewing topology for default namespace" make gum.style 
-	make ${TUI_SVC_NAME}/qdispatch/k8s.graph.tui/default/pod
+	size=40x make k8s.graph.tui/default/pod
 
-test.contexts: get.host.ctx get.compose.ctx get.pod.ctx 
+test.contexts: 
 	@# Helpers for displaying platform info 
-
-get.host.ctx:
-	@# Runs on the docker host
-	echo -n; set -x; uname -n
-	printf "\n\n"
+	label="Demo pod connectivity" make gum.style 
+	make get.compose.ctx get.pod.ctx 
 
 get.compose.ctx:
 	@# Runs on the container defined by compose service
@@ -125,19 +120,6 @@ test.tux.mux:
 
 ###############################################################################
 
-pane1: 
-	sleep 2;
-	make gum.style label='Cluster Create / Deploy / Test'
-	make docker.stat 
-	make cluster deploy test
-	make gum.style label='k8s.stat'
-	make flux.loopu/k8s.stat
-	make gum.style label='k8s.wait'
-	make flux.loopf/k8s.wait
-	sleep 10; make k9s/kube-system
-tui:
-	make tux.mux/pane1,io.bash
-
 export PROMETHEUS_CLI_VERSION?=v2.52.0
 export PROMETHEUS_HELM_REPO?=prometheus-community
 export PROMETHEUS_HELM_REPO_URL?=https://prometheus-community.github.io/helm-charts
@@ -147,4 +129,4 @@ prometheus: k8s-tools.dispatch/k8s/.prometheus
 	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
 
 # Forces an orderly rebuild on tools containers
-build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,dux
+build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,tui

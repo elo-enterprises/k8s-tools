@@ -1,0 +1,13 @@
+{% import 'macros.j2' as macros -%}
+
+{% set img_base =  img_base | default('../img/') %}
+
+{% include "header.md" %}
+
+{%raw%}{{markdown_toc(__template__, level=3)}}{%endraw%}
+
+## Demos 
+
+{% include "demo-cluster.md" %}
+
+{% include "demo-platform.md" %}

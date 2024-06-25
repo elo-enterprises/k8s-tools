@@ -146,13 +146,14 @@ test.flux.mux:
 	make flux.mux/io.time.wait
 
 test.docker.run:
-	make docker.run/flux.ok/python:3.11-bookworm
+	make docker.run/python:3.11-bookworm/flux.ok
 	echo hello-python-docker1 | make test.docker.run.script
 	echo hello-python-docker2 | entrypoint=cat cmd=/dev/stdin make docker.run.sh/python:3.11-slim-bookworm
 	entrypoint=python cmd='--version' make docker.run.sh/python:3.11-slim-bookworm
 
 test.docker.run.script:; entrypoint=python make docker.run.script/${@}/python:3.11-slim-bookworm
 define script.demo.docker.run.script 
+# python script 
 import sys
 print(['input',sys.stdin.read().strip()])
 endef

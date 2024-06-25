@@ -1,17 +1,42 @@
+{# 
+Jinja macros used in building docs (not make macros :) 
+#}
 
-{% macro parse_help(fname, namespace) -%}
-*This documentation is pulled automatically from [source]({{fname}}). {{help_extra|default("")}}*
+{% set img_base =  img_base | default('../img/') %}
 
-{% set targets=bash('pynchon makefile parse '+fname+'| jq \'with_entries(select(.key | startswith("'+namespace+'")))\'', load_json=True) %}
+{% macro img_link(fname, width="90%") -%}
+<p align="center"><a href="{{fname}}"><img width="{{width}}" src="{{fname}}"></a></p>
+{%- endmacro -%}
+
+{% macro search_link(fname, term, github={}) -%}
+
+{% set search_base = "https://github.com/search?q=repo%3A" + github.org_name + "%2F" + github.repo_name.replace('.git','') + "+path%3A" + fname + "+content%3A"+url_quote(term)+"&type=code"%}
+{{search_base}}
+{%- endmacro -%}
+
+
+{% macro parse_help(fname, namespace, include_private=False) -%}
+{% set include_private = '--include-private' if include_private else '' %}
+{% set help_extra = help_extra|default('')%}
+{% set help_extra = ' '+help_extra if help_extra else ''%}
+*This documentation is pulled automatically from [source]({{fname}}).{{help_extra}}*
+{% set targets=bash('pynchon makefile parse ' + include_private + ' ' + fname + '| jq \'with_entries(select(.key | startswith("'+namespace+'")))\'', load_json=True) %}
 {% for tname in targets %} {%set tdata=targets[tname]%}
 #### **`{{tname.replace('%','<arg>')}}`**
 
 {%if tdata['alias']|default(false)%}{%set primary=(tdata.primary|default('?')).replace('%','<arg>') %} {% set primary_slug=primary.replace('<','').replace('>','').replace('/','').replace('-', '').replace('.','')%}
-( Alias for [{{primary}}](#{{primary_slug}}) )
+* *Alias for [`{{primary}}`](#{{primary_slug}})*
 {% else %}
 ```bash 
 {{ "\n".join(tdata.docs).strip()}}
 ```
 {%endif%}
 {% endfor %}
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+{%- endmacro -%}
+
+{% macro hr2(width="80%") -%}
+<hr style="{{width}};border-bottom: 5px dashed black;background: #efefef;">
 {%- endmacro -%}

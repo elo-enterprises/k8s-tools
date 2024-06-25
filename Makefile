@@ -27,6 +27,8 @@ $(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
 .DEFAULT_GOAL :=  all 
 
 ## BEGIN: Top-level
+##
+
 all: init clean build test docs
 init: make.stat docker.stat
 clean: k8s-tools.clean
@@ -42,6 +44,8 @@ test: integration-test smoke-test e2e-test # tui-test
 docs: docs.jinja docs.mermaid
 
 ## BEGIN: CI/CD related targets
+##
+
 cicd.clean: clean.github.actions
 
 clean.github.actions:
@@ -51,8 +55,7 @@ clean.github.actions:
 	&& org_name=`pynchon github cfg|jq -r .org_name` \
 	&& repo_name=`pynchon github cfg|jq -r .repo_name` \
 	&& repo_name="$${org_name}/$${repo_name}" \
-	&& repo_name="`basename -s .git $${repo_name}`" \
-	&& failed_runs=$$(\
+	&& set -x && failed_runs=$$(\
 		gh api --paginate \
 			-X GET "/repos/$${repo_name}/actions/runs" \
 			-F status=failure -q "$${query}") \
@@ -62,6 +65,9 @@ clean.github.actions:
 	done
 
 ## BEGIN: Testing entrypoints
+##
+##
+
 test-suite/%:
 	@# Generic test-suite runner, just provide the test-suite name.
 	@# (Names are taken from the files like "tests/Makefile.<name>.mk")
@@ -103,43 +109,61 @@ mad: test-suite/mad-science
 	@# that allow make-targets to be written in real programming languages.
 
 ## BEGIN: Documentation related targets
+##
 
 docs.jinja:
+	@#
+	ls docs/*.j2 |grep -v macros.j2 | xargs -n1 basename | xargs -I% sh -x -c "make docs.jinja/`basename %`"
+
+docs.jinja/%: 
 	@# Render docs twice to use includes, then get the ToC 
-	set -x && pynchon jinja render docs/README.md.j2 \
-	&& mv docs/README.md . \
-	&& pynchon jinja render README.md -o .tmp.R.md && mv .tmp.R.md README.md \
-	&& pynchon markdown preview README.md
+	set -x \
+	&& $(call io.mktemp) \
+	&& pynchon jinja render docs/${*} \
+	&& export fname=`basename -s .j2 ${*}` \
+	&& mv docs/$${fname} . \
+	&& pynchon jinja render $${fname} -o $${tmpf} \
+	&& mv $${tmpf} $${fname} \
+	&& (pynchon markdown preview $${fname} || true) \
+	&& [ "$${fname}" == "README.md" ] && true || mv $${fname} docs/
 
 docs.mermaid:; pynchon mermaid apply
 
 docs.mmd: docs.mermaid
 
 ## BEGIN: targets for recording demo-gifs used in docs
-
-# Uses charmbracelete/vhs to record console videos of the test suites 
-# Videos for demos of the TUI
-# Videos of the e2e test suite. ( Order matters here )
-# Videos of the integration test suite. ( Order matters here )
+##
+## Uses charmbracelete/vhs to record console videos of the test suites 
+## Videos for demos of the TUI
+## Videos of the e2e test suite. ( Order matters here )
+## Videos of the integration test suite. ( Order matters here )
+##
 vhs: vhs.e2e vhs.demo vhs.tui
 vhs/%:
 	set -x && rm -f img/`basename -s .tape ${*}`*.gif \
 	&& ls docs/tape/${*}* \
-	&& pushd tests \
-		&& bash ./bootstrap.sh \
-		&& cp $${suite:-Makefile.e2e.mk} Makefile \
-		&& ls ../docs/tape/${*}* | make stream.peek \
-		| xargs -I% -n1 sh -x -c "vhs %" \
-		&& chafa --invert --symbols braille --zoom img/* ../img/docker.png \
-		&& ls img/* | xargs -I% mv % ../img
+	&& case $${suite:-} in \
+		"") \
+			echo no-suite \
+			&& ls docs/tape/${*}* | make stream.peek \
+			| xargs -I% -n1 sh -x -c "env -i PATH=$${PATH} HOME=$${HOME} vhs %" \
+			&& chafa --invert --symbols braille --zoom img/${*}* \
+			; ;; \
+		*) \
+			echo is-suite \
+			&& pushd tests \
+			&& bash ./bootstrap.sh \
+			&& cp $${suite:-Makefile.e2e.mk} Makefile \
+			&& ls ../docs/tape/${*}* | make stream.peek \
+			| xargs -I% -n1 sh -x -c "env -i PATH=$${PATH} HOME=$${HOME} vhs %" \
+			&& chafa --invert --symbols braille --zoom img/* ../img/docker.png \
+			&& ls img/* | xargs -I% mv % ../img \
+			; ;; \
+	esac
 
-# vhs.view/%:
-# 	output=`cat docs/tape/${*}* | grep ^Output|cut -d' ' -f2` \
-# 	&& printf "Output for ${*}* is: $${output}" > /dev/stderr \
-# 	&& set -x && $${viewer:-chafa --invert --symbols braille --zoom} $${output}
 vhs.demo:; suite=Makefile.itest.mk make vhs/demo
 vhs.demo/%:; suite=Makefile.itest.mk make vhs/${*}
 vhs.tui:; suite=Makefile.tui.mk make vhs/tui
-vhs.tui/%:; suite=Makefile.tui.mk make vhs/${*}
+vhs.tui/%:; make vhs/${*}
 vhs.e2e:; suite=Makefile.e2e.mk make vhs/e2e
 vhs.e2e/%:; suite=Makefile.e2e.mk make vhs/${*}

@@ -9,6 +9,9 @@ Set Height 800
 Set TypingSpeed .15
 Set PlaybackSpeed 3
 Set CursorBlink false
+Type "# Run some simple tests to exercise the cluster"
+Enter
+Enter
 Type "make test"
 Enter
 Sleep 65

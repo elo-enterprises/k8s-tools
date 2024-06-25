@@ -3,3 +3,4 @@
 tests/k8s.mk
 tests/Makefile
 docs/README.md
+docs/macros
