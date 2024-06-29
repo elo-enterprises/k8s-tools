@@ -71,11 +71,23 @@ clean.github.actions:
 test-suite/%:
 	@# Generic test-suite runner, just provide the test-suite name.
 	@# (Names are taken from the files like "tests/Makefile.<name>.mk")
+	@#
+	@# USAGE: (run the named test-suite)
+	@#   make test-suite/e2e
+	@#
+	@# USAGE: (run the named test from the named test-suite)
+	@#   make test-suite/mad-science -- demo.python
+	@#
 	$(call gum.style.target)
 	cd tests && bash ./bootstrap.sh
 	cp tests/Makefile.${*}.mk tests/Makefile
-	env -i PATH=$${PATH} HOME=$${HOME} bash -x -c "cd tests && make ${MAKE_FLAGS}"
+	[[ $${MAKE_CLI} == *" -- "* ]] \
+	&& extra="$${MAKE_CLI#*--}" \
+	|| extra="" \
+	&& env -i PATH=$${PATH} HOME=$${HOME} bash -x -c "cd tests && make ${MAKE_FLAGS} $${extra}" 
+	[[ $${MAKE_CLI} == *" -- "* ]] && $(call _make.interrupt) || true
 
+test-suite/mad: test-suite/mad-science
 ttest: tui-test
 etest: e2e-test 
 mtest: test-suite/mad-science
@@ -105,8 +117,11 @@ lme-test: test-suite/lme
 	@# Logging/Metrics/Events demo.  See ...
 
 mad: test-suite/mad-science
-	@# Polyglot tests.  These demonstrate some mad-science and other bad ideas 
-	@# that allow make-targets to be written in real programming languages.
+mad/%:; set -x && make test-suite/mad-science -- ${*}
+	@# Polyglot tests, mad-science, and other bad ideas that
+	@# allow make-targets to be written in real programming languages,
+	@# embedding docker-containers in make-defines, and quickly mapping 
+	@# containerized APIs onto make-targets.
 
 ## BEGIN: Documentation related targets
 ##

@@ -14,8 +14,7 @@ MAKEFLAGS=-s --warn-undefined-variables
 include compose.mk
 
 .DEFAULT_GOAL := all 
-all: demo.env demo.dockerfile demo.python demo.python.pipes
-demo.env: #io.envp
+all: demo.dockerfile demo.python demo.python.pipes demo.ansible
 
 
 # Minimal boilerplate to couple the 'Dockerfile.demo.dockerfile' block with 
@@ -56,5 +55,31 @@ for x in [1,2,3]:
 	print(f"{x} testing loops, indention, and string interpolation", file=sys.stderr)
 endef
 
-# make.def.dispatch.python/%:; make make.def.dispatch/python3/${*}:
-# make.def.dispatch.python.pipe/%:; cat /dev/stdin | make make.def.dispatch.python/${*}
+# Minimal boilerplate to expose a container-internal API to make. 
+# This example builds a minimal ansible container from an inlined dockerfile,
+# then wraps ansible-adhoc[1] commands as make-targets.
+# [1]: https://docs.ansible.com/ansible/latest/command_guide/intro_adhoc.html
+# [2]: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/debug_module.html
+# [3]: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ping_module.html
+demo.ansible:
+	make ansible.adhoc/ping
+	args="msg='testing'" make ansible.adhoc/ansible.builtin.debug
+ansible.adhoc/%:; module=${*} make ansible_adhoc
+ansible_adhoc:; env="args,module" ${make} docker.from.def/${@} docker.run/${@}/self.${@}
+self.ansible_adhoc:
+	$(trace_maybe) \
+	&& module=$${module:-ping} \
+	&& args="$${args:-}" \
+	&& printf "${GLYPH_DOCKER} ${@} ${sep}${dim} ${dim_cyan}$${module}${no_ansi_dim} ${sep}${no_ansi_dim} args=${green}$${args} ${no_ansi}\n" > ${stderr} \
+	&& ANSIBLE_LOAD_CALLBACK_PLUGINS=1 \
+	ANSIBLE_STDOUT_CALLBACK=ansible.posix.json \
+	ansible all -i localhost, \
+		--connection local \
+		--module-name $${module} \
+		--args "$${args:-}" | jq .plays[0].tasks[0].task
+define Dockerfile.ansible_adhoc
+FROM python:3.11-slim-bookworm
+RUN echo building container spec from inlined dockerfile
+RUN apt-get update && apt-get install -y ansible make procps jq
+RUN ansible --version
+endef
