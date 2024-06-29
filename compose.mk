@@ -166,6 +166,7 @@ endif
 # Aliases used with redirects
 all_devnull:=2>&1 > /dev/null
 stderr:=/dev/stderr
+stdin:=/dev/stdin
 devnull:=/dev/null
 stderr_stdout_indent=2> >(sed 's/^/  /') 1> >(sed 's/^/  /')
 
@@ -189,7 +190,7 @@ endef
 ## END data
 ## BEGIN 'compose.*' targets
 ## DOCS:
-##   [2] https://github.com/elo-enterprises/k8s-tools//docs/api#api-compose
+##   [2] https://github.com/elo-enterprises/k8s-tools/docs/api#api-compose
 
 compose.build/%:
 	@# Builds all services for the given compose file.
@@ -201,15 +202,12 @@ compose.build/%:
 	docker compose -f ${*} build
 
 compose.clean:
-	@# Cleans all images from 'compose.mk' repository, i.e. all the embedded containers.
-	@# This includes containers related to the embedded TUI, and things created by the 
-	@# 'docker.*' targets.
-	@# No arguments.
+	@# Cleans all images from 'compose.mk' repository, i.e. affiliated containers
+	@# that are related to the embedded TUI, and certain things created by the 
+	@# 'docker.*' targets. No arguments.
 	@#
-	docker images --format json \
-	| docker run ghcr.io/jqlang/jq:1.7.1 \
-		-r '.|select(.Repository=="compose.mk").Tag'  \
-	| xargs -I% docker rmi compose.mk:%
+	${make} docker.images \
+	| make stream.peek | xargs -I% docker rmi compose.mk:%
 
 compose.dispatch.sh/%:
 	@# Static target that's used on given compose files.
@@ -254,7 +252,7 @@ compose.kernel:
 	@#  echo flux.ok | ./compose.mk kernel
 	@#
 	set -x \
-	&& ${make} $${make_extra:-} "`cat /dev/stdin | ${make} stream.peek`"
+	&& ${make} $${make_extra:-} "`cat ${stdin} | ${make} stream.peek`"
 
 compose.qbuild/%:
 	@#
@@ -283,10 +281,23 @@ compose.validate/%:
 ## END 'compose.* targets
 ## BEGIN 'docker.*' targets
 ## DOCS:
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-docker
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
+docker.images:
+	@# Returns only affiliated images from 'compose.mk' repository, i.e. containers
+	@# that are related to the embedded TUI, and certain things created by the 
+	@# 'docker.*' targets. No arguments.
+	@#
+	docker images --format json \
+	| docker run ghcr.io/jqlang/jq:1.7.1 -r '.|select(.Repository=="compose.mk").Tag'
 
 docker.from.def/%:
 	@# Builds a container, treating the given 'define' block as a Dockerfile.
+	@# This implicitly prefixes the named define with 'Dockerfile.' to enforce 
+	@# naming conventions, and make for easier cleanup.  Container tags are 
+	@# determined by 'tags' var if provided, falling back to the name used 
+	@# for the define-block.  Tags are implicitly prefixed with 'compose.mk:',
+	@# for the same reason as the other prefixes.
+	@#
 	@# This is part of the mad-science[1] test-suite and not really a good idea =P
 	@#
 	@# USAGE:
@@ -305,16 +316,17 @@ docker.from.def/%:
 	| docker build -t $${tag} -
 
 docker.from.file/%:
+	@# Builds a container from the given file.  The 'tag' variable is required.
 	@#
-	@#
+	@# USAGE:
+	@#  tag=<tag_name> ./compose.mk docker.from.file/<fname>
 	@#
 	printf "${GLYPH_DOCKER} ${@} ${sep}${dim} ${dim_cyan}${*}${no_ansi_dim} as ${dim_green}$${tag} ${no_ansi}\n" > ${stderr} \
 	&& $(trace_maybe) \
-	&& cat ${*} | lexer=dockerfile make stream.pygmentize \
-	&& cat ${*} | docker build -t compose.mk:$${tag} -
+	&& cat ${*} | ${make} stream.peek | docker build -t $${tag} -
 
 docker.from.url/%:
-	@# Builds a container, treating the given 'url' as a Dockerfile.
+	@# Builds a container, treating the given 'url' as a Dockerfile.  The 'tag' variable is required.
 	@# This is part of the mad-science[1] test-suite and not really a good idea =P
 	@#
 	@# USAGE:
@@ -403,6 +415,8 @@ docker.ps:
 
 docker.run/%:
 	@# Runs the named target inside the named docker container.
+	@# This works for any image as given.  See also '.docker.run' for
+	@# a version that implicitly uses internally generated containers.
 	@#
 	@# USAGE:
 	@#  ./compose.mk docker.run/<image>/<target>
@@ -436,12 +450,14 @@ docker.run.sh/%:
 	@# those variables will be dereferenced and passed into docker's "-e" arguments.
 	@#
 	@# USAGE:
-	@#   cmd=... env=var1,var2 ./compose.mk docker.run.sh/<image_tag> 
+	@#   entrypoint=... cmd=... env=var1,var2 ./compose.mk docker.run.sh/<image_tag> 
 	@#
 	image_tag="${*}" \
 	&& entrypoint="$${entrypoint:-bash}" \
 	&& cmd="$${cmd:-$${script:-true}}" \
-	&& printf "${GLYPH_DOCKER} docker.run.sh${no_ansi} ${sep} ${underline}${bold}$${image_tag}${no_ansi} ${sep} ${bold}$${entrypoint} ${sep} ${dim}${ital}`echo $${cmd}} | sed 's/${MAKE_FLAGS}//g'` ${no_ansi}\n" > ${stderr} \
+	&& header="${GLYPH_DOCKER} docker.run.sh${no_ansi} ${sep} " \
+	&& disp_cmd="`echo $${cmd} | sed 's/${MAKE_FLAGS}//g'`" \
+	&& printf "$${header} ${underline}${bold}$${image_tag}${no_ansi} ${sep} ${dim}$${entrypoint} ${sep} ${dim}${ital}$${disp_cmd}${no_ansi}\n" > ${stderr} \
 	&& extra_env=`[ -z $${env:-} ] && true || make .docker.proxy.env/$${env}` \
 	&& cmd_args="\
 		--rm -i $${extra_env} \
@@ -452,7 +468,7 @@ docker.run.sh/%:
 		$${docker_args:-}" \
 	&& ([ $${COMPOSE_MK_TRACE} == 1 ] && set -x || true) \
 	&& dcmd="docker run $${cmd_args}" \
-	&& ([ -p /dev/stdin ] && dcmd="cat /dev/stdin | eval $${dcmd}" || true) \
+	&& ([ -p ${stdin} ] && dcmd="cat ${stdin} | eval $${dcmd}" || true) \
 	&& eval $${dcmd} $${image_tag} $${cmd}
 .docker.proxy.env/%:
 	@# Internal usage only.  This generates code that has to be used with eval.
@@ -461,12 +477,17 @@ docker.run.sh/%:
 	printf ${*} | sed 's/,/\n/g' \
 	| xargs -I% printf " -e %=\"\`echo \$${%}\`\""; printf '\n'
 
+.docker.run/%:; ${make} docker.run/compose.mk:${*}
+	@# Like docker.run, but implicitly assumes the 'compose.mk:' prefix.
 
-docker.socket:
+.docker.run.sh/%:; ${make} docker.run.sh/compose.mk:${*}
+	@# Like docker.run.sh, but implicitly assumes the 'compose.mk:' prefix.
+
+
+docker.socket:; ${make} docker.context/current | jq -r .Endpoints.docker.Host
 	@# Returns the docker socket in use for the current docker context.
 	@# No arguments & pipe-friendly.
-	@#
-	${make} docker.context/current | jq -r .Endpoints.docker.Host
+	
 
 docker.stat:
 	@# Show information about docker-status.  No arguments.
@@ -510,7 +531,7 @@ docker.stop:
 			docker stop -t $${timeout:-1} $${cid} > ${devnull}; ;; \
 	esac
 docker.stop.all:
-	@# Non-graceful stop for all containers.
+	@# Non-graceful stop for all running containers.
 	@#
 	@# USAGE:
 	@#   ./compose.mk docker.stop name=my-container timeout=99
@@ -523,7 +544,7 @@ docker.stop.all:
 ## END 'docker.*' targets
 ## BEGIN 'io.*' targets
 ## DOCS:
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-io
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-io
 
 io.bash:
 	@# Starts an interactive shell with all the environment variables set
@@ -556,7 +577,7 @@ io.envp io.env.pretty .tux.widget.env:
 	@# USAGE:
 	@#  ./compose.mk io.envp
 	@#
-	${make} io.env | lexer=ini ${make} stream.pygmentize
+	${make} io.env | ${make} stream.ini.pygmentize
 
 io.envp/% io.env.pretty/% .tux.widget.env/%:
 	@# Pretty version of 'io.env/<arg>', this includes syntax highlighting and also filters the output.
@@ -567,12 +588,9 @@ io.envp/% io.env.pretty/% .tux.widget.env/%:
 	@# USAGE: (only vars matching 'TUI*')
 	@#  ./compose.mk io.envp/TUI
 	@#
-	@# USAGE: (only vars matching 'COMPOSE*')
-	@#  ./compose.mk io.envp/COMPOSE
-	@#
-	${make} io.env/${*} | lexer=ini ${make} stream.pygmentize
+	${make} io.env/${*} | ${make} stream.ini.pygmentize
 
-io.file.pygmentize/%:
+io.file.pygmentize/%:; fname="${*}" make stream.pygmentize
 	@# Syntax highlighting for the given file.
 	@# Lexer will autodetected unless override is provided.
 	@# Style defaults to 'trac', which works best with dark backgrounds.
@@ -583,12 +601,10 @@ io.file.pygmentize/%:
 	@#   lexer=.. style=.. ./compose.mk io.file.pygmentize/<fname>
 	@#
 	@# REFS:
-	@# [1]: https://hub.docker.com/r/backplane/pygmentize
-	@# [2]:https://pygments.org/styles/
+	@# [1]: https://pygments.org/
+	@# [2]: https://pygments.org/styles/
 	@#
-	lexer=`[ -z $${lexer:-} ] && echo '-g' || echo -l $${lexer}` \
-	&& style="-Ostyle=$${style:-trac}" \
-	&& $(trace_maybe) && ${PYGMENTIZE} $${style} $${lexer} -f terminal256 ${*}
+	
 
 io.file.preview/%:
 	@# Outputs syntax-highlighting + line-numbers for the given filename to stderr.
@@ -603,12 +619,11 @@ io.file.preview/%:
 
 io.help: help.namespace/io
 	@# Lists only the targets available under the 'io' namespace.
-	@#
 
 io.fmt.strip:
 	@# Pipe-friendly helper for stripping whitespace.
 	@#
-	cat /dev/stdin | awk '{gsub(/[\t\n]/, ""); gsub(/ +/, " "); print}' ORS=''
+	cat ${stdin} | awk '{gsub(/[\t\n]/, ""); gsub(/ +/, " "); print}' ORS=''
 
 io.print.div:
 	@# Prints a divider on stdout, defaulting to the full terminal width,
@@ -633,23 +648,19 @@ io.print.div:
 	    && printf "%*s${no_ansi}\n\n" "$${side_length}" | sed "s/ /$${filler}/g" \
 	; fi
 
-io.print.div/%:
+io.print.div/%:; width=`echo \`tput cols\` / ${*} | bc` ${make} io.print.div
 	@# Prints a divider with a width of `term_width / <arg>`
 	@#
 	@# USAGE: (half-width labelled divider)
 	@#  label.. ./compose.mk io.print.div/<int>
 	@#
-	@width=`echo \`tput cols\` / ${*} | bc` \
-	make io.print.div
 
-io.quiet.stderr/%:
+io.quiet.stderr/%:; cmd="${make} ${*}" make io.quiet.stderr.sh
 	@# Runs the given target, surpressing stderr output, except in case of error.
 	@#
 	@# USAGE:
 	@#  ./compose.mk io.quiet/<target_name>
 	@#
-	cmd="${make} ${*}" make io.quiet.stderr.sh
-	# ${make} ${*}
 
 io.quiet.stderr.sh:
 	@# Runs the given target, surpressing stderr output, except in case of error.
@@ -679,13 +690,10 @@ io.print.indent:
 	@#
 	@# USAGE:
 	@#
-	cat /dev/stdin | sed 's/^/  /'
+	cat ${stdin} | sed 's/^/  /'
 
-io.print.indent.stderr:
-	@#
-	@# USAGE:
-	@#
-	cat /dev/stdin | make io.print.indent > ${stderr}
+# io.print.indent.stderr:; cat ${stdin} | make io.print.indent > ${stderr}
+	
 
 io.time.wait: io.time.wait/1
 	@# Pauses for 1 second.
@@ -701,7 +709,7 @@ io.time.wait/% io.wait/%:
 
 ## END 'io.*' targets
 ## BEGIN 'make.*' targets
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-mk
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-mk
 
 make.stat:
 	@# Shows version-information for make itself.
@@ -713,13 +721,8 @@ make.stat:
 	printf "${GLYPH_DOCKER} make.stat${no_ansi_dim}:\n" > ${stderr} \
 	&& make --version | ${make} stream.dim.indent.stderr
 
-make.help: help.namespace/mk
+make.help: help.namespace/make
 	@# Lists only the targets available under the 'make' namespace.
-make.def.pdispatch/%:; cat /dev/stdin | make make.def.dispatch/${*}
-	@#
-	@#
-	@#
-
 
 make.def.dispatch/%:
 	@# Reads the given <def_name>, writes to a tmp-file,
@@ -729,6 +732,7 @@ make.def.dispatch/%:
 	@#   ./compose.mk make.def.dispatch/<interpretter>/<def_name>
 	@#
 	@# HINT: for testing, use 'make make.def.dispatch/cat/<def_name>'
+	@#
 	$(call io.mktemp) \
 	&& export intr=`printf "${*}"|cut -d/ -f1` \
 	&& export def_name=`printf "${*}" | cut -d/ -f2-` \
@@ -739,9 +743,12 @@ make.def.dispatch/%:
 	&& printf "$${header} ${sep} ${dim}${cyan}${bold}$${intr}${no_ansi} ${sep} ${dim}$${tmpf}${no_ansi}\n" > ${stderr} \
 	&& which $${intr} > ${devnull} || exit 1 \
 	&& set -x \
-	&& $${intr} $${tmpf}
+	&& src="$${intr} $${tmpf}" \
+	&& [ -p ${stdin} ] && cat ${stdin} | eval $${src} || eval $${src}
+
 make.def.read/%:
 	@# Reads the named define/endef block from this makefile, emitting it to stdout.
+	@#
 	@# This works around make's normal behaviour of completely wrecking indention/newlines
 	@# present inside the block.
 	@#
@@ -750,6 +757,7 @@ make.def.read/%:
 	@#
 	$(eval def_name=${*})
 	$(info $(value ${def_name}))
+
 make.def.write.to.file/%:
 	@# Reads the given define/endef block from this makefile, writing it to the given output file.
 	@#
@@ -758,59 +766,43 @@ make.def.write.to.file/%:
 	def_name=`printf "${*}" | cut -d/ -f1` \
 	&& out_file=`printf "${*}" | cut -d/ -f2-` \
 	&& header="${GLYPH_IO} make.def.write.to.file${no_ansi}" \
-	&& printf "$${header} ${sep} ${dim_cyan}${ital}$${def_name}${no_ansi} ${sep} ${dim}${bold}$${out_file}${no_ansi}\n" > ${stderr} \
+	&& ([ ${COMPOSE_MK_DEBUG} == 1 ] && \
+		printf "$${header} ${sep} ${dim_cyan}${ital}$${def_name}${no_ansi} ${sep} ${dim}${bold}$${out_file}${no_ansi}\n" > ${stderr} \
+		|| true) \
 	&& ${make} make.def.read/$${def_name} > $${out_file}
 
 ## END 'make.*' targets
 ## BEGIN 'flux.*' targets
 ## DOCS:
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-io
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-io
 
 define _flux.always
 	@# NB: Used in 'flux.always' and 'flux.finally'.  For reasons related to ONESHELL,
 	@# this code can't be target-chained and to make it reusable, it needs to be embedded.
+	@#
 	printf "${GLYPH_FLUX} flux.always${no_ansi_dim} ${sep} registering target: ${green}${*}${no_ansi}\n" >${stderr}
 	target="${*}" pid="$${PPID}" $(MAKE) .flux.always.bg &
 endef
 
-flux.help: help.namespace/flux
-	@# Lists only the targets available under the 'flux' namespace.
+flux.apply/% flux.and/%:
+	@# Performs an 'and' operation with the named comma-delimited targets.
+	@# This is equivalent to the default behaviour of `make t1 t2 .. tN`
+	@# See also 'flux.or'.
 	@#
+	$(trace_maybe) && ${make} `echo "${*}" | sed 's/,/ /g'
 
-flux.finally/% flux.always/%:
-	@# Always run the given target, even if the rest of the pipeline fails.
-	@#
-	@#
-	@# NB: For this to work, the `always` target needs to be declared at the
-	@# beginning.  See the example below where "<target>" always runs, even
-	@# though the pipeline fails in the middle.
-	@#
-	@# USAGE:
-	@#   ./compose.mk flux.always/<target_name> flux.ok flux.fail flux.ok
-	@#
-	$(call _flux.always)
-.flux.always.bg:
-	@# Internal helper for `flux.always`
-	@#
-	header="${GLYPH_FLUX} flux.always${no_ansi_dim} ${sep} main process finished, " \
-	&& ( \
-		while kill -0 $${pid} 2> ${devnull}; do sleep 1; done \
-		&& 	printf "$${header} dispatching ${green}$${target} ${no_ansi}\n" >${stderr}  \
-		&& $(MAKE) $$target \
-	) &
-
-flux.apply/%:
-	@# Applies the given target(s). Mostly used to as a wrapper in case targets are unary.
-	@#
-	@# USAGE:
-	@#   ./compose.mk flux.timer/flux.apply/io.time.wait,io.time.wait
-	@#
-	$(call io.mktemp) \
-	&& printf ${*} \
-		| tr ',' '\n' \
-			| xargs -I% echo make % \
-	> $${tmpf} \
-	&& env bash `([ $${COMPOSE_MK_TRACE} == 1 ] && echo '-x' || echo)` $${tmpf}
+# flux.apply/%:
+# 	@# Applies the given target(s). Mostly used to as a wrapper in case targets are unary.
+# 	@#
+# 	@# USAGE:
+# 	@#   ./compose.mk flux.timer/flux.apply/io.time.wait,io.time.wait
+# 	@#
+# 	$(call io.mktemp) \
+# 	&& printf ${*} \
+# 		| tr ',' '\n' \
+# 			| xargs -I% echo make % \
+# 	> $${tmpf} \
+# 	&& env bash `([ $${COMPOSE_MK_TRACE} == 1 ] && echo '-x' || echo)` $${tmpf}
 
 flux.apply.later/% flux.delay/%:
 	@# Applies the given targets at some point in the future.  This is non-blocking.
@@ -835,7 +827,6 @@ flux.apply.later.sh/%:
 	&& ([ -z "$${quiet:-}" ] && true || printf "${GLYPH_FLUX} flux.apply.later${no_ansi_dim} ${sep} ${green}$${target}${no_ansi} (in $${time}s)\n" > ${stderr}) \
 	&& ( ${make} io.wait/$${time} && $${cmd:-true} )&
 
-
 flux.dmux flux.split:
 	@# Demultiplex / fan-out operator that sends stdin to each of the named targets in parallel.
 	@# (This is like `flux.sh.tee` but works with make-target names instead of shell commands)
@@ -846,7 +837,7 @@ flux.dmux flux.split:
 	header="${GLYPH_FLUX} ${@}${no_ansi_dim}" \
 	&& header+=" ${sep} ${dim}$${targets//,/ ; }${no_ansi}\n" \
 	&& printf "$${header}" | make stream.to.stderr
-	cat /dev/stdin \
+	cat ${stdin} \
 	| make flux.sh.tee \
 		cmds="`\
 			printf $${targets} \
@@ -861,8 +852,7 @@ flux.dmux/%:
 	@# USAGE: ( pipes the same input to yq and jq )
 	@#   echo {} | ./compose.mk flux.dmux/yq,jq
 	@#
-	cat /dev/stdin | targets="${*}" make flux.dmux
-
+	cat ${stdin} | targets="${*}" make flux.dmux
 
 flux.fail:
 	@# Alias for 'exit 1', which is failure.
@@ -873,6 +863,32 @@ flux.fail:
 	header="${GLYPH_FLUX} flux.fail${no_ansi} ${sep}" \
 	&& printf "$${header} ${no_ansi} ${red}failing${no_ansi} as requested!\n" > ${stderr}  \
 	&& exit 1
+
+flux.help: help.namespace/flux
+	@# Lists only the targets available under the 'flux' namespace.
+	@#
+
+flux.finally/% flux.always/%:
+	@# Always run the given target, even if the rest of the pipeline fails.
+	@# See also 'flux.try.except.finally'.
+	@#
+	@# NB: For this to work, the `always` target needs to be declared at the
+	@# beginning.  See the example below where "<target>" always runs, even
+	@# though the pipeline fails in the middle.
+	@#
+	@# USAGE:
+	@#   ./compose.mk flux.always/<target_name> flux.ok flux.fail flux.ok
+	@#
+	$(call _flux.always)
+.flux.always.bg:
+	@# Internal helper for `flux.always`
+	@#
+	header="${GLYPH_FLUX} flux.always${no_ansi_dim} ${sep} main process finished, " \
+	&& ( \
+		while kill -0 $${pid} 2> ${devnull}; do sleep 1; done \
+		&& 	printf "$${header} dispatching ${green}$${target} ${no_ansi}\n" >${stderr}  \
+		&& $(MAKE) $$target \
+	) &
 
 flux.indent/%:
 	@# Given a target, this runs it and indents both the resulting output for both stdout/stderr.
@@ -966,9 +982,24 @@ flux.map/%:
 	@#   echo hello-world | ./compose.mk flux.map/stream.echo,stream.echo
 	@#
 	$(call io.mktemp) && \
-	cat /dev/stdin > $${tmpf} \
+	cat ${stdin} > $${tmpf} \
 	&& printf ${*}|sed 's/,/\n/g' | xargs -I% printf 'cat $${tmpf} | make %\n' \
 	| bash -x
+
+flux.or/%:
+	@# Performs an 'or' operation with the named comma-delimited targets.
+	@# This is equivalent to 'make target1 || .. || make targetN'.  See also 'flux.and'.
+	@#
+	@# USAGE: (generic)
+	@#   ./compose.mk flux.or/<t1>,<t2>,..
+	@#
+	@# USAGE: (generic)
+	@#   ./compose.mk flux.or/flux.fail,flux.ok
+	@#
+	$(trace_maybe) \
+	&& echo "${*}" | sed 's/,/\n/g' \
+	| xargs -I% echo "|| make %" | xargs | sed 's/^||//' \
+	| bash 
 
 flux.wrap/%:
 	@# Wraps all of the given targets as if it were a single target.
@@ -1044,7 +1075,7 @@ flux.sh.tee:
 		| xargs -I% \
 			printf  ">($${tee_pre:-}%$${tee_post:-}) "`" \
 	&& header="${GLYPH_FLUX} flux.sh.tee${no_ansi} ${sep}${dim} starting pipe" \
-	&& cmd="cat /dev/stdin | tee $${src} " \
+	&& cmd="cat ${stdin} | tee $${src} " \
 	&& printf "$${header} (${no_ansi}${bold}$$(echo $${cmds} \
 		| grep -o ',' \
 		| wc -l | sed 's/ //g')${no_ansi_dim} components)\n" > ${stderr} \
@@ -1098,6 +1129,7 @@ flux.timeout/%:
 	timeout=`printf ${*} | cut -d/ -f1` \
 	&& target=`printf ${*} | cut -d/ -f2-` \
 	timeout=$${timeout} cmd="make $${target}" make flux.timeout.sh
+.INTERMEDIATE: .tmp.* .flux.*
 
 flux.timeout.sh:
 	@# Runs the given command for the given amount of seconds, then stops it with SIGINT.
@@ -1107,22 +1139,45 @@ flux.timeout.sh:
 	@#
 	printf "${GLYPH_IO} flux.timeout.sh${no_ansi_dim} (${yellow}$${timeout}s${no_ansi_dim}) ${sep} ${no_ansi_dim}$${cmd}${no_ansi} ${no_ansi}\n" >${stderr}
 	$(trace_maybe) \
-	&& signal=$${signal:-INT} \
-	&& trap "set -x && echo pkill -$${signal} -f \"$${cmd}\"" INT \
+	&& set -x \
+	&& trap "set -x && echo bye" EXIT INT TERM \
+	&& signal=$${signal:-TERM} \
 	&& eval "$${cmd} &" \
 	&& export command_pid=$$! \
 	&& sleep $${timeout} \
 	&& printf "${dim}${GLYPH_IO} flux.timeout.sh${no_ansi_dim} (${yellow}$${timeout}s${no_ansi_dim}) ${sep} ${no_ansi}${yellow}finished${no_ansi}\n" > ${stderr} \
-	&& kill -KILL `ps -o pid --no-headers --ppid $${command_pid}`
+	&& trap '' EXIT INT TERM \
+	&& kill -$${signal} `ps -o pid --no-headers --ppid $${command_pid}` 
 
-export PYGMENTIZE:=docker run --rm --interactive \
-		-e TERM=$${TERM}  -v `pwd`:/workspace -w /workspace \
-		--entrypoint pygmentize lambdalab/pygments:0.7.34
+flux.try.except.finally/%:
+	@# Performs a try/except/finally operation with the named targets.
+	@# See also 'flux.finally'.
+	@#
+	@# USAGE: (generic)
+	@#  ./compose.mk flux.try.except.finally/<try_target>,<except_target>,<finally_target>
+	@#
+	@# USAGE: (concrete)
+	@#  ./compose.mk flux.try.except.finally/flux.fail,flux.ok,flux.ok
+	@#
+	$(trace_maybe) \
+	&& try=`echo ${*}|cut -s -d, -f1` \
+	&& except=`echo ${*} | cut -s -d, -f2` \
+	&& finally=`echo ${*}|cut -s -d, -f3` \
+	&& header="${GLYPH_IO} flux.try.except.finally ${sep}${no_ansi_dim}" \
+	&& printf "$${header} ${*} ${no_ansi}\n" >${stderr} \
+	&& ${make} $${try} && exit_status=0 || exit_status=1 \
+	&& case $${exit_status} in \
+		0) true; ;; \
+		1) ${make} $${except} && exit_status=0 || (echo 'keeping 1'; exit_status=1); ;; \
+	esac \
+	&& ${make} $${finally} \
+	&& exit $${exit_status}
+	
 
 ## END 'flux.*' targets
 ## BEGIN 'gum.*' targets
 ## DOCS:
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-gum
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-gum
 ##   [2] https://github.com/charmbracelet/gum
 
 # Defaults for working with charmbracelet/gum
@@ -1162,10 +1217,10 @@ flux.stage.require/%:
 		&& exit 1) \
 	&& found=`cat $${stagef}` \
 	&& case $${found} in \
-		$${PPID}) printf "$${header} ${dim}match pid ${bold}${underline}$${PPID}${no_ansi}\n" > /dev/stderr; ;; \
+		$${PPID}) printf "$${header} ${dim}match pid ${bold}${underline}$${PPID}${no_ansi}\n" > ${stderr}; ;; \
 		*) \
-			printf "$${header} ${red}stage-requirement failed! stale pid?${no_ansi_dim}\n">/dev/stderr \
-			&& printf "${dim}${_GLYPH_IO} flux.stage.require ${sep}${no_ansi_dim} stage is met, but not by this process ${sep} ${bold}$${PPID}!=$${found}${no_ansi}\n" > /dev/stderr \
+			printf "$${header} ${red}stage-requirement failed! stale pid?${no_ansi_dim}\n">${stderr} \
+			&& printf "${dim}${_GLYPH_IO} flux.stage.require ${sep}${no_ansi_dim} stage is met, but not by this process ${sep} ${bold}$${PPID}!=$${found}${no_ansi}\n" > ${stderr} \
 			&& exit 1 ;; \
 	esac
 
@@ -1220,21 +1275,20 @@ gum.style/%:
 ## END 'gum.*' targets
 ## BEGIN 'stream.*' targets
 ## DOCS:
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-stream
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-stream
 
-stream.csv.pygmentize:; cat /dev/stdin | lexer=ini make stream.pygmentize
-
+stream.ini.pygmentize stream.csv.pygmentize:; cat ${stdin} | lexer=ini make stream.pygmentize
+	@# Highlights input stream using the 'ini' lexer.
 
 stream.dim.indent.stderr:
-	cat /dev/stdin | make stream.dim| make io.print.indent > ${stderr}
+	cat ${stdin} | make stream.dim| make io.print.indent > ${stderr}
 
 stream.help: help.namespace/stream
 	@# Lists only the targets available under the 'stream' namespace.
 
-
 stream.comma.to.nl:
 	@# Converts comma-delimited input stream newline-delimited
-	tmp=`cat /dev/stdin` && printf "$${tmp//,/\\n}"
+	tmp=`cat ${stdin}` && printf "$${tmp//,/\\n}"
 
 stream.comma.to.json:
 	@# Converts comma-delimited input into minimized JSON array
@@ -1243,19 +1297,19 @@ stream.comma.to.json:
 	@#   echo 1,2,3 | ./compose.mk stream.comma.to.json
 	@#   ["1","2","3"]
 	@#
-	cat /dev/stdin | make stream.comma.to.nl | make stream.nl.to.json.array
+	cat ${stdin} | make stream.comma.to.nl | make stream.nl.to.json.array
 
 stream.dim:
 	@# Pipe-friendly helper for dimming the input text
 	@#
-	printf "${dim}`cat /dev/stdin`${no_ansi}\n"
+	printf "${dim}`cat ${stdin}`${no_ansi}\n"
 
 stream.dim.indent:
 	@# Like 'io.print.indent' except it also dims the text.
 	@#
-	cat /dev/stdin | make stream.dim| make io.print.indent
+	cat ${stdin} | make stream.dim| make io.print.indent
 
-stream.echo:; cat /dev/stdin
+stream.echo:; cat ${stdin}
 	@# Just echoes the input stream.  Mostly used for testing.
 	@#
 	@# USAGE:
@@ -1269,7 +1323,7 @@ stream.json.array.append:
 	@#   echo '[]'|val=1 ./compose.mk stream.json.array.append|val=2 make stream.json.array.append
 	@#   [1,2]
 	@#
-	cat /dev/stdin | jq "[.[],\"$${val}\"]"
+	cat ${stdin} | jq "[.[],\"$${val}\"]"
 
 stream.json.object.append:
 	@# Appends the given key/val to the input object.
@@ -1279,23 +1333,42 @@ stream.json.object.append:
 	@#	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
 	@#   {"foo":"bar"}
 	@#
-	cat /dev/stdin | jq ". + {\"$${key}\": \"$${val}\"}"
+	cat ${stdin} | jq ". + {\"$${key}\": \"$${val}\"}"
 
 stream.indent:
 	@# Indents input stream
 	@#
-	cat /dev/stdin | make io.print.indent
+	cat ${stdin} | make io.print.indent
 
+define Dockerfile.stream.pygmentize
+FROM python:3.11-slim-bookworm
+RUN pip3 install --break-system-packages pygments
+endef
 stream.pygmentize:
 	@# Syntax highlighting for the input stream.
+	@# Lexer will be autodetected unless override is provided.
+	@# Style defaults to 'trac', which works best with dark backgrounds.
 	@#
-	@# https://hub.docker.com/r/backplane/pygmentize
-	@# https://pygments.org/styles/
+	@# USAGE: (using JSON lexer)
+	@#   echo {} | lexer=json ./compose.mk stream.pygmentize
+	@#
+	@# REFS:
+	@# [1]: https://pygments.org/
+	@# [2]: https://pygments.org/styles/
+	@#
 	lexer=`[ -z $${lexer:-} ] && echo '-g' || echo -l $${lexer}` \
 	&& style="-Ostyle=$${style:-trac}" \
-	&& cat /dev/stdin | ${PYGMENTIZE} $${style} $${lexer} -f terminal256
+	&& src="entrypoint=pygmentize" \
+	&& src="$${src} cmd=\"$${style} $${lexer} -f terminal256 $${fname:-}\"" \
+	&& src="$${src} ${make} docker.from.def/${@} .docker.run.sh/${@}" \
+	&& [ -p ${stdin} ] && cat ${stdin} | eval $${src} || eval $${src}
 
-stream.indent.to.stderr:; cat /dev/stdin | make stream.indent | make stream.to.stderr
+stream.json.pygmentize:; lexer=json make stream.pygmentize
+
+pygmentize: stream.pygmentize
+	@# Alias for stream.pygmentize 
+
+stream.indent.to.stderr:; cat ${stdin} | make stream.indent | make stream.to.stderr
 	@# Shortcut for ' | stream.indent | stream.to.stderr'
 
 stream.peek:
@@ -1306,20 +1379,20 @@ stream.peek:
 	@#   echo hello-world | ./compose.mk stream.peek | cat
 	@#
 	$(call io.mktemp) && \
-	cat /dev/stdin > $${tmpf} \
+	cat ${stdin} > $${tmpf} \
 	&& cat $${tmpf} | make stream.dim.indent.stderr \
 	&& cat $${tmpf}
 
 stream.stderr.indent:
 	@# Indents the input stream, writing output to stderr
 	@#
-	cat /dev/stdin | make stream.dim | make io.print.indent > ${stderr}
+	cat ${stdin} | make stream.dim | make io.print.indent > ${stderr}
 
 stream.nl.to.json.array:
 	@#  Converts newline-delimited input stream into a JSON array
 	@#
 	src=`\
-		cat /dev/stdin \
+		cat ${stdin} \
 		| xargs -I% printf "| val=\"%\" make stream.json.array.append "\
 	` \
 	&& src="echo '[]' $${src} | jq -c ." \
@@ -1334,7 +1407,7 @@ stream.space.enum:
 	@# 		0	one
 	@# 		1	two
 	@#
-	cat /dev/stdin | xargs -n1 echo | make stream.nl.enum
+	cat ${stdin} | xargs -n1 echo | make stream.nl.enum
 
 stream.nl.enum:
 	@# Enumerates the newline-delimited input stream, zipping index with values
@@ -1344,13 +1417,13 @@ stream.nl.enum:
 	@# 		0	one
 	@# 		1	two
 	@#
-	cat /dev/stdin | nl --starting-line-number=0 --number-width=1 --number-format=ln
+	cat ${stdin} | nl --starting-line-number=0 --number-width=1 --number-format=ln
 
 stream.to.stderr:
 	@# Sends input stream to stderr.
 	@# Unlike 'stream.peek', this does not pass on the input stream.
 	@#
-	cat /dev/stdin > ${stderr}
+	cat ${stdin} > ${stderr}
 
 stream.preview: stream.to.stderr
 	@# Previews the input stream, sending output to stderr.
@@ -1359,7 +1432,7 @@ stream.preview: stream.to.stderr
 ## END 'stream.*' targets
 ## BEGIN 'tux.*' targets
 ## DOCS:
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-tux
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
 # TUI_BOOTSTRAP::
 #   Target-name that's used to bootstrap the TUI.  This has to ensure setup for any containers that are required.
 # TUX_BOOTSTRAPPED::
@@ -1414,7 +1487,7 @@ tux.stream.split:
 	$(trace_maybe) \
 	&& $(call io.mktemp) && stdout="$${tmpf}" \
 	&& $(call io.mktemp) && stderr="$${tmpf}" \
-	&& cmd="(echo Initializing|tee /dev/stderr; `cat .tmp.cmd`)" \
+	&& cmd="(echo Initializing|tee ${stderr}; `cat .tmp.cmd`)" \
 	&& tmux send-keys -t 0.1 "$${cmd} >$${stdout} 2> $${stderr}" C-m \
 	&& tmux send-keys -t 0.2 "echo" C-m \
 	&& tmux send-keys -t 0.3 "echo" C-m \
@@ -1528,7 +1601,7 @@ tux.mux.detach/%:
 	@# to allow for callbacks that need to alter the session-configuration,
 	@# prior to the session itself being entered and becoming blocking.
 	@#
-	$(trace_maybe) && printf "${GLYPH_TUI} tux.mux.detach ${sep} ${no_ansi}${no_ansi}`printf ${*} | lexer=ini make stream.pygmentize` \n" > ${stderr} \
+	$(trace_maybe) && printf "${GLYPH_TUI} tux.mux.detach ${sep} ${no_ansi}${no_ansi}`printf ${*} | ${make} stream.ini.pygmentize` \n" > ${stderr} \
 	&& printf "${_GLYPH_TUI} tux.mux.detach ${sep} ${no_ansi_dim}TUI_SVC_NAME=${dim_green}$${TUI_SVC_NAME} \n" > ${stderr} \
 	&& printf "${_GLYPH_TUI} tux.mux.detach ${sep} ${no_ansi_dim}TUI_INIT_CALLBACK=${dim_green}$${TUI_INIT_CALLBACK} \n" > ${stderr} \
 	&& printf "${_GLYPH_TUI} tux.mux.detach ${sep} ${no_ansi_dim}TUI_LAYOUT_CALLBACK=${dim_green}$${TUI_LAYOUT_CALLBACK}\n" > ${stderr} \
@@ -1615,13 +1688,14 @@ tux/shell:
 	header="${GLYPH_TUI} tux.bootstrap ${sep}" \
 	&& ([ $${COMPOSE_MK_TRACE} == 1 ] && printf "$${header} ${dim}Ensuring TUI containers are ready..${no_ansi}\n" > ${stderr} || true) \
 	&& pname=`basename $${PWD}` \
+	&& ls ${TUI_COMPOSE_FILE} ${all_devnull} \
+	|| COMPOSE_MK_DEBUG=0 ${make} make.def.write.to.file/_TUX_CONF/${TUI_COMPOSE_FILE} \
 	&& ( \
 		(docker images | grep $${pname}-tux ${all_devnull}) \
 		&& ([ $${COMPOSE_MK_TRACE} == 1 ] && printf "$${header} ${dim_green}(tui container is cached..)${no_ansi}\n" > ${stderr}  || true) ) \
 	|| ( \
 		([ $${COMPOSE_MK_TRACE} == 1 ] && printf "$${header} ${bold}${underline}(no tui cached, building it..)${no_ansi}\n" > ${stderr} || true) \
-		&& ${make} make.def.write.to.file/_TUX_CONF/${TUI_COMPOSE_FILE} \
-			&& ([ -z $${preview:-} ] && true || ${make} io.file.preview/${TUI_COMPOSE_FILE}) \
+		&& ([ -z $${preview:-} ] && true || ${make} io.file.preview/${TUI_COMPOSE_FILE}) \
 			&& label="Validating TUI services.." \
 				${make} compose.validate/${TUI_COMPOSE_FILE} \
 			&& label="Building TUI if not cached.." \
@@ -1823,7 +1897,7 @@ endef
 	&& ( printf "$${targets}" \
 		 | ${make} stream.comma.to.nl \
 		 | xargs -I% echo "{\"name\":\"%\",\"shell\":\"${make} %\"}" \
-	) | jq -s -c | echo \'$$(cat /dev/stdin)\'
+	) | jq -s -c | echo \'$$(cat ${stdin})\'
 
 .tux.panic:
 	@# Closes the entire session, from inside the session.  No arguments.
@@ -2127,14 +2201,14 @@ ${compose_file_stem}/$(compose_service_name)/shell/pipe:
 	@#
 	@$$(eval export shellpipe_tempfile:=$$(shell mktemp))
 	trap "rm -f $${shellpipe_tempfile}" EXIT \
-	&& cat /dev/stdin > $${shellpipe_tempfile} \
+	&& cat ${stdin} > $${shellpipe_tempfile} \
 	&& eval "cat $${shellpipe_tempfile} \
 	| pipe=yes \
 	  entrypoint="bash" \
 	  ${make} ${compose_file_stem}/$(compose_service_name)"
 
 ${compose_file_stem}/$(compose_service_name)/pipe:
-	cat /dev/stdin | make ⟂/${compose_file_stem}/$(compose_service_name)
+	cat ${stdin} | make ⟂/${compose_file_stem}/$(compose_service_name)
 
 $(eval ifeq ($$(import_to_root), TRUE)
 $(compose_service_name): $(target_namespace)/$(compose_service_name)
@@ -2248,7 +2322,7 @@ ${compose_file_stem}/%:
                  \| grep -vE \'.\*Network.\*\(Creating\|Created\)\' \>\&2\ \
                  \) ; \
 	else \
-		cat /dev/stdin > $${stdin_tempf} \
+		cat ${stdin} > $${stdin_tempf} \
 		&& ([ $${COMPOSE_MK_DEBUG} == 1 ] && printf "$${header}${dim}$${nsdisp} ${no_ansi_dim}$${entrypoint_display}$${cmd_disp}${cyan_flow_left}  ${dim_ital}`cat $${stdin_tempf} | sed 's/^[\\t[:space:]]*//'| sed -e 's/COMPOSE_MK=[01] //'`${no_ansi}\n" > ${stderr} || true) \
 		&& cat "$${stdin_tempf}" | eval $${base} 2\> \>\(\
                  grep -vE \'.\*Container.\*\(Running\|Recreate\|Created\|Starting\|Started\)\' \>\&2\ \

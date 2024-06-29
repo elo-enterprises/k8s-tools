@@ -17,17 +17,17 @@ $ ./k8s.mk k8s.get/argo-events/svc/webhook-eventsource-svc/.spec.clusterIP
 $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}"
 ```
 
-The first command has no host requirements for kubectl or jq, but uses both via docker.  Similarly, the [`helm.install` target](/docs/api.md#helm.install) works as you'd expect but does not require `helm`, meanwhile `k8s.mk k9s/<namespace>` works like `k9s --namespace` does, but doesn't require k9s, etc.
+The first command has no host requirements for kubectl or jq, but uses both via docker.  Similarly, the [`helm.install` target](/docs/api/#helm.install) works as you'd expect but does not require `helm`, plus it's a little more idempotent than using `helm` directly.  Meanwhile `k8s.mk k9s/<namespace>` works like `k9s --namespace` does, but doesn't require k9s, etc.
 
-Many of these targets are simple wrappers, but just declaring them accomplishes several things at once.  A k8s.mk make-target is:
+Many of these targets are fairly simple wrappers, but just declaring them accomplishes several things at once.  A k8s.mk make-target is:
 
 1. CLI friendly, for interactive contexts, as above
 1. API friendly, for more programmatic use, as part of prereqs or body for other project automation
-1. Workflow friendly, either as part of make's native DAG processing, or via [flux](docs/api.md#flux).
-1. Potentially a TUI element, via the [embedded TUI](#embedded-tui) and [tux](docs/api.md#tux).
+1. Workflow friendly, either as part of make's native DAG processing, or via [flux](docs/api/#flux).
+1. Potentially a TUI element, via the [embedded TUI](#embedded-tui) and [tux](docs/api/#tux).
 1. Context-agnostic, generally using tools directly if available or falling back to docker when necessary.
 
-Some targets like [`k8s.shell`](/docs/api.md#k8sshell) or [`kubefwd.[start|stop|restart]`](/docs/api.md#kubefwd) are more composite than simple wrappers.  
+Some targets like [`k8s.shell`](/docs/api/#k8sshell) or [`kubefwd.[start|stop|restart]`](/docs/api/#kubefwd) are more composite than simple wrappers.  
 
 If you want, you can always to stream arbitrary commands or scripts into these containers more directly, via [the Make/Compose bridge](#makecompose-bridge).  But the point of k8s.mk is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, launches a pod, and shells into it:
 
@@ -70,4 +70,4 @@ Documentation per-target is included in the next section, but these tools aren't
 
 ----------------------------------------------------
 
-{% include "api-k8s.md" %}
+{% include "api/k8s.mk.md" %}

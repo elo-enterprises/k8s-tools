@@ -29,22 +29,23 @@ include k8s.mk
 include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 # Default target should do everything, end to end.
-all: build clean cluster deploy test
+all: build cluster.clean cluster.create deploy test
 
 ###############################################################################
 
-# Top level public targets for cluster operations.
-# These run private subtargets inside the named 
-# tool containers (like `k3d` or `helm`).
-clean: ▰/k3d/self.cluster.clean
+# Top level public targets for cluster operations & (optional) convenience aliases and stage-labels.
 
-cluster: ▰/k3d/self.cluster.init
+# These run private subtargets inside the named  tool containers (i.e. `k3d`).
+clean cluster.clean: flux.stage/ClusterClean ▰/k3d/self.cluster.clean
+cluster cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
+
+# Plus a convenience alias to wait for all pods in all namespaces.
+cluster.wait: k8s.cluster.wait
 
 # Private targets for low-level cluster-ops.
 # Host has no `k3d` command, so these targets
 # run inside the `k3d` service from k8s-tools.yml
-self.cluster.init:; ${make} flux.stage/${@}
-	make gum.style label="Cluster Setup"
+self.cluster.create:
 	( k3d cluster list | grep $${CLUSTER_NAME} \
 	  || k3d cluster create $${CLUSTER_NAME} \
 			--servers 3 --agents 3 \
@@ -52,18 +53,22 @@ self.cluster.init:; ${make} flux.stage/${@}
 			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait \
 	)
 
-self.cluster.clean:; ${make} flux.stage/${@} 
-	set -x && echo k3d cluster delete $${CLUSTER_NAME}
+self.cluster.clean:
+	set -x && k3d cluster delete $${CLUSTER_NAME}
 
 ###############################################################################
 
-# You can expand this to include usage of `kustomize`, etc.
-# Volumes are already setup, so you can `kubectl appply` from the filesystem.
-deploy: 
-	make gum.style label="Cluster Deploy"
-	make deploy.helm deploy.test_harness 
+# Top level public targets for deployments & (optional) convenience aliases and stage-labels.
+# These run private subtargets inside the named  tool containers (i.e. `helm`, and `k8s`).
+
+deploy: flux.stage/DeployApps deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
+
+# Private targets with the low level details for what to do in tool containers. 
+# You can expand this to include usage of `kustomize`, etc. Volumes are already setup,
+# so you can `kubectl apply` from the filesystem.  You can also call anything documented 
+# in the API[1] https://github.com/elo-enterprises/k8s-tools/tree/master/docs/api/#k8smk.
 self.cluster.deploy_helm_example: 
 	@# Idempotent version of a helm install
 	@# Commands are inlined below, but see 'helm.repo.add' 
@@ -80,12 +85,9 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
 	kubectl apply -f nginx.svc.yml
 
 ###############################################################################
-cluster.wait: k8s.cluster.wait
+
 test: test.cluster test.contexts 
-test.cluster cluster.test: 
-	@# Waits for anything in the default namespace to finish and show cluster info
-	label="Waiting for all namespaces to be ready" make gum.style 
-	make k8s/dispatch/k8s.namespace.wait/all
+test.cluster cluster.test: flux.stage/TestDeployment ▰/k8s/k8s.cluster.wait
 	label="Showing kubernetes status" make gum.style 
 	make k8s/dispatch/k8s.stat 
 	label="Previewing topology for kube-system namespace" make gum.style 

@@ -26,7 +26,7 @@
           <td><a href=/README.md#integration>Integration</a></td>
           <td><a href=/README.md#composemk>compose.mk</a></td>
           <td><a href=/README.md#k8smk>k8s.mk</a></td>
-          <td><a href=/docs/api.md>API</a></td>
+          <td><a href=/docs/api/>API</a></td>
           <td><a href=/docs/demos.md>Demos</a></td>
         </tr>
         <tr><td colspan="100%">

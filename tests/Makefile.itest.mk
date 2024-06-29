@@ -29,20 +29,31 @@ $(eval $(call compose.import, ▰, FALSE, k8s-tools.yml))
 .DEFAULT_GOAL := all 
 all: docker-compose.qbuild #k8s-tools.qbuild/k8s k8s-tools.qbuild/k3d
 	printf '\n' && set -x \
-	&& make demo demo-double-dispatch \
-	&& make test.docker.run \
-		test.containerized.tty.output \
-		test.flux.lib test.dispatch \
+	&& make \
+		flux.stage/core-compose \
+		demo demo-double-dispatch \
+		test.dispatch \
 		test.compose.pipes \
-	&& make test.compose.services \
+		test.compose.services \
 		test.import.root \
 		test.main.bridge \
-		test.multiple.compose.files
-
+		test.multiple.compose.files \
+		flux.stage/core-docker \
+		test.docker.run \
+		flux.stage/core-tui \
+		test.ticker \
+		test.containerized.tty.output \
+		flux.stage/core-flux \
+		test.flux.lib
+		
 # New target declaration that we can use to run stuff
 # inside the `debian` container.  The syntax conventions
 # are configured by the `compose.import` call we used above.
 demo: ▰/debian/self.demo
+
+test.ticker:
+	# FIXME: timeout kills the whole process?
+	# text=" testing ticker " make flux.timeout/2/tux.widget.ticker || true
 
 # Displays platform info to show where target is running.
 # Since this target is intended to be private, we will 
@@ -108,9 +119,15 @@ test.dispatch:
 self.container.dispatch:
 	printf "in container `hostname`, platform info: `uname`\n"
 
-test.flux.lib: 
-	make io.print.div label="${cyan}${@}${no_ansi}"
-	set -x && make test.flux.finally test.flux.mux test.flux.dmux test.flux.loop
+test.flux.lib: test.flux.finally test.flux.try.except.finally test.flux.mux test.flux.dmux test.flux.loop
+
+test.flux.try.except.finally:
+	make flux.try.except.finally/flux.fail,flux.ok,flux.ok
+	! make flux.try.except.finally/flux.ok,flux.ok,flux.fail
+	# except fails, but try succeeds so it never runs
+	make flux.try.except.finally/flux.ok,flux.fail,flux.ok
+	! make flux.try.except.finally/flux.fail,flux.fail,flux.ok
+	make flux.try.except.finally/flux.ok,flux.ok,flux.ok
 
 test.flux.finally:
 	# demo of using finally/always functionality in a pipeline.  touches a tmpfile 

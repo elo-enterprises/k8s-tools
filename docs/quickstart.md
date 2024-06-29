@@ -63,7 +63,7 @@ $ make k8s.shell/default/my-test-harness
 $ make k9s/my-namespace
 ```
 
-For the full documentation of those targets, see [k8s.mk API](#static-targets-for-k8smk).
+For the full documentation of those targets, see [k8s.mk API](/docs/api/#api-k8smk).
 
 This repository includes lots of examples for make/compose integration in general, and in particular how you can accomplish lifecycle scripting with k8s.mk.
 

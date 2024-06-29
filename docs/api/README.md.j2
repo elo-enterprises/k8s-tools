@@ -1,11 +1,11 @@
 {% import 'macros.j2' as macros -%}
 {% set img_base =  img_base | default('../img/') %}
-
+{% set subtitle="API" %}
 {% include "header.md" %}
 
-----------------------------------------------------
+-----------------------------------------------------------------------
 
-{% include "api-compose.md" %}
+{% include "api/compose.mk.md" %}
 
 ----------------------------------------------------
 
@@ -21,5 +21,5 @@ See the [API docs](/docs/api#tui-private-api)
 
 ----------------------------------------------------
 
-{% include "api-k8s.md" %}
+{% include "api/k8s.mk.md" %}
 

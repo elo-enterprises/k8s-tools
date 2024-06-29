@@ -35,6 +35,9 @@ clean: k8s-tools.clean
 	@# Only used during development; normal usage involves build-on-demand.
 	@# Cache-busting & removes temporary files used by build / tests 
 	rm -f tests/compose.mk tests/k8s.mk tests/k8s-tools.yml
+	find .|grep .tmp|xargs rm || true
+	find .|grep .flux.stage|xargs rm || true
+	
 build: #io.quiet.stderr/tux.bootstrap k8s-tools.qbuild
 	@# Only used during development; normal usage involves build-on-demand.
 	@# This uses explicit ordering that is required because compose 
@@ -42,6 +45,7 @@ build: #io.quiet.stderr/tux.bootstrap k8s-tools.qbuild
 	@# but doesn't affect ordering for 'docker compose build'.
 test: integration-test smoke-test e2e-test # tui-test 
 docs: docs.jinja docs.mermaid
+normalize: 
 
 ## BEGIN: CI/CD related targets
 ##
@@ -114,7 +118,7 @@ e2e-test: test-suite/e2e
 	@# project-local kubernetes cluster.
 
 lme-test: test-suite/lme
-	@# Logging/Metrics/Events demo.  See ...
+	@# Logging/Metrics/Events demo.  FIXME
 
 mad: test-suite/mad-science
 mad/%:; set -x && make test-suite/mad-science -- ${*}
@@ -128,20 +132,19 @@ mad/%:; set -x && make test-suite/mad-science -- ${*}
 
 docs.jinja:
 	@#
-	ls docs/*.j2 |grep -v macros.j2 | xargs -n1 basename | xargs -I% sh -x -c "make docs.jinja/`basename %`"
+	find docs|grep .j2|sed 's/docs\///g' | grep -v macros.j2 \
+	| xargs -I% sh -x -c "make docs.jinja/%"
 
 docs.jinja/%: 
 	@# Render docs twice to use includes, then get the ToC 
-	set -x \
-	&& $(call io.mktemp) \
-	&& pynchon jinja render docs/${*} \
-	&& export fname=`basename -s .j2 ${*}` \
-	&& mv docs/$${fname} . \
-	&& pynchon jinja render $${fname} -o $${tmpf} \
-	&& mv $${tmpf} $${fname} \
-	&& (pynchon markdown preview $${fname} || true) \
-	&& [ "$${fname}" == "README.md" ] && true || mv $${fname} docs/
-
+	true \
+	&& $(call io.mktemp) && first=$${tmpf} \
+	&& set -x \
+	&& pynchon jinja render docs/${*} -o $${tmpf} \
+	&& (pynchon jinja render $${tmpf} -o $${tmpf} || printf "${red}2nd render failed,${no_ansi} TOC for "${*}" file may not be available.. \n") \
+	&& pynchon markdown preview $${tmpf} \
+	&& [ "${*}" == "README.md.j2" ] && mv $${tmpf} README.md || mv $${tmpf} docs/`dirname ${*}`/`basename -s .j2 ${*}`
+	
 docs.mermaid:; pynchon mermaid apply
 
 docs.mmd: docs.mermaid

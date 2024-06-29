@@ -80,7 +80,7 @@ ICON_K3D:=https://github.com/elo-enterprises/k8s-tools/raw/mainline/img/k3d.png
 ## END Data & macros
 ## BEGIN 'helm.*' targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-helm
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-helm
 helm.repo.add/%:
 	@# Idempotent version 'helm repo add'
 	@#
@@ -104,7 +104,7 @@ helm.chart.install/%:
 ## END 'helm.*' targets
 ## BEGIN 'k3d.*' targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-k3d
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k3d
 k3d.cluster.delete/%:
 	@# Idempotent version of k3d cluster delete 
 	@#
@@ -204,7 +204,7 @@ k3d.stat.widget:
 ## END 'k3d.*' targets
 ## BEGIN 'k8s.*' targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-k8s
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8s
 
 k8s.get/%:
 	@# Returns resources under the given namespace, for the given kind.
@@ -546,7 +546,7 @@ k8s.wait k8s.cluster.wait: k8s.namespace.wait/all
 ## END 'k8s.*' targets
 ## BEGIN '.k8s.*' private targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-k8s
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8s
 
 k8s.stat.auth:
 	printf "${GLYPH_K8S} ${@} ${no_ansi}${no_ansi}\n" > ${stderr}
@@ -595,7 +595,7 @@ k8s.stat.ctx:
 ## END 'kubefwd.*' targets
 ## BEGIN Misc targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-k8smk
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8smk
 kubefwd.panic:
 	@# Non-graceful stop for everything that is kubefwd related.
 	@# 
@@ -702,7 +702,7 @@ kubefwd.start/% k8s.namespace.fwd/%:
 ## END 'kubefwd.*' targets
 ## BEGIN Misc targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-k8smk
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8smk
 
 
 ktop: ktop/all
@@ -745,7 +745,7 @@ k9: k9s
 ## END misc targets
 ## BEGIN 'tui.*' targets
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools//docs/api#api-tui
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-tui
 
 # Override compose.mk defaults 
 export TUI_SVC_NAME:=tui

@@ -1,52 +1,36 @@
 
 
 
-<table style="width:100%">
+
+
+
+<table align=center border=1 style="width:100%">
   <tr>
-    <td colspan=2><strong>
-    k8s-tools
-      </strong>&nbsp;&nbsp;&nbsp;&nbsp;
+    <td colspan=2><strong>k8s-tools &nbsp; // &nbsp; <strong>Demos</strong></strong>&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
   </tr>
   <tr>
-    <td width=10%>
+    <td align=center width=10%>
       <center>
         <img src=../img//docker.png style="width:75px"><br/>
         <img src=../img//kubernetes.png style="width:75px"><br/>
         <img src=../img//make.png style="width:75px"><br/>
       </center>
     </td>
-    <td>
-      Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.
-      <br/>
-      <p align="center">
-        <table width="100%" border=1><tr>
-          <td><a href=/README.md#overview>Overview</a></td>
-          <td><a href=/README.md#features>Features</a></td>
-          <td><a href=/README.md#integration>Integration</a></td>
-          <td><a href=/README.md#composemk>compose.mk</a></td>
-          <td><a href=/README.md#k8smk>k8s.mk</a></td>
-          <td><a href=/docs/api.md>API</a></td>
-          <td><a href=/docs/demos.md>Demos</a></td>
-        </tr>
-        <tr><td colspan="100%">
-          <a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>
-        </td></tr></table>
-      </p><br/>
+    <td width=90%>
+      <table align=center border=1>
+        <tr align=center><td align=center width="13%"><a href=/README.md#overview>Overview</a></td>
+<td align=center width="13%"><a href=/README.md#features>Features</a></td>
+<td align=center width="13%"><a href=/README.md#integration>Integration</a></td>
+<td align=center width="13%"><a href=/README.md#composemk>compose.mk</a></td>
+<td align=center width="13%"><a href=/README.md#k8smk>k8s.mk</a></td>
+<td align=center width="13%"><a href=/docs/api/>API</a></td>
+<td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
+      </table>
+      <hr style="align:center;width:100%;border-bottom: 1px dashed black;background: #efefef;"><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span><hr style="align:center;width:100%;border-bottom: 1px dashed black;background: #efefef;">
     </td>
   </tr>
-</table>
-
-
-<div class="toc">
-<ul>
-<li><a href="#demos">Demos</a><ul>
-<li><a href="#demo-cluster-automation">Demo: Cluster Automation</a></li>
-<li><a href="#demo-platform-setup">Demo: Platform Setup</a></li>
-</ul>
-</li>
-</ul>
-</div>
+</table><hr/><span align=center>Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.  Project-local clusters, customized TUIs, and more.</span>
 
 
 ## Demos 
@@ -81,7 +65,7 @@ export POD_NAMESPACE?=default
 include k8s.mk
 include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
-all: build clean cluster deploy test
+all: build cluster.clean cluster.create deploy test
 
 ```
 
@@ -96,18 +80,18 @@ Next we organize some targets for cluster-operations.  Below you can see there a
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-clean: ▰/k3d/self.cluster.clean
-cluster: ▰/k3d/self.cluster.init
-self.cluster.init:; ${make} flux.stage/${@}
-	make gum.style label="Cluster Setup"
+clean cluster.clean: flux.stage/ClusterClean ▰/k3d/self.cluster.clean
+cluster cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
+cluster.wait: k8s.cluster.wait
+self.cluster.create:
 	( k3d cluster list | grep $${CLUSTER_NAME} \
 	  || k3d cluster create $${CLUSTER_NAME} \
 			--servers 3 --agents 3 \
 			--api-port 6551 --port '8080:80@loadbalancer' \
 			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait \
 	)
-self.cluster.clean:; ${make} flux.stage/${@} 
-	set -x && echo k3d cluster delete $${CLUSTER_NAME}
+self.cluster.clean:
+	set -x && k3d cluster delete $${CLUSTER_NAME}
 
 ```
 
@@ -134,9 +118,7 @@ But we also want operations to be idempotent, and blocking operations where that
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-deploy: 
-	make gum.style label="Cluster Deploy"
-	make deploy.helm deploy.test_harness 
+deploy: flux.stage/DeployApps deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
 self.cluster.deploy_helm_example: 
@@ -155,7 +137,7 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
 
 ```
 
-Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](#static-targets-for-k8smk)) do all of the heavy lifting.  
+Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/docs/api/#api-k8smk)) do all of the heavy lifting.  
 
 Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.
 
@@ -177,12 +159,8 @@ With the test-harness in place, there's a block of target definitions for a mini
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-cluster.wait: k8s.cluster.wait
 test: test.cluster test.contexts 
-test.cluster cluster.test: 
-	@# Waits for anything in the default namespace to finish and show cluster info
-	label="Waiting for all namespaces to be ready" make gum.style 
-	make k8s/dispatch/k8s.namespace.wait/all
+test.cluster cluster.test: flux.stage/TestDeployment ▰/k8s/k8s.cluster.wait
 	label="Showing kubernetes status" make gum.style 
 	make k8s/dispatch/k8s.stat 
 	label="Previewing topology for kube-system namespace" make gum.style 

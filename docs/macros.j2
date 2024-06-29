@@ -4,6 +4,13 @@ Jinja macros used in building docs (not make macros :)
 
 {% set img_base =  img_base | default('../img/') %}
 
+{% macro get_env_var(name) -%}
+{%set val=bash("cat docs/env-vars.md|grep ^"+name+"= | head -1 |cut -s -d'=' -f2 ||true").strip()%}{{val}}{%- endmacro -%}
+
+{% macro badge_from_var(var, label) %}{% set val=get_env_var(var) %}{{badge_from_val(val,label)}}{%- endmacro -%}
+
+{%macro badge_from_val(val, label)%}<a href="/docs/env-vars.md"><img alt="{{label}}:{{val}}" src="https://img.shields.io/badge/{{url_quote((label and (label + ':')) + val)}}-blue"></a>{%- endmacro -%}
+
 {% macro img_link(fname, width="90%") -%}
 <p align="center"><a href="{{fname}}"><img width="{{width}}" src="{{fname}}"></a></p>
 {%- endmacro -%}

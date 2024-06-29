@@ -20,7 +20,7 @@ all: demo.dockerfile demo.python demo.python.pipes demo.ansible
 # Minimal boilerplate to couple the 'Dockerfile.demo.dockerfile' block with 
 # the 'demo.dockerfile' target, running the self.demo.dockerfile target 
 # in the resulting container.
-demo.dockerfile:; ${make} docker.from.def/${@} docker.run/${@}/self.${@}
+demo.dockerfile:; ${make} docker.from.def/${@} .docker.run/${@}/self.${@}
 define Dockerfile.demo.dockerfile 
 FROM alpine
 RUN echo building container spec from inlined dockerfile
@@ -43,7 +43,7 @@ print('hello world')
 endef
 
 # Similar to the above, but this example uses pipes
-demo.python.pipes:;  echo '{"hello":"bash"}' | make make.def.pdispatch/python3/Python.${@}
+demo.python.pipes:;  echo '{"hello":"bash"}' | make make.def.dispatch/python3/Python.${@}
 define Python.demo.python.pipes
 # python script
 import sys, json
@@ -65,7 +65,7 @@ demo.ansible:
 	make ansible.adhoc/ping
 	args="msg='testing'" make ansible.adhoc/ansible.builtin.debug
 ansible.adhoc/%:; module=${*} make ansible_adhoc
-ansible_adhoc:; env="args,module" ${make} docker.from.def/${@} docker.run/${@}/self.${@}
+ansible_adhoc:; env="args,module" ${make} docker.from.def/${@} .docker.run/${@}/self.${@}
 self.ansible_adhoc:
 	$(trace_maybe) \
 	&& module=$${module:-ping} \

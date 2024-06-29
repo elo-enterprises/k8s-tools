@@ -3,47 +3,37 @@
 
 
 
+
 <table align=center border=1 style="width:100%">
   <tr>
     <td colspan=2><strong>k8s-tools &nbsp; // &nbsp; <strong>API</strong></strong>&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
   </tr>
   <tr>
-    <td width=10%>
+    <td align=center width=10%>
       <center>
         <img src=../img//docker.png style="width:75px"><br/>
         <img src=../img//kubernetes.png style="width:75px"><br/>
         <img src=../img//make.png style="width:75px"><br/>
       </center>
     </td>
-    <td>
-      Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.
-      <br/>
-      <table align=center width="100%" border=1><tr>
-        <td><a href=/README.md#overview>Overview</a></td>
-        <td><a href=/README.md#features>Features</a></td>
-        <td><a href=/README.md#integration>Integration</a></td>
-        <td><a href=/README.md#composemk>compose.mk</a></td>
-        <td><a href=/README.md#k8smk>k8s.mk</a></td>
-        <td><a href=/docs/api/>API</a></td>
-        <td><a href=/docs/demos.md>Demos</a></td>
-      </tr></table>
-              <a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>
-        &nbsp;
-<a href="/docs/env-vars.md"><img alt="=alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;
-        &nbsp;
-<a href="/docs/env-vars.md"><img alt="argo=v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;&nbsp;
-<a href="/docs/env-vars.md"><img alt="helmify=v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;&nbsp;
-<a href="/docs/env-vars.md"><img alt="kind=v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;&nbsp;
-<a href="/docs/env-vars.md"><img alt="kn=v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;&nbsp;
-<a href="/docs/env-vars.md"><img alt="kompose=v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;&nbsp;
-<a href="/docs/env-vars.md"><img alt="prometheus=v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;&nbsp;
-<a href="/docs/env-vars.md"><img alt="rancher=v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;
+    <td width=90%>
+      <table align=center border=1>
+        <tr align=center><td align=center width="13%"><a href=/README.md#overview>Overview</a></td>
+<td align=center width="13%"><a href=/README.md#features>Features</a></td>
+<td align=center width="13%"><a href=/README.md#integration>Integration</a></td>
+<td align=center width="13%"><a href=/README.md#composemk>compose.mk</a></td>
+<td align=center width="13%"><a href=/README.md#k8smk>k8s.mk</a></td>
+<td align=center width="13%"><a href=/docs/api/>API</a></td>
+<td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
+      </table>
+      <hr style="align:center;width:100%;border-bottom: 1px dashed black;background: #efefef;"><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span><hr style="align:center;width:100%;border-bottom: 1px dashed black;background: #efefef;">
+    </td>
   </tr>
-</table>
+</table><hr/><span align=center>Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.  Project-local clusters, customized TUIs, and more.</span>
 
 
-----------------------------------------------------
+-----------------------------------------------------------------------
 
 ## API: compose.mk
 
