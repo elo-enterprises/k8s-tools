@@ -1,22 +1,29 @@
 ##
 # TUI test suite for compose.mk 
 #
-# Usage: 
+# USAGE: ( from project root )
 #
-#   # from project root
 #   $ make tui-test
 ##
 SHELL := bash
-MAKEFLAGS=-s --warn-undefined-variables
+MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -eu -c
 .DEFAULT_GOAL := all 
-all:  tux.bootstrap demo.tux
-
 include compose.mk
 
-# demo: io.env demo.help 
-demo.tux:
-	# start commander TUI and stop after 5s
-	./compose.mk flux.apply.later/5/tux.panic tux.commander || true
-	./compose.mk flux.apply.later/8/tux.panic docker.commander || true
-	make tux.mux/flux.timeout/2/io.bash,flux.timeout/2/io.bash
+
+all:  tux.require test 
+
+test: \
+	test.docker.commander test.k3d.commander test.tux.commander \
+	test.tux.demo
+
+test.docker.commander:
+	./compose.mk flux.apply.later/10/tux.panic docker.commander || true
+test.k3d.commander:; ./compose.mk flux.apply.later/10/tux.panic k3d.commander || true
+test.tux.demo:; ./compose.mk flux.apply.later/8/tux.panic tux.demo || true
+test.tux.commander:; ./compose.mk tux.commander/flux.apply/io.wait/2,.tux.quit || true
+
+
+# ./compose.mk flux.apply.later/8/tux.panic docker.commander || true
+# make tux.mux/flux.timeout/2/io.bash,flux.timeout/2/io.bash

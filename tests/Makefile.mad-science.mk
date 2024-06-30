@@ -1,5 +1,5 @@
 ##
-# Exercising 'make.def.dispatch' and friends for bad ideas.  
+# Exercising 'mk.def.dispatch' and friends for bad ideas.  
 # Have you ever wondered if you could implement make targets in other languages?  
 # The answer is yes.
 #
@@ -8,7 +8,7 @@
 #
 ##
 SHELL := bash
-MAKEFLAGS=-s --warn-undefined-variables
+MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -eu -c
 
 include compose.mk
@@ -35,7 +35,7 @@ self.demo.dockerfile:
 # The business with the '@' below is referring to "this target name",
 # and prepends it with _ so that the symbols for target and the 
 # corresponding def-block remain unique
-demo.python:; make make.def.dispatch/python3/Python.${@}
+demo.python:; make mk.def.dispatch/python3/Python.${@}
 define Python.demo.python
 # python script
 import sys
@@ -43,7 +43,7 @@ print('hello world')
 endef
 
 # Similar to the above, but this example uses pipes
-demo.python.pipes:;  echo '{"hello":"bash"}' | make make.def.dispatch/python3/Python.${@}
+demo.python.pipes:;  echo '{"hello":"bash"}' | make mk.def.dispatch/python3/Python.${@}
 define Python.demo.python.pipes
 # python script
 import sys, json
@@ -64,22 +64,23 @@ endef
 demo.ansible:
 	make ansible.adhoc/ping
 	args="msg='testing'" make ansible.adhoc/ansible.builtin.debug
-ansible.adhoc/%:; module=${*} make ansible_adhoc
-ansible_adhoc:; env="args,module" ${make} docker.from.def/${@} .docker.run/${@}/self.${@}
-self.ansible_adhoc:
+	make ansible.adhoc/ansible.builtin.setup | jq .
+
+ansible.adhoc/%:; module=${*} env="args,module" ${make} docker.from.def/ansible .docker.run/ansible/self.ansible.adhoc
+self.ansible.adhoc:
+	@# Make target dispatched
 	$(trace_maybe) \
 	&& module=$${module:-ping} \
 	&& args="$${args:-}" \
 	&& printf "${GLYPH_DOCKER} ${@} ${sep}${dim} ${dim_cyan}$${module}${no_ansi_dim} ${sep}${no_ansi_dim} args=${green}$${args} ${no_ansi}\n" > ${stderr} \
 	&& ANSIBLE_LOAD_CALLBACK_PLUGINS=1 \
-	ANSIBLE_STDOUT_CALLBACK=ansible.posix.json \
+	ANSIBLE_STDOUT_CALLBACK=$${ANSIBLE_STDOUT_CALLBACK:-ansible.posix.json} \
 	ansible all -i localhost, \
 		--connection local \
 		--module-name $${module} \
 		--args "$${args:-}" | jq .plays[0].tasks[0].task
-define Dockerfile.ansible_adhoc
+define Dockerfile.ansible
+# building container spec from inlined dockerfile
 FROM python:3.11-slim-bookworm
-RUN echo building container spec from inlined dockerfile
 RUN apt-get update && apt-get install -y ansible make procps jq
-RUN ansible --version
 endef

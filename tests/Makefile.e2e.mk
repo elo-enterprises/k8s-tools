@@ -1,9 +1,10 @@
 # k8s-tools.git End-to-end tests
 # Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services to create & interact  with a small k3d cluster.
 SHELL := bash
-MAKEFLAGS=-s -S --warn-undefined-variables
+MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -euo pipefail -c
-.DEFAULT_GOAL :=  all 
+.DEFAULT_GOAL=help
+.SUFFIXES:
 
 # Override k8s-tools.yml service-defaults, 
 # explicitly setting the k3d version used
@@ -28,12 +29,13 @@ export POD_NAMESPACE?=default
 include k8s.mk
 include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
+
 # Default target should do everything, end to end.
 all: build cluster.clean cluster.create deploy test
 
 ###############################################################################
 
-# Top level public targets for cluster operations & (optional) convenience aliases and stage-labels.
+# Top level public targets for cluster operations & (optional) convenience-aliases and stage-labels.
 
 # These run private subtargets inside the named  tool containers (i.e. `k3d`).
 clean cluster.clean: flux.stage/ClusterClean ▰/k3d/self.cluster.clean
@@ -41,6 +43,13 @@ cluster cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
 
 # Plus a convenience alias to wait for all pods in all namespaces.
 cluster.wait: k8s.cluster.wait
+
+# We stood up the test-harness with the 'k8s.test_harness' target,
+# and stood up nginx with plain kubectl.  Let's tear down with 
+# ansible to mix it up.
+cluster.teardown:
+	make jb wait=yes state=absent kind=Pod namespace=default name=test-harness | make ansible.k8s
+	make jb release_namespace=default name=ahoy state=absent wait=true | make ansible.helm 
 
 # Private targets for low-level cluster-ops.
 # Host has no `k3d` command, so these targets
@@ -50,54 +59,55 @@ self.cluster.create:
 	  || k3d cluster create $${CLUSTER_NAME} \
 			--servers 3 --agents 3 \
 			--api-port 6551 --port '8080:80@loadbalancer' \
-			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait \
-	)
+			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait )
 
 self.cluster.clean:
 	set -x && k3d cluster delete $${CLUSTER_NAME}
 
 ###############################################################################
 
-# Top level public targets for deployments & (optional) convenience aliases and stage-labels.
+# Top level public targets for deployments & (optional) convenience-aliases and stage-labels.
 # These run private subtargets inside the named  tool containers (i.e. `helm`, and `k8s`).
+deploy cluster.deploy: flux.stage/DeployApps deploy.helm deploy.test_harness
+	# add a label to the default namespace
+	set -x && trace=1 key=manager val=k8s.mk make k8s.namespace.label/${POD_NAMESPACE}
 
-deploy: flux.stage/DeployApps deploy.helm deploy.test_harness 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
 
-# Private targets with the low level details for what to do in tool containers. 
+# Private targets with the low-level details for what to do in tool containers. 
 # You can expand this to include usage of `kustomize`, etc. Volumes are already setup,
 # so you can `kubectl apply` from the filesystem.  You can also call anything documented 
 # in the API[1] https://github.com/elo-enterprises/k8s-tools/tree/master/docs/api/#k8smk.
 self.cluster.deploy_helm_example: 
-	@# Idempotent version of a helm install
-	@# Commands are inlined below, but see 'helm.repo.add' 
-	@# and 'helm.chart.install' for built-in helpers.
+	@# Idempotent version of a helm install.
+	@# Commands are inlined directly below for clarity, 
+	@# but see also 'helm.repo.add', 'helm.chart.install', 
+	@# and 'ansible.helm' for more advanced built-in helpers.
 	set -x \
 	&& (helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO} ) \
 	&& (helm list | grep hello-world || helm install ahoy ${HELM_CHART})
 
-self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${POD_NAMESPACE}/${POD_NAME}
-	@# Prerequisites above create & activate the `default` namespace 
-	@# and then deploy a pod named `test-harness` into it, using a default image.
-	@#
-	@# Below, we'll deploy a simple nginx service into the default namespace.
+# Prerequisites up top create & activate the `default` namespace 
+# and then deploy a pod named `test-harness` into it, using a default image.
+# In the body, we'll use kubectl directly to deploy a simple service into the default namespace.
+self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${POD_NAMESPACE}/${POD_NAME} 
 	kubectl apply -f nginx.svc.yml
 
 ###############################################################################
 
 test: test.cluster test.contexts 
-test.cluster cluster.test: flux.stage/TestDeployment ▰/k8s/k8s.cluster.wait
-	label="Showing kubernetes status" make gum.style 
+test.cluster cluster.test: flux.stage/test ▰/k8s/k8s.cluster.wait
+	label="Showing kubernetes status" make charm.gum.style 
 	make k8s/dispatch/k8s.stat 
-	label="Previewing topology for kube-system namespace" make gum.style 
-	make k8s.graph.tui/kube-system/pod
-	label="Previewing topology for default namespace" make gum.style 
+	label="Previewing topology for default namespace" make charm.gum.style 
 	size=40x make k8s.graph.tui/default/pod
+	label="Previewing topology for kube-system namespace" make charm.gum.style 
+	make k8s.graph.tui/kube-system/pod
 
 test.contexts: 
 	@# Helpers for displaying platform info 
-	label="Demo pod connectivity" make gum.style 
+	label="Demo pod connectivity" make charm.gum.style 
 	make get.compose.ctx get.pod.ctx 
 
 get.compose.ctx:
@@ -110,15 +120,12 @@ get.pod.ctx:
 
 ###############################################################################
 
+# Interactive shell for the test-harness pod 
+# (See the 'deploy' steps for the setup of same)
 cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
-	@# Interactive shell for the test-harness pod 
-	@# (See the 'deploy' steps for the setup of same)
 
+# TUI for browsing the cluster 
 cluster.show: k3d.commander
-	@# TUI for browsing the cluster 
-
-test.tux.mux:
-	make tux.mux/io.time.wait/10,io.time.wait/7,io.time.wait/6,io.time.wait/5,io.time.wait/4
 
 ###############################################################################
 
@@ -129,6 +136,9 @@ prometheus: k8s-tools.dispatch/k8s/.prometheus
 .prometheus:
 	make helm.repo.add/$${PROMETHEUS_HELM_REPO} url=$${PROMETHEUS_HELM_REPO_URL}
 	make helm.chart.install/prometheus chart=$${PROMETHEUS_HELM_REPO}/prometheus 
+	${jb.run} api_version=apps/v1 \
+		delete_all=true namespace=testing \
+			kind=Deployment | ${make} kubernetes.core.k8s
 
 # Forces an orderly rebuild on tools containers
-build: k8s-tools.qbuild/k8s k8s-tools.qbuild/dind,tui
+build: #k8s-tools.build.quiet/k8s k8s-tools.build.quiet/dind,tui

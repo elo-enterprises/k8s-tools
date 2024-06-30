@@ -1,5 +1,9 @@
 
-### Make/Compose Bridge
+<details>
+
+<summary><h3>
+Make/Compose Bridge
+</h3></summary>
 
 *`compose.mk`* provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.  
 
@@ -25,6 +29,7 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 The arguments *`(▰, TRUE)`* above allow for control of namespacing and syntax.  *(More on that later in the [Macro Arguments section](#macro-arguments).)*  The final argument is just the (unquoted) name of the file you want to import services from.  
 
 That's it for the Make/Compose boilerplate, but we already have lots of interoperability.  
+</details>
 
 ### Dynamic API
 

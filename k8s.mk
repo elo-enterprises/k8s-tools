@@ -1,6 +1,7 @@
-#!/usr/bin/env -S make -s -f
-##
-# k8s.mk: An automation library/framework/tool building on compose.mk and k8s-tools.yml
+#!/usr/bin/env -S bash -m 
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+# k8s.mk: 
+#   Automation library/framework/tool building on compose.mk and k8s-tools.yml
 #
 # DOCS: https://github.com/elo-enterprises/k8s-tools#k8smk
 #
@@ -25,26 +26,58 @@
 # USAGE: ( Stand-alone tool mode )
 #   ./k8s.mk help
 #
-# USAGE: ( Via CLI Interface, after Integration )
-#   # drop into debugging shell for the container
-#   make <stem_of_compose_file>/<name_of_compose_service>/shell
-#
-#   # stream data into pod
-#   echo echo hello-world | make <stem_of_compose_file>/<name_of_compose_service>/shell/pipe
-#
-# APOLOGIES: 
+# APOLOGIES:
 #   In advance if you're checking out the implementation.  This is unavoidably gnarly in a lot of places.
-#   Make-macros are not the most fun stuff to read or write.  Pull requests are welcome :)
-########################################################################
+#   No one likes a file this long, and especially make-macros are not the most fun stuff to read or write.
+#   Breaking this apart could make internal development easier but would complicate boilerplate required
+#   for integration with external projects.  Pull requests are welcome! =P  
+#
+# HINTS:
+#   1) The goal is that the implementation is well tested, nearly frozen, and generally safe to ignore!
+#   2) If you just want API or other docs, see https://github.com/elo-enterprises/k8s-tools#compose.mk
+#   3) If you need to work on this file, you want Makefile syntax-highlighting & tab/spaces visualization.
+#
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-_GLYPH_K8S=⑆${dim}
-GLYPH_K8S=${green}${_GLYPH_K8S}${dim}
 
-# Hints for compose files to fix file permissions (see k8s-tools.yml for an example of how this is used)
-# This is not DRY with compose.mk, but we need it any in case this is stand-alone mode.
+# Let's get into the horror and the delight right away with shebang hacks. 
+# The block below these comments looks like a comment, but it's not. That line,
+# and a matching one at EOF, makes this file a polyglot, and so it is executable
+# simultaneously as both a bash script and a Makefile.  This allows for some improvement 
+# around the poor signal-handling that Make supports by default, and each CLI invocation 
+# that uses this file directly is wrapped to bootstrap handlers. If relevant signals are 
+# caught, they are passed back to make for handling.  (Only SIGINT is currently supported.)
+#
+# Signals are used sometimes to short-circuit `make` from attempting to parse the full CLI. 
+# This supports special cases like `loadf` & container invocations that use ' -- ', i.e. 
+# ones like "./k8s.mk kubectl -- <cmds>".  See docs & usage of `mk.interrupt` for details.
+#
+#/* \
+_make_="make -sS --warn-undefined-variables -f ${0}"; trace="${TRACE:-${trace:-0}}"; \
+no_ansi="\033[0m"; green="\033[92m"; dim="\033[2m"; sep="${no_ansi}//${dim}";\
+case ${CMK_SUPERVISOR:-1} in \
+	0) ([ "${trace}" == 0 ] || \
+		printf "⓪  ᐂ ${sep}Skipping setup for signal handlers..\n${no_ansi}">/dev/stderr); \
+		${_make_} ${@}; st=$?; ;; \
+	1) ([ "${trace}" == 0 ] || \
+		printf "⓪  ᐂ ${sep} Installing supervisor..\n\033[0m" > /dev/stderr); \
+		export MAKE_SUPER=${PPID}; \
+		[ "${trace}" == 1 ] && set -x || true;  \
+		trap "${_make_} mk.supervisor.trap/SIGINT; " SIGINT; \
+		trap "${_make_} flux.stage.clean/${MAKE_SUPER}; " EXIT; \
+		${_make_} mk.supervisor.enter/${PPID} ${@} 2> >(sed '/^make.*:.*mk.interrupt\/SIGINT.*Killed/,/^make:.*Error.*/d' >/dev/stderr); \
+		st=$? ; \
+		${_make_} mk.supervisor.exit/${st}; \
+		st=$? ; \
+		exit ${st}; ;; \
+esac \
+; exit ${st}
+
+## Hints for compose files to fix file permissions (see k8s-tools.yml for an example of how this is used)
+## This is not DRY with compose.mk, but we need it any in case this is stand-alone mode.
 OS_NAME:=$(shell uname -s)
 ifeq (${OS_NAME},Darwin)
-export MAKE_CLI:=$(shell echo `which make` `ps -o args -p $$PPID | tail -1 | cut -d' ' -f2-`)
+export MAKE_CLI:=$(shell echo `which make` `ps -o args -p $${PPID} | tail -1 | cut -d' ' -f2-`)
 else 
 export MAKE_CLI:=$(shell \
 	( cat /proc/$(strip $(shell ps -o ppid= -p $$$$ 2> /dev/null))/cmdline 2>/dev/null \
@@ -63,24 +96,191 @@ export K8S_MK_STANDALONE=1
 export K8S_MK_SRC=$(findstring k8s.mk, ${MAKE_CLI})
 endif
 
-# Import compose.mk iff we're stand-alone mode.
+# Import compose.mk iff we're in stand-alone mode.
 ifeq ($(K8S_MK_STANDALONE),1)
 include $(shell dirname ${K8S_MK_SRC}||echo .)/compose.mk
+$(eval $(call compose.import, ▰, TRUE, $(shell dirname ${K8S_MK_SRC}||echo .)/k8s-tools.yml))
 loadf: self.loadf
 endif
 
-# How long to wait when checking if namespaces/pods are ready (yes, 'export' is required.)
+GLYPH_K8S=${green}⑆${dim}
+
+# Extra repos that are included in 'docker.images' output.  
+# This is used to differentiate "local" images.
+export CMK_EXTRA_REPO:=k8s
+
+# How long to wait when checking if namespaces/pods are ready
 export K8S_POLL_DELTA?=23
 
-#
+# Default base image.  This is used for kubectl, helm, and others.
+# In some cases, KUBECTL_VERSION can override this; see the 'ansible' 
+# container in k8s-tools.yml.  If used, that should match what alpine 
+# is providing or it can lead to confusion.
 export ALPINE_K8S_VERSION?=alpine/k8s:1.30.0
 
-ICON_K3D:=https://github.com/elo-enterprises/k8s-tools/raw/mainline/img/k3d.png
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+## END Data & Macros
+## BEGIN 'ansible.*' targets
+## DOCS: 
+##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-ansible
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-## END Data & macros
+# This filter takes the standard JSON output from ansible and cleans it using the assumption
+# that this is "localhost"-type ansible for driving tools like eksctl, helm, kubectl, etc.
+# Not really intended for remote-controlling hosts with ssh.
+ansible.adhoc.filter:='{"changed":.plays[0].tasks[0].hosts.localhost.changed, "module_args": .plays[0].tasks[0].hosts.localhost.invocation.module_args|with_entries(select(.value != null)), "action":.plays[0].tasks[0].hosts.localhost.action, "task":.plays[0].tasks[0].task, "stats":.stats.localhost|with_entries(select(.value != 0))}'
+
+ansible.adhoc/%:
+	@# An interface into the named ansible module.  Just pass the module-arguments.  
+	@# Like adhoc ansible, this allows you to call a task without a playbook.
+	@# This actually generates a playbook JIT though, which makes things 
+	@# more flexible.
+	@#
+	@# USAGE:
+	@#   echo '<arg_json>' | ./compose.mk ansible.adhoc/<ansible_module_name>
+	@#
+	header="${GLYPH_K8S} ansible ${sep} ${dim}${*}" \
+	&& $(call log, $${header} ${sep} ${cyan_flow_left}) \
+	&& $(io.mktemp) \
+	&& ${stream.stdin}  \
+	| ${jq.run} . | ${stream.peek} \
+	| ${make} .ansible.gen.playbook/${*} \
+	| ${jq.run} -c . \
+	| ${make} ansible.run > $${tmpf} \
+	; tmp=`cat $${tmpf} | ${jq.run} '.plays[0].tasks[].hosts.localhost.failed'` \
+	&& case $${tmp} in \
+		true) (\
+			$(call log, $${header} ${sep} ${red}Task failed:); \
+			cat $${tmpf} | ${jq.run} '.plays[0].tasks[].hosts.localhost' | ${stream.dim.indent.stderr}; \
+			$(call log, $${header} ${sep} ${red}Task failed); exit 43); ;; \
+		false) ( \
+			$(call log, $${header} ${sep} false ${cyan_flow_right}) \
+			&& $(call log.trace, $${header} ${sep} false ${sep} ${cyan_flow_right}) \
+			&& cat $${tmpf} | ${jq.run} ${ansible.adhoc.filter} ); ;; \
+		null) ( \
+			$(call log, $${header} ${sep} ${cyan_flow_right}) \
+			&& $(call log.trace, $${header} ${sep} null ${sep} ${cyan_flow_right}) \
+			&& cat $${tmpf}| jq '{"changed":.plays[0].tasks[0].hosts.localhost.changed, "action":.plays[0].tasks[0].hosts.localhost.action, "task":.plays[0].tasks[0].task, "stats":.stats.localhost|with_entries(select(.value != 0))}' ); ;; \
+		*) $(call log, ${red}Cannot parse output from ansible:${dim}); cat $${tmp}; exit 77; ;; \
+	esac
+
+ansible.blockinfile: ansible.adhoc/blockinfile
+	@# Interface for ansible's block-in-file module[1].
+	@# This accepts only module args, but there are several ways to pass them.  
+	@# See the docs in ansible.adhoc/<module> for discussion of examples.
+	@#
+	@# USAGE:
+	@#   echo <json_data> | ./k8s.mk ansible.blockinfile
+	@#   ./k8s.mk jb <key1>=<val1> <keyn>=<valn> | ./k8s.mk ansible.blockinfile
+	@#   data="<key1>=<val1> <keyn>=<valn>" ./k8s.mk ansible.blockinfile
+	@#
+	@# EXAMPLE:
+	@#   path=.gitignore block=".flux.stage.*" | ./k8s.mk ansible.blockinfile
+	@#
+	@# [1] https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
+    
+ansible.helm: ansible.adhoc/kubernetes.core.helm
+	@# Interface for ansible's helm module[1].
+	@# This accepts only module args, but there are a few ways to pass them.  
+	@# See the docs in 'ansible.adhoc/<module>' for discussion of examples.
+	@#
+	@#
+	@# [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html#examples
+	@#
+
+ansible.kubernetes.core.k8s ansible.k8s k8s.ansible: ansible.adhoc/kubernetes.core.k8s
+	@# Interface for ansible's helm module[1].
+	@# This accepts only module args, but there are a few ways to pass them.  
+	@# See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
+	@#
+	@# [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+	@#
+
+.ansible.gen.playbook/%:
+	@# Generates a (JSON) playbook object for the given module with the given data.
+	@# Optionally takes JSON input, and always produces JSON output.  
+	@# Mostly for internal use, see instead the '*.run' public targets.
+	@#
+	@# USAGE:
+	@#   echo "<json>" | ./k8s.mk .ansible.gen.playbook/<ansible_module_name>
+	@#
+	@# EXAMPLE: 
+	@#   echo {} | key=msg val="hello" ./k8s.mk stream.json.append | ./k8s.mk .ansible.gen.playbook/debug
+	@#
+	${stream.stdin} \
+	| ${make} .ansible.gen.task/${*} \
+	| printf "`\
+		printf '[{"name": "Generated playbook", "hosts": "localhost", "gather_facts": false, "tasks": ['``\
+		${stream.stdin} \
+		`]}]" \
+	| jq .
+.ansible.gen.task/%:
+		@# Generates a task object for the given module with the given data,
+		@# suitable for inserting inside a playbook. Optionally takes JSON input, 
+		@# and always produces JSON output. Mostly for internal use, see instead the
+		@# '*.run' public targets.
+		@#
+		@# USAGE: (abstract)
+		@#   echo "<json>" | ./k8s.mk .ansible.gen.task/<ansible_module_name>
+		@#
+		@#
+		filter='{"name":"default task","' \
+		&& filter="$${filter}${*}\": .}" \
+		&& filter="'$${filter}'" \
+		&& ([ -p ${stdin} ] && (cat ${stdin}||exit 1) || ${jb.run} $${data}) \
+		| sh -c "jq -c $${filter}"
+
+ansible.run: 
+	@# Runs the input-stream as an ansible playbook.
+	@# This calls ansible in a way that ensures all output is JSON.
+	@#
+	@# EXAMPLE: (pass a string)
+	@#   echo '{"msg":"some info here"}'' | ./compose.mk .ansible.gen.task/debug | jq .
+	@#
+	@# EXAMPLE: (pass data in environment variables)
+	@#   data="msg='some info here" ./compose.mk .ansible.gen.task/debug | jq .
+	@#
+	@# EXAMPLE: (use jb[1] to generate input)
+	@#   jb msg='my info' | ./compose.mk .ansible.gen.task/debug | jq .	@# USAGE:
+	@#   cat <playbook> | ./compose.mk ansible.run
+	@#
+	$(call io.mktemp) \
+	&& ${stream.stdin} > $${tmpf} \
+	&& ${make} flux.timer/ansible.run/$${tmpf}
+
+ansible.run/%: .ansible.require
+	@# Runs the given playbook file.
+	@# This calls ansible in a way that ensures all output is JSON.
+	@#
+	@# USAGE: ./k8s.mk ansible.run/<path>
+	@#
+	${trace_maybe} \
+	&& ansible_args="-eansible_python_interpreter=\`which python3\`" \
+	&& ansible_args="$${ansible_args} -i localhost, --connection local" \
+	&& src="export ANSIBLE_STDOUT_CALLBACK=json && ansible-playbook $${ansible_args} ${*} " \
+	&& header="${GLYPH_K8S} ansible.run ${sep} ${*}" \
+	&& $(call log.trace, $${header} ${cyan_flow_right}) \
+	&& (case "$${CMK_INTERNAL}" in \
+		0) ( \
+			${log.trace.target.rerouting}; \
+			printf "$${src}\n" | CMK_DEBUG=0 ${make} k8s-tools/ansible/shell/pipe \
+			); ;; \
+		1) $${src}; ;; \
+	esac) \
+	|| $(call log, $${header} ${red}Failed) \
+
+.ansible.require: tux.require 
+	@# Alias for 'tux.require'.  We actually just want the dind-base to 
+	@# be ready, but this is the simplest way to ensure the bootstrap's 
+	@# done.  NB: This is potentially very slow if nothing is cached.
+
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+## END 'ansible.*' targets
 ## BEGIN 'helm.*' targets
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-helm
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
 helm.repo.add/%:
 	@# Idempotent version 'helm repo add'
 	@#
@@ -101,43 +301,32 @@ helm.chart.install/%:
 	&& ( helm list | grep ${*} ) \
 	|| helm install ${*} $${chart}
 
-## END 'helm.*' targets
-## BEGIN 'k3d.*' targets
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+## END: helm.* targets
+## BEGIN: 'k3d.* targets
+##
+## The *`k3d.*`* targets describe a small interface for working with `k3d`[2].  
+##
+## Most targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host.  
+## Most targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d
+##
 ## DOCS: 
-##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k3d
+##   [1]: https://github.com/elo-enterprises/k8s-tools/docs/api#api-k3d\
+##   [2]:
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+# Geometry for k3d.commander
+GEO_K3D="5b40,111x56,0,0[111x41,0,0{55x41,0,0,1,55x41,56,0[55x16,56,0,2,55x24,56,17,3]},111x14,0,42{55x14,0,42,4,55x14,56,42,5}]"
+
 k3d.cluster.delete/%:
 	@# Idempotent version of k3d cluster delete 
 	@#
 	@# USAGE:
 	@#   ./k8s.mk k3d.cluster.delete/<cluster_name>
 	@#
-	printf "${dim}${GLYPH_K8S} ${@} ${sep} Deleting cluster ${sep}${underline}${*}${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep} Deleting cluster ${sep}${underline}${*})
 	( k3d cluster list | grep ${*} > /dev/null ) \
 	&& ( set -x && k3d cluster delete ${*} ) || true
-
-k3d.help: help.namespace/k3d
-	@# Shows targets for just the 'k3d' namespace.
-
-k3d.panic:
-	@# Non-graceful stop for everything that is k3d related. 
-	@# 
-	@# USAGE:  
-	@#   ./k8s.mk k3d.panic
-	@# 
-	printf "${dim}${GLYPH_K8S} ${@} ${sep} ${no_ansi_dim}Stopping all k3d containers..${no_ansi}\n" > ${stderr}
-	(make k3d.ps || echo -n) | xargs -I% bash -x -c "docker stop -t 1 %"
-
-k3d.ps:
-	@# Container names for everything that is k3d related.
-	@#
-	@# USAGE:  
-	@#   ./k8s.mk k3d.ps
-	@# 
-	printf "${dim}${GLYPH_K8S} ${@} ${sep} ${no_ansi_dim}Listing k3d containers...${no_ansi}\n" > ${stderr}
-	(docker ps --format json \
-	| jq -r '.Names' \
-	| grep ^k3d- \
-	|| printf "${yellow}No containers found.${no_ansi}\n" > ${stderr} ) ${stderr_stdout_indent}
 
 k3d.cluster.list k3d.list: 
 	@# Returns cluster-names, newline delimited.
@@ -145,12 +334,13 @@ k3d.cluster.list k3d.list:
 	@# USAGE:  
 	@#   ./k8s.mk k3d.cluster.list
 	@# 
-	printf "${dim}${GLYPH_K8S} ${@} ${sep}${dim} Listing clusters..${no_ansi}\n" > ${stderr}
-	cmd="k3d cluster list -o json | jq -r '.[].name'" \
-	&& (case "$${COMPOSE_MK:-0}" in \
-		0) printf "$${cmd}" | COMPOSE_MK_DEBUG=0 make k8s-tools/k3d/shell/pipe; ;; \
+	$(call log, ${GLYPH_K8S} ${@} ${sep}${dim} Listing clusters)
+	cmd="k3d cluster list -o json | ${jq.run} -r '.[].name'" \
+	&& (case "$${CMK_INTERNAL:-0}" in \
+		0) ${log.trace.target.rerouting} && printf "$${cmd}" | CMK_DEBUG=0 make k8s-tools/k3d/shell/pipe; ;; \
 		*) eval $${cmd}; ;;  \
-	esac) | tr -d '\n' ${stderr_stdout_indent}; printf '\n' 
+	esac) | tr -d '\n' | ${stream.indent}
+
 k3d.commander:
 	@# Starts a 4-pane TUI dashboard, using the commander layout.  
 	@# This opens 'lazydocker', 'ktop', and other widgets that are convenient for working with k3d.
@@ -158,13 +348,13 @@ k3d.commander:
 	@# USAGE:  
 	@#   KUBECONFIG=.. ./k8s.mk k3d.commander/<namespace>
 	@# 
-	printf "${GLYPH_K8S} k3d.commander ${sep} ${no_ansi_dim}Opening commander TUI for k3d...${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} k3d.commander ${sep} ${no_ansi_dim}Opening commander TUI for k3d)
 	TUI_CMDR_PANE_COUNT=5 \
 	TUI_LAYOUT_CALLBACK=.k3d.commander.layout \
 	${make} tux.commander
 
 k3d.commander/%:
-	@# Like 'k3d.commander', but additionally sends the given target(s) to the main pane.
+	@# A TUI interface like 'k3d.commander', but additionally sends the given target(s) to the main pane.
 	@#
 	@# USAGE:
 	@#   ./k8s.mk k3d.commander/<target1>,<target2>
@@ -177,34 +367,60 @@ k3d.commander/%:
 	@# USAGE:  
 	@#   ./k8s.mk k3d.commander/<namespace>
 	@# 
-	printf "${GLYPH_K8S} ${@} ${sep}${dim} Starting widgets and setting geometry..${no_ansi}\n" > ${stderr}
-	geometry="${GEO_K3D}" ${make} \
-		.tux.pane/1/flux.apply/k3d.stat,$${k8s_commander_targets:-io.bash} \
-		.tux.pane/2/k9s \
-		.tux.geo.set 
-	tmux send-keys -t 0.4 "sleep 3; entrypoint=bash make k3d/shell" C-m
-	tmux send-keys -t 0.5 "COMPOSE_MK_DEBUG=0 interval=10 ${make} flux.loopf/k8s.cluster.wait" C-m
+	$(call log, ${GLYPH_K8S} ${@} ${sep}${dim} Starting widgets and setting geometry) \
+	&& geometry="${GEO_K3D}" ${make} .tux.geo.set  \
+	&& ${make} \
+		.tux.pane/0/flux.apply/k3d.stat,$${k8s_commander_targets:-io.bash} \
+		.tux.pane/1/k9s 
+	tmux send-keys -t 0.3 "sleep 3; entrypoint=bash ${make} k3d/shell" C-m
+	tmux send-keys -t 0.4 "CMK_DEBUG=0 interval=10 ${make} flux.loopf/k8s.cluster.wait" C-m
 	# WARNING: can't use .tux.pane/... here, not sure why 
-	make .tux.widget.lazydocker/3/k3d
+	${make} .tux.widget.lazydocker/2/k3d
+
+k3d.help: mk.namespace.filter/k3d.
+	@# Shows targets for just the 'k3d' namespace.
+
+k3d.panic:
+	@# Non-graceful stop for everything that is k3d related. 
+	@# 
+	@# USAGE:  
+	@#   ./k8s.mk k3d.panic
+	@# 
+	$(call log, ${dim}${GLYPH_K8S} ${@} ${sep} Stopping all k3d containers)
+	(make k3d.ps || echo -n) | xargs -I% bash -x -c "docker stop -t 1 %"
+
+k3d.ps:
+	@# Container names for everything that is k3d related.
+	@#
+	@# USAGE:  
+	@#   ./k8s.mk k3d.ps
+	@# 
+	$(call log, ${dim}${GLYPH_K8S} ${@} ${sep}${dim} Listing k3d containers)
+	(docker ps --format json \
+	| ${jq.run} -r '.Names' \
+	| grep ^k3d- \
+	|| printf "${yellow}No containers found.${no_ansi}\n" > ${stderr} ) ${stderr_stdout_indent}
 
 k3d.stat: 
 	@# Show status for k3d.
 	@# 
-	@#
-	printf "${GLYPH_K8S} k3d.stat ${no_ansi_dim}\n" > ${stderr}
-	${make} k3d.ps ${stderr_stdout_indent}
-	${make} k3d.cluster.list ${stderr_stdout_indent}
-	${make} k8s.stat.ns ${stderr_stdout_indent}
+	$(call log, ${GLYPH_K8S} k3d.stat)
+	$(trace_maybe) && ${make} k3d.ps k3d.cluster.list 
 
-GEO_K3D="5b40,111x56,0,0[111x41,0,0{55x41,0,0,1,55x41,56,0[55x16,56,0,2,55x24,56,17,3]},111x14,0,42{55x14,0,42,4,55x14,56,42,5}]"
+# k3d.stat.widget:
+# 	clear=1 verbose=1 interval=10 ${make} flux.loopf/flux.apply/k3d.stat
 
-k3d.stat.widget:
-	clear=1 verbose=1 interval=10 ${make} flux.loopf/flux.apply/k3d.stat
 
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ## END 'k3d.*' targets
 ## BEGIN 'k8s.*' targets
+##
+## This is the default target-namespace for `k8s.mk`.  It covers general helpers.  
+##
+##
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8s
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 k8s.get/%:
 	@# Returns resources under the given namespace, for the given kind.
@@ -223,7 +439,7 @@ k8s.get/%:
 	$(eval export name:=$(strip $(shell echo ${*} | awk -F/ '{print $$3}')))
 	$(eval export filter:=$(strip $(shell echo ${*} | awk -F/ '{print $$4}')))
 	export cmd_t="kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}" \
-	&& printf "${GLYPH_K8S} k8s.get${no_ansi_dim} // $${cmd_t}\n${no_ansi}" > ${stderr} \
+	&& $(call log,${GLYPH_K8S} k8s.get${no_ansi_dim} // $${cmd_t}) \
 	&& eval $${cmd_t}
 
 k8s.graph/%:
@@ -245,44 +461,42 @@ k8s.graph/%:
 	&& kubectl graph $${kind:-pods} $${scope} ${stderr_devnull};
 
 k8s.graph: k8s.graph/all/pods 
-	@#
+	@# Alias for k8s.graph/all/pods.  This returns dot-format data.
 
 k8s.graph.tui: k8s.graph.tui/all/pods
-	@#
+	@# Alias for 'k8s.graph.tui/all/pods'.  This prints a visual graph on the terminal.
 
-k8s.graph.tui.loop: k8s.graph.tui.loop/kube-system/pods
-	@# Loops the graph for the kube-system namespace
-
-k8s.graph.tui.loop/%:
-	@# Display an updating, low-resolution image of the given namespace topology.
-	@#
-	@# USAGE:  
-	@#   ./k8s.mk k8s.graph.tui.loop/<namespace>
-	@# 
-	failure_msg="${yellow}Waiting for cluster to get ready..${no_ansi}" \
-	make flux.loopf/k8s.graph.tui/${*}
+# k8s.graph.tui.loop: k8s.graph.tui.loop/kube-system/pods
+# 	@# Loops the graph for the kube-system namespace
+# k8s.graph.tui.loop/%:
+# 	@# Display an updating, low-resolution image of the given namespace topology.
+# 	@#
+# 	@# USAGE:  
+# 	@#   ./k8s.mk k8s.graph.tui.loop/<namespace>
+# 	@# 
+# 	failure_msg="${yellow}Waiting for cluster to get ready..${no_ansi}" \
+# 	make flux.loopf/k8s.graph.tui/${*}
 
 k8s.graph.tui/%:
 	@# Previews topology for a given kubernetes <namespace>/<kind> in a way that's terminal-friendly.
 	@#
 	@# This is a human-friendly way to visualize progress or changes, because it supports 
 	@# very large input data from complex deployments with lots of services/pods, either in 
-	@# one namespace or across the whole cluster. To do that, it has throw away some 
-	@# information compared with raw kubectl output, and node labels on the graph aren't visible.  
+	@# one namespace or across the whole cluster. To do that, it has to throw away some 
+	@# information compared with raw kubectl output, and node labels on the graph aren't 
+	@# visible.
 	@#
-	@# This is basically a pipeline from graphs in dot format, 
-	@# generated by kubectl-graph, then passed through some image-magick 
-	@# transformations, and then pushed into the 'chafa' tool for 
-	@# generating ASCII-art from images.
+	@# This is basically a pipeline from graphs in dot format, generated by kubectl-graph, 
+	@# then passed through some image-magick transformations, and then pushed into 
+	@# the 'chafa' tool for generating ASCII-art from images.
 	@#
 	@# USAGE: (same as k8s.graph)
 	@#   ./k8s.mk k8s.graph.tui/<namespace>/<kind>
 	@#
-	case $${COMPOSE_MK_DIND} in \
-		0) \
-			entrypoint=make \
-			cmd="${MAKE_FLAGS} .k8s.graph.tui/${*}" \
-			COMPOSE_MK_DEBUG=0 ${make} k8s-tools/tui; ;; \
+	case $${CMK_DIND} in \
+		0) CMK_DEBUG=0 entrypoint=make \
+				cmd="${MAKE_FLAGS} .k8s.graph.tui/${*}" \
+					${make} k8s-tools/tui; ;; \
 		*) ${make} .k8s.graph.tui/${*}; ;; \
 	esac
 .k8s.graph.tui/%:
@@ -291,17 +505,17 @@ k8s.graph.tui/%:
 	$(call io.mktemp) \
 	&& make k8s.graph/${*} > $${tmpf} \
 	&& cat $${tmpf} \
-		| dot /dev/stdin -Tsvg -o /tmp/tmp.svg \
+		| dot /dev/stdin -Tsvg -o /tmp/svg.svg \
 			-Gbgcolor=transparent -Gsize=200,200 \
 			-Estyle=bold -Ecolor=red -Eweight=150 > /dev/null \
-		&& convert /tmp/tmp.svg -transparent white png:- > /tmp/tmp.png \
+		&& convert /tmp/svg.svg -transparent white png:- > /tmp/png.png \
 		&& default_size=`echo .5*\`tput cols||echo 30\`|bc`x \
 		&& chafa \
 			--invert -c full --size $${size:-$${default_size}} \
-			--center=on $${clear:-} /tmp/tmp.png
+			--center=on $${clear:-} /tmp/png.png
 .k8s.graph.tui.clear/%:; clear="--clear" make .k8s.graph.tui/${*}
 
-k8s.help: help.namespace/k8s
+k8s.help: mk.namespace.filter/k8s.
 	@# Shows targets for just the 'k8s' namespace.
 
 k8s.kubens/%: 
@@ -314,7 +528,7 @@ k8s.kubens/%:
 	@#
 	TERM=xterm kubens ${*} 2>&1 > ${stderr}
 
-k8s.kubens.create/%:
+k8s.kubens.create/%:; ${make} k8s.namespace.create/${*} k8s.kubens/${*}
 	@# Context-manager.  Activates the given namespace, creating it first if necessary.
 	@#
 	@# NB: This modifies state in the kubeconfig, so that it can effect contexts 
@@ -322,11 +536,8 @@ k8s.kubens.create/%:
 	@#
 	@# USAGE: 
 	@#    ./k8s.mk k8s.kubens.create/<namespace>
-	@#
-	make k8s.namespace.create/${*}
-	make k8s.kubens/${*}
-
-k8s.namespace/%:
+	
+k8s.namespace/%:; ${make} k8s.kubens/${*}
 	@# Context-manager.  Activates the given namespace.
 	@#
 	@# NB: This modifies state in the kubeconfig, so that it can effect contexts 
@@ -334,8 +545,8 @@ k8s.namespace/%:
 	@#
 	@# USAGE:  
 	@#	 ./k8s.mk k8s.namespace/<namespace>
-	@#
-	make k8s.kubens/${*}
+	
+
 k8s.namespace.create/%:
 	@# Idempotent version of namespace-create
 	@#
@@ -346,6 +557,17 @@ k8s.namespace.create/%:
 		--dry-run=client -o yaml \
 	| kubectl apply -f - \
 	2>&1
+
+k8s.namespace.label/%:
+	@# Appends the given label to the given namespace.
+	@#
+	@# USAGE: 
+	@#   key=<key> val=<val> ./k8s.mk k8s.namespace.label/<namespace>
+	@#
+	( printf '{ "state": "patched", "kind": "Namespace", "name": "' \
+	; printf "${*}"; printf '", "definition": {"metadata": {"labels": {' \
+	; printf "\"$${key:-key}\": \"$${val:-val}\"}}}}") | ${jq.run} . \
+	| ${make} k8s.ansible
 
 k8s.namespace.list:
 	@# Returns all namespaces in a simple array.
@@ -360,8 +582,8 @@ k8s.namespace.purge/%:
 	@# USAGE: 
 	@#    k8s.namespace.purge/<namespace>
 	@#
-	printf "${GLYPH_K8S} k8s.namespace.purge /${no_ansi}${green}${*}${no_ansi} Waiting for delete (cascade=foreground) \n" > ${stderr} \
-	&& set +x \
+	$(call log, ${GLYPH_K8S} k8s.namespace.purge ${sep} ${no_ansi}${green}${*} ${sep} Waiting for delete (cascade=foreground))
+	${trace_maybe} \
 	&& kubectl delete namespace --cascade=foreground ${*} -v=9 2>/dev/null || true
 
 k8s.namespace.purge.by.prefix/%:
@@ -371,12 +593,10 @@ k8s.namespace.purge.by.prefix/%:
 	@# USAGE: 
 	@#    ./k8s.mk k8s.namespace.purge.by.prefix/<prefix>
 	@#
-	make k8s.namespace.list \
-	| grep ${*} \
-	|| (\
-		printf "${dim}Nothing to purge: no namespaces matching \`${*}*\`${no_ansi}\n" \
-		> ${stderr} )\
-	| xargs -I% bash -x -c "make k8s.namespace.purge/%"
+	${make} k8s.namespace.list \
+	| grep ${*} | ${make} stream.peek \
+	| xargs -I% bash -x -c "${make} k8s.namespace.purge/%"
+	|| $(call log, ${GLYPH_K8S} ${@} ${sep} ${dim}Nothing to purge: no namespaces matching \`${*}*\`)
 
 k8s.namespace.wait/%:
 	@# Waits for every pod in the given namespace to be ready.
@@ -394,20 +614,26 @@ k8s.namespace.wait/%:
 	@#   [1]: https://github.com/alecjacobs5401/kubectl-sick-pods
 	@#
 	$(trace_maybe) \
-	&& [ "$${COMPOSE_MK}" = "1" ] \
+	&& [ "$${CMK_INTERNAL}" = "1" ] \
 	&& ${make} .k8s.namespace.wait/${*} \
-	|| COMPOSE_MK_DEBUG=0 make k8s/dispatch/.k8s.namespace.wait/${*}
+	|| (\
+		${log.target.rerouting} \
+		; CMK_DEBUG=0 make k8s/dispatch/.k8s.namespace.wait/${*} \
+	)
 
 .k8s.namespace.wait/%:
-	@export scope=`[ "${*}" == "all" ] && echo "--all-namespaces" || echo "-n ${*}"` \
-	&& export header="${GLYPH_K8S} k8s.namespace.wait ${sep} " \
-	&& export header="$${header}${green}${*}${no_ansi}" \
+	@#
+	@#
+	@#
+	export scope=`[ "${*}" == "all" ] && echo "--all-namespaces" || echo "-n ${*}"` \
+	&& export header="${GLYPH_K8S} k8s.namespace.wait ${sep} ${green}${*}${no_ansi}" \
+	&& stamp=`date +'%H:%M:%S'` \
 	&& wait_cmd="gum \
 		spin --spinner $${spinner:-jump} \
 		--spinner.foreground=$${color:-39} \
 		--title=\"Waiting ${K8S_POLL_DELTA}s\" \
 		-- sleep ${K8S_POLL_DELTA}" \
-	&& printf "$${header} ${sep}${dim} Looking for pending pods.. ${no_ansi}\n" > ${stderr} \
+	&& $(call log, $${header} ${sep}${dim} Looking for pending pods) \
 	&& until \
 		kubectl get pods $${scope} -o json 2> /dev/null \
 		| jq '[.items[].status.containerStatuses[]|select(.state.waiting)]' 2> /dev/null \
@@ -431,14 +657,14 @@ k8s.namespace.wait/%:
 			| sed "s/ErrImagePull/$(shell printf "${yellow}ErrImagePull${no_ansi}")/g" \
 			| sed "s/ImagePullBackOff/$(shell printf "${yellow}ImagePullBackOff${no_ansi}")/g" \
 			| sed ':a;N;$$!ba;s/\n\n/\n/g' \
-			| tr '☂' '\n' 2>/dev/null | make stream.dim > ${stderr} \
-		&& printf "\n${dim}`date`${no_ansi} ${bold}Pods aren't ready yet${no_ansi}\n" > ${stderr} \
+			| tr '☂' '\n' 2>/dev/null | ${stream.dim} > ${stderr} \
+		&& $(call log, $${header} ${sep}${dim} $${stamp} ${sep} ${bold}Pods aren't ready yet) \
 		&& eval $${wait_cmd}; \
 	done \
-	&& printf "${dim}$${header} ${sep} ✨ ${no_ansi}`[ ${*} == all ] && echo Cluster || echo Namespace` ready.${no_ansi}\n" > ${stderr}
+	&& tmp=`[ "${*}" == "all" ] && echo Cluster || echo Namespace` \
+	&& $(call log, $${header} ${sep}${dim} $${stamp} ${sep} $${tmp} ready ${GLYPH_SPARKLE})
 
-
-k8s.stat: 
+k8s.stat:
 	@# Describes status for cluster, cluster auth, and namespaces.
 	@# Not pipe friendly, and not suitable for parsing!  
 	@#
@@ -447,22 +673,22 @@ k8s.stat:
 	@#
 	@# For a shorter, looping version that's suitable as a tmux widget, see 'k8s.stat.widget'
 	@#
-	printf "\n${GLYPH_K8S} k8s.stat ${no_ansi_dim}ctx=${green}${underline}`kubectx -c||true`${no_ansi_dim} ns=${green}${underline}`kubens -c ||true`${no_ansi}\n" \
-	| ${make} stream.to.stderr
-	${make} k8s.stat.env \
-		&& ${make} k8s.stat.cluster \
-		&& ${make} k8s.stat.node_info k8s.stat.auth  \
-		&& ${make} k8s.stat.ns k8s.stat.ctx 
-
-# k8s.stat.widget:
-# 	make k8s.stat
-
+	case $${CMK_INTERNAL} in \
+		0)  ${log.target.rerouting} \
+			; ${make} k8s-tools.dispatch/k8s/${@} \
+			; exit $$? ; ;; \
+		*) true \
+			&& tmp1=`kubectx -c||true` && tmp2=`kubens -c ||true` \
+			&& $(call log, ${GLYPH_K8S} k8s.stat ${no_ansi_dim}ctx=${green}${underline}$${tmp1}${no_ansi_dim} ns=${green}${underline}$${tmp2}) \
+			&& ${make} k8s.stat.env k8s.stat.cluster \
+				k8s.stat.node_info k8s.stat.auth  \
+				k8s.stat.ns k8s.stat.ctx; ;; \
+	esac
 k8s.test_harness.random:; ${make} k8s.test_harness/default/`uuidgen`
 	@# Starts a test-pod with a random name in the given namespace, optionally blocking until it's ready.
 	@#
 	@# USAGE: 
 	@#	`k8s.test_harness.random`
-	@#
 
 k8s.test_harness/%:
 	@# Starts a test-pod in the given namespace, optionally blocking until it's ready.
@@ -477,9 +703,10 @@ k8s.test_harness/%:
 	$(eval export pod_name:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}'))) \
 	$(eval export rest:=$(strip \
 		$(shell echo $(wordlist 3,99,$${pathcomp}) | sed -e 's/ /\//g')))
-	@export pod_name=$${pod_name:-test-harness} \
+	$(trace_maybe) \
+	&& export pod_name=$${pod_name:-test-harness} \
 	&& export pod_image=$${rest:-$${ALPINE_K8S_VERSION}} \
-	&& export header="${GLYPH_K8S} k8s.test_harness // ${no_ansi}" \
+	&& export header="${GLYPH_K8S} k8s.test_harness ${sep} ${no_ansi}" \
 	&& printf "$${header}${green}$${namespace}${no_ansi}\n" > ${stderr} \
 	&& export data="{ \
 		\"apiVersion\": \"v1\", \"kind\":\"Pod\", \
@@ -523,21 +750,21 @@ k8s.shell/%:
 			&& echo "exec -n ${namespace} -i ${pod_name} -- bash" \
 			|| echo "exec -n ${namespace} -it ${pod_name} -- bash" ))
 	$(call io.mktemp) && \
-	printf "${GLYPH_K8S} k8s.shell${no_ansi_dim} ${sep} $${namespace} ${sep} ${underline}$${pod_name}${no_ansi}\n" >${stderr}  \
+	$(call log, ${GLYPH_K8S} k8s.shell${no_ansi_dim} ${sep} $${namespace} ${sep} ${underline}$${pod_name}) \
 	&& case "$${rest}" in \
 		pipe) \
 			cat /dev/stdin > $${tmpf}; \
-			([ "$${COMPOSE_MK}" = "0" ] \
-				&& (cat $${tmpf} \
-					| pipe=yes cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s ) \
+			([ "$${CMK_INTERNAL}" = "0" ] \
+				&& (${log.target.rerouting}; cat $${tmpf} \
+					| CMK_SUPERVISOR=0 pipe=yes cmd="$${cmd}" entrypoint=kubectl ${make} k8s-tools/k8s ) \
 				|| ( \
-					printf "${GLYPH_K8S} k8s.shell${no_ansi_dim} // ${no_ansi}${green}$${namespace}${no_ansi_dim} // ${no_ansi}${green}${underline}$${pod_name}${no_ansi_dim} \n${cyan}[${no_ansi}${bold}kubectl${no_ansi_dim}${cyan}]${no_ansi} ${no_ansi_dim}${ital}${cmd}${no_ansi}\n${cyan_flow_left} ${dim_ital}`cat $${tmpf}|make io.fmt.strip`${no_ansi}\n" > ${stderr} \
+					$(call log, ${GLYPH_K8S} k8s.shell${no_ansi_dim} // ${no_ansi}${green}$${namespace}${no_ansi_dim} // ${no_ansi}${green}${underline}$${pod_name}${no_ansi_dim} \n${cyan}[${no_ansi}${bold}kubectl${no_ansi_dim}${cyan}]${no_ansi} ${no_ansi_dim}${ital}${cmd}${no_ansi}\n${cyan_flow_left} ${dim_ital}`cat $${tmpf}|make io.fmt.strip`) \
 					&& cat $${tmpf} | kubectl $${cmd} \
 				  ) \
 			); ;; \
 		*) \
-			[ "$${COMPOSE_MK:-0}" = "0" ] \
-				&& (cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s) \
+			[ "$${CMK_INTERNAL:-0}" = "0" ] \
+				&& ${log.target.rerouting}; (cmd="$${cmd}" entrypoint=kubectl make k8s-tools/k8s) \
 				|| kubectl $${cmd}; ;; \
         esac
 k8s.wait k8s.cluster.wait: k8s.namespace.wait/all
@@ -549,23 +776,23 @@ k8s.wait k8s.cluster.wait: k8s.namespace.wait/all
 ##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8s
 
 k8s.stat.auth:
-	printf "${GLYPH_K8S} ${@} ${no_ansi}${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep}${dim} kubectl auth whoami )
 	auth_info=`\
 		kubectl auth whoami -ojson 2>/dev/null \
 		|| printf "${yellow}Failed to retrieve auth info with command:${no_ansi_dim} kubectl auth whoami -ojson${no_ansi}"` \
-	&& printf "${dim}$${auth_info}${no_ansi}\n" | make stream.indent
+	&& printf "$${auth_info}\n"| jq .
 
 k8s.stat.env:
-	printf "${GLYPH_K8S} ${@} ${no_ansi}${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ) 
 	(   (env | grep CLUSTER || true) \
 	  ; (env | grep KUBE    || true) \
 	  ; (env | grep DOCKER  || true) \
 	) | make stream.indent
 
 k8s.stat.cluster:
+	@# Shows cluster status.
 	@#
-	@#
-	printf "${GLYPH_K8S} ${@} ${sep}${no_ansi_dim}Showing cluster status..${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep}${no_ansi_dim} Showing cluster status..)
 	kubectl version -o json 2>/dev/null | jq . || true
 	kubectl cluster-info -o json 2>/dev/null  | jq . || true
 
@@ -574,28 +801,34 @@ k8s.stat.node_info:
 	@# Not machine-friendly.  See instead 'k8s.get'.
 	@#
 	node_count=`kubectl get nodes -oname|wc -l` \
-	&& printf "${GLYPH_K8S} ${@} (${no_ansi}${green}$${node_count}${no_ansi_dim} total)\n" > ${stderr}
-	code=`kubectl get nodes` ${make} gum.format.code 
-
-gum.format.code:
-	$(trace_maybe) && gum format -t code "$${code}" | tail +3 | head -n -1
+	&& $(call log,${GLYPH_K8S} ${@} (${no_ansi}${green}$${node_count}${no_ansi_dim} total))
+	kubectl get nodes | ${charm.gum.format.code}
 
 k8s.stat.ns:
 	@#
 	@#
-	printf "${GLYPH_K8S} ${@} ${sep} ${dim}Listing namespaces..${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep} ${dim}Listing namespaces)
 	kubens | make stream.indent
 
 k8s.stat.ctx:
 	@#
 	@#
-	printf "${GLYPH_K8S} ${@} ${sep}${no_ansi_dim}Showing cluster context..${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep} ${no_ansi_dim}Showing cluster context)
 	kubectx | make stream.indent
 
-## END 'kubefwd.*' targets
-## BEGIN Misc targets
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+## END: k8s.* targets
+## BEGIN: kubefwd.* targets
+##
+## The *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.
+##
+##
+## Forwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
+##
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8smk
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
 kubefwd.panic:
 	@# Non-graceful stop for everything that is kubefwd related.
 	@# 
@@ -605,7 +838,7 @@ kubefwd.panic:
 	@# USAGE:  
 	@#   ./k8s.mk kubefwd.panic
 	@# 
-	printf "${GLYPH_K8S} ${@} ${sep}${no_ansi_dim}Killing all kubefwd containers..${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep}${no_ansi_dim}Killing all kubefwd containers)
 	(make kubefwd.ps || echo -n) | xargs -I% bash -x -c "docker stop -t 1 %"
 
 kubefwd.ps:
@@ -614,7 +847,7 @@ kubefwd.ps:
 	@# USAGE:  
 	@#   ./k8s.mk kubefwd.ps
 	@# 
-	printf "${GLYPH_K8S} ${@} ${sep}${no_ansi_dim}Finding containers..${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_K8S} ${@} ${sep}${no_ansi_dim}Finding containers)
 	$(trace_maybe) \
 	&& (docker ps --format json \
 	| jq -r '.Names' \
@@ -633,7 +866,7 @@ kubefwd.ps:
 	cname=kubefwd.`basename ${PWD}`.$${namespace}.$${svc_name:-all} \
 	&& printf $${cname}
 
-kubefwd.help: help.namespace/kubefwd
+kubefwd.help: mk.namespace.filter/kubefwd.
 	@# Shows targets for just the 'kubefwd' namespace.
 
 kubefwd.stop/%:
@@ -690,20 +923,21 @@ kubefwd.start/% k8s.namespace.fwd/%:
 	&& echo {} \
 		| ${make} stream.json.object.append key=namespace val="$${namespace}" \
 		| ${make} stream.json.object.append key=svc val="$${svc_name}" \
-		| ${make} stream.dim.indent > ${stderr} \
+		| ${stream.dim.indent.stderr} \
 	&& echo {} \
 		| ${make} stream.json.object.append key=container val="$${cname}" \
 		| ${make} stream.json.object.append key=cmd val="$${fwd_cmd}" \
-		| ${make} stream.dim.indent > ${stderr} \
+		| ${stream.dim.indent.stder} \
 	&& printf "$${fwd_cmd_wrapped}\n" | ${make} stream.dim > ${stderr} \
 	&& cid=`$${fwd_cmd_wrapped}` && cid=$${cid:0:8} \
 	&& cmd="docker logs -f $${cname}" timeout=3 ${make} flux.timeout.sh 
 	
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ## END 'kubefwd.*' targets
 ## BEGIN Misc targets
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-k8smk
-
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 ktop: ktop/all
 	@# Launches ktop tool.  
@@ -718,8 +952,8 @@ ktop/%:
 	@# USAGE:
 	@#   ./k8s.mk ktop/<namespace>
 	@#
-	@scope=`[ "${*}" == "all" ] && echo "--all-namespaces" || echo "-n ${*}"` \
-	&& [ "$${COMPOSE_MK:-0}" = "0" ] \
+	scope=`[ "${*}" == "all" ] && echo "--all-namespaces" || echo "-n ${*}"` \
+	&& [ "$${CMK_INTERNAL:-0}" = "0" ] \
 		&& cmd="ktop $${scope}" entrypoint=kubectl ${make} k8s \
 		|| kubectl ktop $${scope}
 
@@ -732,7 +966,6 @@ k9s/%:; ${make} k9s cmd="-n ${*}"
 	@# USAGE:  
 	@#   ./k8s.mk k9s/<namespace>
 	@#
-	
 
 k9: k9s
 	@# Starts the k9s pod-browser TUI, using whatever namespace is currently activated.
@@ -742,17 +975,24 @@ k9: k9s
 	@# USAGE:  
 	@#   ./k8s.mk k9
 
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ## END misc targets
 ## BEGIN 'tui.*' targets
 ## DOCS: 
 ##   [1] https://github.com/elo-enterprises/k8s-tools/docs/api#api-tui
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+# FIXME: not dry 
+export CMK_COMPOSE_FILE=.tmp.compose.mk.yml
+export COMPOSE_EXTRA_ARGS=-f ${CMK_COMPOSE_FILE}
 
 # Override compose.mk defaults 
 export TUI_SVC_NAME:=tui
+export TUI_COMPOSE_FILE:=k8s-tools.yml
 export TUI_CONTAINER_IMAGE:=k8s:tui
-export TUI_COMPOSE_EXTRA_ARGS:=-f k8s-tools.yml
 export TUI_THEME_HOOK_PRE:=.tui.theme.custom
 export TUI_THEME_NAME:=powerline/double/red
+export TUI_SVC_BUILD_ORDER:=dind_base,tux,k8s,dind,tui
 
 .tui.theme.custom: .tux.init.theme
 	setter="tmux set -goq" \
@@ -765,7 +1005,7 @@ k8s.commander:
 	@# This has 3 panes by default, where the main pane is lazydocker, plus two utility panes.
 	@# Automation also ensures that lazydocker always starts with the "statistics" tab open.
 	@#
-	printf "${GLYPH_DOCKER} ${@} ${sep}${dim} Opening commander TUI for k8s..${no_ansi}\n" > ${stderr}
+	$(call log, ${GLYPH_DOCKER} ${@} ${sep}${dim} Opening commander TUI for k8s)
 	TUI_LAYOUT_CALLBACK=.tui.k8s.commander.layout \
 		TUI_CMDR_PANE_COUNT=4 ${make} tux.commander
 
@@ -779,10 +1019,10 @@ k8s.commander/%:
 
 .tui.k8s.commander.layout: 
 	printf "${GLYPH_DOCKER} ${@} ${sep} ${no_ansi_dim}Starting widgets and setting geometry..${no_ansi}\n" > ${stderr}
-	${make} .tux.pane/4/.tui.widget.k8s.topology.clear/kube-system
-	${make} .tux.pane/3/.tui.widget.k8s.topology.clear/default
-	${make} .tux.pane/2/flux.loopf/.tux.widget.env/K
-	${make} .tux.pane/1/flux.wrap/docker.stat,k8s.stat,$${k8s_commander_targets:-}
+	${make} .tux.pane/3/.tui.widget.k8s.topology.clear/kube-system
+	${make} .tux.pane/2/.tui.widget.k8s.topology.clear/default
+	${make} .tux.pane/1/flux.loopf/.tux.widget.env/K
+	${make} .tux.pane/0/flux.wrap/docker.stat,k8s.stat,$${k8s_commander_targets:-}
 	${make} .tux.commander.layout
 	title="main" ${make} .tux.pane.title/1
 	title="default namespace" ${make} .tux.pane.title/3
@@ -803,5 +1043,8 @@ tui.panic:
 	clear="--clear" ${make} .tui.widget.k8s.topology/${*}
 
 .tui.widget.k8s.topology/%: io.time.wait/2
-	${make} gum.style label="${*} topology"; 
-	${make} flux.loopfq/k8s.graph.tui/${*}/pod
+	label="${*} topology" \
+		${make} gum.style tux.require flux.loopfq/k8s.graph.tui/${*}/pod
+
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+#*/

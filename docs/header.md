@@ -23,5 +23,8 @@
       <hr style="border-bottom:1px solid black;"><center><span align=center>{% include "badges.md" %}</span></center><hr style="border-bottom:1px solid black;">
     </td>
   </tr>
-</table><center><span align=center>Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.  Project-local clusters, customized TUIs, and more.</span></center><hr style="border-bottom:1px solid black;">
+</table><center><span align=center>
+  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.<br/>
+  Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+</span></center><hr style="border-bottom:1px solid black;">
 

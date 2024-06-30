@@ -4,7 +4,7 @@
 
 
 
-<table align=center border=1 style="width:100%">
+<table align=center style="width:100%">
   <tr>
     <td colspan=2><strong>k8s-tools &nbsp; // &nbsp; <strong>API</strong></strong>&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
@@ -27,19 +27,80 @@
 <td align=center width="13%"><a href=/docs/api/>API</a></td>
 <td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
       </table>
-      <hr style="align:center;width:100%;border-bottom: 1px dashed black;background: #efefef;"><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span><hr style="align:center;width:100%;border-bottom: 1px dashed black;background: #efefef;">
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
     </td>
   </tr>
-</table><hr/><span align=center>Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.  Project-local clusters, customized TUIs, and more.</span>
+</table><center><span align=center>
+  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.<br/>
+  Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+</span></center><hr style="border-bottom:1px solid black;">
+
+
+-----------------------------------------------------------------------
+
+<div class="toc">
+<ul>
+<li><a href="#api-composemk">API: compose.mk</a><ul>
+<li><a href="#composemk-dynamic-targets">compose.mk: (Dynamic Targets)</a></li>
+<li><a href="#composemk-static-targets">compose.mk: (Static Targets)</a><ul>
+<li><a href="#api-tux">API: tux</a></li>
+<li><a href="#api-io">API: io</a></li>
+<li><a href="#api-docker">API: docker</a></li>
+<li><a href="#api-flux">API: flux</a></li>
+<li><a href="#api-gum">API: gum</a></li>
+<li><a href="#api-stream">API: stream</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#api-k8smk">API: k8s.mk</a><ul>
+<li><a href="#k8smk-dynamic-targets">k8s.mk: (Dynamic Targets)</a></li>
+<li><a href="#k8smk-static-targets">k8s.mk: (Static Targets)</a><ul>
+<li><a href="#api-k8s">API: k8s</a></li>
+<li><a href="#api-ansible">API: ansible</a></li>
+<li><a href="#api-k3d">API k3d</a></li>
+<li><a href="#api-kubefwd">API: kubefwd</a></li>
+<li><a href="#api-helm">API: helm</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 
 
 -----------------------------------------------------------------------
 
 ## API: compose.mk
 
+<div class="toc">
+<ul>
+<li><a href="#api-composemk">API: compose.mk</a><ul>
+<li><a href="#composemk-dynamic-targets">compose.mk: (Dynamic Targets)</a></li>
+<li><a href="#composemk-static-targets">compose.mk: (Static Targets)</a><ul>
+<li><a href="#api-tux">API: tux</a></li>
+<li><a href="#api-io">API: io</a></li>
+<li><a href="#api-docker">API: docker</a></li>
+<li><a href="#api-flux">API: flux</a></li>
+<li><a href="#api-gum">API: gum</a></li>
+<li><a href="#api-stream">API: stream</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+-------------------------------------------
+
 ### compose.mk: (Dynamic Targets)
 
 The autogenerated section of the API (i.e. what's created by `compose.import`) is documented as part of the [Make/Compose Bridge](/#makecompose-bridge).
+
+For the autogenerated targets coming from `k8s-tools.yml`, see [the k8s.mk dynamic targets](/api/#k8smk-dynamic-targets).
+
+----------------------------------------------------
 
 ### compose.mk: (Static Targets)
 
@@ -53,18 +114,36 @@ This is the complete list of namespaces & public targets available from `compose
 
 Things are organized into a few namespaces, which hopefully avoids collisions with your project targets.
 
-* [*`io.*`* targets:](#api-io)  Misc text-formatters, timers, and other utilities
-* [*`docker.*`* targets:](#api-docker) targets: Simple helpers for working with docker.
-* [*`flux.*`*](#api-flux) targets: Miniature workflow library / pipe wizard.
-* [*`tux.*`*  targets:](#api-tux) targets: Embedded TUI support.
-* [*`make.*`*  targets:](#api-tux) targets: Low-level helpers for working with make.
-* [*`stream.*`* targets:](#api-stream) targets: Support for IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+| Namespace             | Description                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| [*`io.*`* targets:](#api-io)           | Misc text-formatters, timers, and other utilities                                                          |
+| [*`docker.*`* targets:](#api-docker)   | Simple helpers for working with docker.                                                                    |
+| [*`flux.*`*](#api-flux)                | Miniature workflow library / pipe wizard.                                                                  |
+| [*`tux.*`*  targets:](#api-tux)        | Embedded TUI support.                                                                                      |
+| [*`mk.*`*  targets:](#api-tux)       | Low-level helpers for working with make.                                                                   |
+| [*`stream.*`* targets:](#api-stream)   | Support for IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.   |
 
 
+
+----------------------------------------------------
 
 #### API: tux
 
-The *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  See the [TUI documentation](/#embedded-tui) for a high-level overview of what this is and how it works.  For more details, [see the main TUI docs](/#embedded-tui), read on into the API, or see the [tux container spec in compose.mk](
+
+
+
+----------------------------------------------------------------------------
+
+
+
+DOCS:
+
+* `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+See the [TUI documentation](/#embedded-tui) for a high-level overview of what this is and how it works.  For more details, [see the main TUI docs](/#embedded-tui), read on into the API, or see the [tux container spec in compose.mk](
 https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Acompose.mk+content%3Atux&type=code)
 
 
@@ -73,19 +152,11 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Acompose.mk
 *This documentation is pulled automatically from [source](compose.mk).*
 
  
-#### **`tux.bootstrap`**
+##### **`tux.commander`**
 
 
 ```bash 
-Internal usage only
-```
-
- 
-#### **`tux.commander`**
-
-
-```bash 
-A tmux layout defaulting to 4 panes, using the "commander" layout callback.
+Starts a tmux layout defaulting to 4 panes, using the "commander" layout callback.
  See .tux.commander.layout for more details.
 
  USAGE:
@@ -93,19 +164,29 @@ A tmux layout defaulting to 4 panes, using the "commander" layout callback.
 ```
 
  
-#### **`tux.commander/<arg>`**
+##### **`tux.commander/<arg>`**
 
 
 ```bash 
 A 4-pane session using the commander layout, and proxying the given targets into the main pane.
  See .tux.commander.layout for more details.
 
- USAGE: (Runs 'io.env' target in the primary pane)
+ EXAMPLE: (Runs 'io.env' target in the primary pane)
    ./compose.mk tux.commander/io.env
 ```
 
  
-#### **`tux.dispatch.sh`**
+##### **`tux.demo`**
+
+
+```bash 
+Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1] 
+
+ [1]:
+```
+
+ 
+##### **`tux.dispatch.sh`**
 
 
 ```bash 
@@ -116,17 +197,18 @@ Runs the given <cmd> into the embedded TUI container.
 ```
 
  
-#### **`tux.dispatch/<arg>`**
+##### **`tux.dispatch/<arg>`**
 
 
 ```bash 
 Runs the given target inside the embedded TUI container.
 
  USAGE:
+  ./compose.mk tux.dispatch/<target_name>
 ```
 
  
-#### **`tux.help`**
+##### **`tux.help`**
 
 
 ```bash 
@@ -134,13 +216,16 @@ Lists only the targets available under the 'tux' namespace.
 ```
 
  
-#### **`tux.mux.count/<arg>`**
+##### **`tux.mux.count/<arg>`**
+
+
+```bash 
+USAGE:
+   ./compose.mk tux.mux.count/<int>
+```
 
  
-* *Alias for [`tux.mux.svc/<arg>`](#tuxmuxsvcarg)*
-
- 
-#### **`tux.mux.detach/<arg>`**
+##### **`tux.mux.detach/<arg>`**
 
 
 ```bash 
@@ -152,7 +237,7 @@ Like 'tux.mux' except without default attachment.
 ```
 
  
-#### **`tux.mux.svc/<arg>`**
+##### **`tux.mux.generic/<arg>`**
 
 
 ```bash 
@@ -164,9 +249,6 @@ Starts a split-screen display of N panes inside a tmux (actually 'tmuxp') sessio
  USAGE:
    ./compose.mk tux.mux.svc/<svc1>,<svc2>
 
- USAGE:
-   ./compose.mk tux.mux.count/<int>
-
  This works without a tmux requirement on the host, by default using the embedded
  container spec @ 'compose.mk:tux'.  The TUI backend can also be overridden by using
  the variables for TUI_COMPOSE_FILE & TUI_SVC_NAME.  See also k8s.mk, which uses by
@@ -174,7 +256,15 @@ Starts a split-screen display of N panes inside a tmux (actually 'tmuxp') sessio
 ```
 
  
-#### **`tux.mux/<arg>`**
+##### **`tux.mux.svc/<arg>`**
+
+
+```bash 
+
+```
+
+ 
+##### **`tux.mux/<arg>`**
 
 
 ```bash 
@@ -186,7 +276,7 @@ Maps execution for each of the comma-delimited targets
 ```
 
  
-#### **`tux.pane/<arg>`**
+##### **`tux.pane/<arg>`**
 
 
 ```bash 
@@ -197,7 +287,7 @@ Remote control for the TUI, from the host, running the given target.
 ```
 
  
-#### **`tux.panic`**
+##### **`tux.panic`**
 
 
 ```bash 
@@ -206,7 +296,7 @@ USAGE:
 ```
 
  
-#### **`tux.ps`**
+##### **`tux.ps`**
 
 
 ```bash 
@@ -217,15 +307,26 @@ Lists ID's for containers related to the TUI.
 ```
 
  
-#### **`tux.stream.split`**
+##### **`tux.require`**
 
 
 ```bash 
+Require the embedded-TUI stack to finish bootstrap.  This is time-consuming, 
+ so it should be called strategically and only when needed.  Note that this might 
+ be required for things like 'gum' and for anything that depends on 'dind_base', 
+ so strictly speaking it's not just for TUIs.  
 
+ This tries to take advantage of caching, but each service 
+ in `TUI_SVC_BUILD_ORDER` needs to be visited, and even that is slow.
+ 
+
+ Possible optimization: this command is *usually* but not 
+ always called from  `MAKELEVEL<3` and above that it is 
+ probably cached already?
 ```
 
  
-#### **`tux.widget.ticker`**
+##### **`tux.widget.ticker`**
 
 
 ```bash 
@@ -238,7 +339,7 @@ A ticker-style display for the given text, suitable for usage with tmux status b
 ```
 
  
-#### **`tux/shell`**
+##### **`tux/shell`**
 
 
 ```bash 
@@ -252,7 +353,17 @@ Bridge compatability.
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
 #### API: io
+
+
+
+
+----------------------------------------------------------------------------
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 The *`io.*`* targets cover various I/O helpers, text-formatters, and other utilities.
 
@@ -262,7 +373,7 @@ The *`io.*`* targets cover various I/O helpers, text-formatters, and other utili
 *This documentation is pulled automatically from [source](compose.mk).*
 
  
-#### **`io.bash`**
+##### **`io.bash`**
 
 
 ```bash 
@@ -271,7 +382,7 @@ Starts an interactive shell with all the environment variables set
 ```
 
  
-#### **`io.env`**
+##### **`io.env`**
 
 
 ```bash 
@@ -283,13 +394,13 @@ Dumps a relevant subset of environment variables for the current context.
 ```
 
  
-#### **`io.env.filter.prefix/<arg>`**
+##### **`io.env.filter.prefix/<arg>`**
 
  
 * *Alias for [`io.env/<arg>`](#ioenvarg)*
 
  
-#### **`io.env.pretty`**
+##### **`io.env.pretty`**
 
 
 ```bash 
@@ -301,13 +412,13 @@ Pretty version of io.env, this includes some syntax highlighting.
 ```
 
  
-#### **`io.env.pretty/<arg>`**
+##### **`io.env.pretty/<arg>`**
 
  
 * *Alias for [`io.envp/<arg>`](#ioenvparg)*
 
  
-#### **`io.env/<arg>`**
+##### **`io.env/<arg>`**
 
 
 ```bash 
@@ -318,7 +429,7 @@ Filters environment variables by the given prefix or (comma-delimited) prefixes.
 ```
 
  
-#### **`io.envp`**
+##### **`io.envp`**
 
 
 ```bash 
@@ -330,7 +441,7 @@ Pretty version of io.env, this includes some syntax highlighting.
 ```
 
  
-#### **`io.envp/<arg>`**
+##### **`io.envp/<arg>`**
 
 
 ```bash 
@@ -344,7 +455,7 @@ Pretty version of 'io.env/<arg>', this includes syntax highlighting and also fil
 ```
 
  
-#### **`io.file.preview/<arg>`**
+##### **`io.file.preview/<arg>`**
 
 
 ```bash 
@@ -355,7 +466,7 @@ Outputs syntax-highlighting + line-numbers for the given filename to stderr.
 ```
 
  
-#### **`io.file.pygmentize/<arg>`**
+##### **`io.file.pygmentize/<arg>`**
 
 
 ```bash 
@@ -374,7 +485,7 @@ Syntax highlighting for the given file.
 ```
 
  
-#### **`io.fmt.strip`**
+##### **`io.fmt.strip`**
 
 
 ```bash 
@@ -382,7 +493,7 @@ Pipe-friendly helper for stripping whitespace.
 ```
 
  
-#### **`io.help`**
+##### **`io.help`**
 
 
 ```bash 
@@ -390,7 +501,7 @@ Lists only the targets available under the 'io' namespace.
 ```
 
  
-#### **`io.print.div`**
+##### **`io.print.div`**
 
 
 ```bash 
@@ -403,7 +514,7 @@ Prints a divider on stdout, defaulting to the full terminal width,
 ```
 
  
-#### **`io.print.div/<arg>`**
+##### **`io.print.div/<arg>`**
 
 
 ```bash 
@@ -414,17 +525,15 @@ Prints a divider with a width of `term_width / <arg>`
 ```
 
  
-#### **`io.print.indent`**
+##### **`io.print.indent`**
 
 
 ```bash 
 Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
-
- USAGE:
 ```
 
  
-#### **`io.quiet.stderr.sh`**
+##### **`io.quiet.stderr.sh`**
 
 
 ```bash 
@@ -435,7 +544,7 @@ Runs the given target, surpressing stderr output, except in case of error.
 ```
 
  
-#### **`io.quiet.stderr/<arg>`**
+##### **`io.quiet.stderr/<arg>`**
 
 
 ```bash 
@@ -446,7 +555,7 @@ Runs the given target, surpressing stderr output, except in case of error.
 ```
 
  
-#### **`io.tail/<arg>`**
+##### **`io.tail/<arg>`**
 
 
 ```bash 
@@ -458,7 +567,7 @@ Tails the named file, creating it first if necessary.
 ```
 
  
-#### **`io.time.wait`**
+##### **`io.time.wait`**
 
 
 ```bash 
@@ -466,7 +575,7 @@ Pauses for 1 second.
 ```
 
  
-#### **`io.time.wait/<arg>`**
+##### **`io.time.wait/<arg>`**
 
 
 ```bash 
@@ -477,7 +586,7 @@ Pauses for the given amount of seconds.
 ```
 
  
-#### **`io.time.wait/1`**
+##### **`io.time.wait/1`**
 
 
 ```bash 
@@ -485,7 +594,15 @@ Pauses for the given amount of seconds.
 ```
 
  
-#### **`io.wait/<arg>`**
+##### **`io.wait`**
+
+
+```bash 
+Pauses for 1 second.
+```
+
+ 
+##### **`io.wait/<arg>`**
 
  
 * *Alias for [`io.time.wait/<arg>`](#iotimewaitarg)*
@@ -494,9 +611,27 @@ Pauses for the given amount of seconds.
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
 #### API: docker
 
-The *`docker.*`* targets cover a few helpers for working with docker.  This interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'.  That's because containers that are managed by `docker compose` are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported.  See [`stream.pygmentize`](#streampygmentize) for an example.
+
+
+
+The docker.* targets cover a few helpers for working with docker.
+
+
+
+This interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
+
+
+
+DOCS:
+
+* `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 
 
@@ -504,7 +639,39 @@ The *`docker.*`* targets cover a few helpers for working with docker.  This inte
 *This documentation is pulled automatically from [source](compose.mk).*
 
  
-#### **`docker.commander`**
+##### **`docker.build.maybe/<arg>`**
+
+
+```bash 
+Builds quietly, iff and only if the named image is not cached.
+
+ USAGE:
+   ./compose.mk docker.build.maybe/<fname>
+```
+
+ 
+##### **`docker.build.quiet/<arg>`**
+
+
+```bash 
+Builds the given dockerfile quietly, tagging it with 'tag.'
+
+ USAGE:
+  tag=<my_tag> ./compose.mk docker.build.quiet/<fname>
+```
+
+ 
+##### **`docker.clean`**
+
+
+```bash 
+This refers to "local" images.  Cleans all images from 'compose.mk' repository,
+ i.e. affiliated containers that are related to the embedded TUI, and certain things
+ created by the 'docker.*' targets. No arguments.
+```
+
+ 
+##### **`docker.commander`**
 
 
 ```bash 
@@ -514,7 +681,7 @@ TUI layout providing an overview for docker.
 ```
 
  
-#### **`docker.context`**
+##### **`docker.context`**
 
 
 ```bash 
@@ -522,7 +689,7 @@ Returns all of the available docker context. Pipe-friendly.
 ```
 
  
-#### **`docker.context/<arg>`**
+##### **`docker.context/<arg>`**
 
 
 ```bash 
@@ -537,7 +704,7 @@ Returns docker-context details for the given context-name.
 ```
 
  
-#### **`docker.from.def/<arg>`**
+##### **`docker.from.def/<arg>`**
 
 
 ```bash 
@@ -550,16 +717,18 @@ Builds a container, treating the given 'define' block as a Dockerfile.
 
  This is part of the mad-science[1] test-suite and not really a good idea =P
 
- USAGE:
-   make docker.from.def/<my_def_name>
+ USAGE: ( explicit tag )
    tag=<my_tag> make docker.from.def/<my_def_name>
+
+ USAGE: ( implicit tag, same name as the define-block )
+   make docker.from.def/<my_def_name>
 
  REFS:
   [1]: https://github.com/elo-enterprises/k8s-tools/blob/master/tests/Makefile.mad-science.mk
 ```
 
  
-#### **`docker.from.file/<arg>`**
+##### **`docker.from.file/<arg>`**
 
 
 ```bash 
@@ -570,7 +739,7 @@ Builds a container from the given file.  The 'tag' variable is required.
 ```
 
  
-#### **`docker.from.url/<arg>`**
+##### **`docker.from.url/<arg>`**
 
 
 ```bash 
@@ -586,7 +755,7 @@ Builds a container, treating the given 'url' as a Dockerfile.  The 'tag' variabl
 ```
 
  
-#### **`docker.help`**
+##### **`docker.help`**
 
 
 ```bash 
@@ -594,17 +763,30 @@ Lists only the targets available under the 'docker' namespace.
 ```
 
  
-#### **`docker.images`**
+##### **`docker.images`**
 
 
 ```bash 
-Returns only affiliated images from 'compose.mk' repository, i.e. containers
- that are related to the embedded TUI, and certain things created by the 
- 'docker.*' targets. No arguments.
+Returns only affiliated images from 'compose.mk' repository, 
+ i.e. containers that are related to the embedded TUI, and/or 
+ things created by compose.mk inside the 'docker.*' targets, etc.
+ These are "local" images.
+
+ Extensions (like 'k8s.mk') may optionally export a value for 
+ 'CMK_EXTRA_REPO', which appends to the default list described above.
 ```
 
  
-#### **`docker.init`**
+##### **`docker.images.all`**
+
+
+```bash 
+Like plain 'docker images' CLI, but always returns JSON
+ This target is also available as a function.
+```
+
+ 
+##### **`docker.init`**
 
 
 ```bash 
@@ -612,7 +794,7 @@ Checks if docker is available, then displays version/context (no real setup)
 ```
 
  
-#### **`docker.init.compose`**
+##### **`docker.init.compose`**
 
 
 ```bash 
@@ -622,7 +804,15 @@ Ensures compose is available.  Note that
 ```
 
  
-#### **`docker.panic`**
+##### **`docker.network.panic`**
+
+
+```bash 
+Runs 'docker network prune' for the entire system.
+```
+
+ 
+##### **`docker.panic`**
 
 
 ```bash 
@@ -633,15 +823,7 @@ Debugging only!  This is good for ensuring a clean environment,
 ```
 
  
-#### **`docker.panic.network`**
-
-
-```bash 
-Runs 'docker network prune' for the entire system.
-```
-
- 
-#### **`docker.panic.prune`**
+##### **`docker.prune`**
 
 
 ```bash 
@@ -649,15 +831,7 @@ Runs 'docker system prune' for the entire system.
 ```
 
  
-#### **`docker.panic.volume`**
-
-
-```bash 
-Runs 'docker volume prune' for the entire system.
-```
-
- 
-#### **`docker.ps`**
+##### **`docker.ps`**
 
 
 ```bash 
@@ -665,7 +839,7 @@ Like 'docker ps', but always returns JSON.
 ```
 
  
-#### **`docker.run.script/<arg>`**
+##### **`docker.run.script/<arg>`**
 
 
 ```bash 
@@ -677,7 +851,7 @@ Treats the named 'define' as a script, then runs it inside the given container.
 ```
 
  
-#### **`docker.run.sh/<arg>`**
+##### **`docker.run.sh`**
 
 
 ```bash 
@@ -689,24 +863,24 @@ Runs the given command inside the named container.
  those variables will be dereferenced and passed into docker's "-e" arguments.
 
  USAGE:
-   entrypoint=... cmd=... env=var1,var2 ./compose.mk docker.run.sh/<image_tag>
+   img=... entrypoint=... cmd=... env=var1,var2 ./compose.mk docker.run.sh
 ```
 
  
-#### **`docker.run/<arg>`**
+##### **`docker.run/<arg>`**
 
 
 ```bash 
 Runs the named target inside the named docker container.
- This works for any image as given.  See also '.docker.run' for
+ This works for any image as given; See instead '.docker.run' for
  a version that implicitly uses internally generated containers.
 
  USAGE:
-  ./compose.mk docker.run/<image>/<target>
+  img=... ./compose.mk docker.run/<target>
 ```
 
  
-#### **`docker.socket`**
+##### **`docker.socket`**
 
 
 ```bash 
@@ -715,7 +889,25 @@ Returns the docker socket in use for the current docker context.
 ```
 
  
-#### **`docker.stat`**
+##### **`docker.start`**
+
+
+```bash 
+Like 'docker.run', but uses the default entrypoint.
+ USAGE: ./compose.mk docker.run/<img>
+```
+
+ 
+##### **`docker.start/<arg>`**
+
+
+```bash 
+Starts the named docker image with the default entrypoint
+ USAGE: ./compose.mk docker.start/<img>
+```
+
+ 
+##### **`docker.stat`**
 
 
 ```bash 
@@ -731,7 +923,7 @@ Show information about docker-status.  No arguments.
 ```
 
  
-#### **`docker.stop`**
+##### **`docker.stop`**
 
 
 ```bash 
@@ -744,7 +936,7 @@ Stops one container, using the given timeout and the given id or name.
 ```
 
  
-#### **`docker.stop.all`**
+##### **`docker.stop.all`**
 
 
 ```bash 
@@ -754,17 +946,72 @@ Non-graceful stop for all running containers.
    ./compose.mk docker.stop name=my-container timeout=99
 ```
 
+ 
+##### **`docker.system.prune`**
+
+
+```bash 
+Runs 'docker system prune' for the entire system.
+```
+
+ 
+##### **`docker.tags.by.repo/<arg>`**
+
+
+```bash 
+Filters all docker images by the given repository.
+ This helps to separate system images from compose.mk images.
+ This target is also available as a function.
+ See 'docker.images' for more details.
+```
+
+ 
+##### **`docker.volume.panic`**
+
+
+```bash 
+Runs 'docker volume prune' for the entire system.
+```
+
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
 #### API: flux
 
-The *`flux.*`* targets describe a miniature workflow library.  Combining `flux` with [container dispatch](/#container-dispatch) is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline), but simpler, more portable, and significantly easier to use.  
 
-So what's a workflow?  Well, bash by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition does a lot of work.  Adding `make` to the mix already provides DAGs.  
 
-What `flux.*` targets add is higher-level join/loop/map operations *over other make targets*, taking inspiration from functional programming and threading libraries.  For stuff that's more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.  See also the [Platform Setup Example](/docs/demos.md#demo-platform-setup) for a more complete walk-through of motivation, starting from an example use-case.
+
+The flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
+
+
+
+What `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
+
+
+
+In most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
+
+
+
+For parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+
+
+
+----------------------------------------------------------------------------
+
+
+
+DOCS:
+
+* `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+See especially the [Platform Setup Example](/docs/demos.md#demo-platform-setup) for a more complete walk-through of motivation, starting from an example use-case.
 
 
 
@@ -772,19 +1019,19 @@ What `flux.*` targets add is higher-level join/loop/map operations *over other m
 *This documentation is pulled automatically from [source](compose.mk).*
 
  
-#### **`flux.always/<arg>`**
+##### **`flux.always/<arg>`**
 
  
 * *Alias for [`flux.finally/<arg>`](#fluxfinallyarg)*
 
  
-#### **`flux.and/<arg>`**
+##### **`flux.and/<arg>`**
 
  
 * *Alias for [`flux.apply/<arg>`](#fluxapplyarg)*
 
  
-#### **`flux.apply.later.sh/<arg>`**
+##### **`flux.apply.later.sh/<arg>`**
 
 
 ```bash 
@@ -796,7 +1043,7 @@ Applies the given command at some point in the future.  This is non-blocking.
 ```
 
  
-#### **`flux.apply.later/<arg>`**
+##### **`flux.apply.later/<arg>`**
 
 
 ```bash 
@@ -808,23 +1055,24 @@ Applies the given targets at some point in the future.  This is non-blocking.
 ```
 
  
-#### **`flux.apply/<arg>`**
+##### **`flux.apply/<arg>`**
 
 
 ```bash 
 Performs an 'and' operation with the named comma-delimited targets.
- This is equivalent to the default behaviour of `make t1 t2 .. tN`
+ This is equivalent to the default behaviour of `make t1 t2 .. tN`.
+ This is mostly used as a wrapper in case targets are unary.
  See also 'flux.or'.
 ```
 
  
-#### **`flux.delay/<arg>`**
+##### **`flux.delay/<arg>`**
 
  
 * *Alias for [`flux.apply.later/<arg>`](#fluxapplylaterarg)*
 
  
-#### **`flux.dmux`**
+##### **`flux.dmux`**
 
 
 ```bash 
@@ -836,7 +1084,7 @@ Demultiplex / fan-out operator that sends stdin to each of the named targets in 
 ```
 
  
-#### **`flux.dmux/<arg>`**
+##### **`flux.dmux/<arg>`**
 
 
 ```bash 
@@ -848,18 +1096,57 @@ Same as flux.dmux, but accepts arguments directly (no variable)
 ```
 
  
-#### **`flux.fail`**
+##### **`flux.do.unless/<arg>`**
 
 
 ```bash 
-Alias for 'exit 1', which is failure.
+Runs the 1st target iff the 2nd target fails.
+ This is a version of 'flux.if.then', see those docs for more details.
+
+  USAGE: ( generic )
+    ./compose.mk flux.do.unless/<umbrella>,<dry>
+
+  USAGE: ( concrete ) 
+    ./compose.mk flux.do.unless/flux.ok,flux.fail
+```
+
+ 
+##### **`flux.do.when/<arg>`**
+
+
+```bash 
+Runs the 1st given target iff the 2nd target is successful.
+
+ This is a version of 'flux.if.then', see those docs for more details.
+ This version is nicer when your "then" target has multiple commas.
+
+  USAGE: ( generic )
+    ./compose.mk flux.do.when/<umbrella>,<raining>
+```
+
+ 
+##### **`flux.each/<arg>`**
+
+
+```bash 
+FIXME: dry with flux.map, test
+ USAGE:
+   ./compose.mk flux.each/<target>,<items>
+```
+
+ 
+##### **`flux.fail`**
+
+
+```bash 
+Alias for 'exit 1', which is POSIX failure.
  This is mostly for used for testing other pipelines.
 
  See also the 'flux.ok' target.
 ```
 
  
-#### **`flux.finally/<arg>`**
+##### **`flux.finally/<arg>`**
 
 
 ```bash 
@@ -875,7 +1162,7 @@ Always run the given target, even if the rest of the pipeline fails.
 ```
 
  
-#### **`flux.help`**
+##### **`flux.help`**
 
 
 ```bash 
@@ -883,7 +1170,25 @@ Lists only the targets available under the 'flux' namespace.
 ```
 
  
-#### **`flux.indent.sh`**
+##### **`flux.if.then/<arg>`**
+
+
+```bash 
+Runs the 2nd given target iff the 1st one is successful.
+
+ Failure (non-zero exit) for the "if" check is not distinguished
+ from a crash, & it won't propagate.  Only the 2nd argument may contain 
+ commas.  For a reversed version of this construct, see 'flux.do.when'
+
+ USAGE: ( generic )
+   ./compose.mk flux.if.then/<name_of_test_target>,<name_of_then_target>
+
+ USAGE: ( concrete )
+   ./compose.mk flux.if.then/flux.fail,flux.ok
+```
+
+ 
+##### **`flux.indent.sh`**
 
 
 ```bash 
@@ -894,7 +1199,7 @@ Similar to flux.indent, but this works with any shell command.
 ```
 
  
-#### **`flux.indent/<arg>`**
+##### **`flux.indent/<arg>`**
 
 
 ```bash 
@@ -906,7 +1211,7 @@ Given a target, this runs it and indents both the resulting output for both stdo
 ```
 
  
-#### **`flux.join`**
+##### **`flux.join`**
 
 
 ```bash 
@@ -929,7 +1234,7 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
 ```
 
  
-#### **`flux.loop/<arg>`**
+##### **`flux.loop/<arg>`**
 
 
 ```bash 
@@ -945,7 +1250,7 @@ Helper for repeatedly running the named target a given number of times.
 ```
 
  
-#### **`flux.loopf/<arg>`**
+##### **`flux.loopf/<arg>`**
 
 
 ```bash 
@@ -956,10 +1261,11 @@ Loops the given target forever.
  or set "verbose=1" to allow stderr.  When "quiet=1" is set, even more logging is trimmed.
 
  USAGE:
+   ./compose.mk flux.loopf/
 ```
 
  
-#### **`flux.loopfq/<arg>`**
+##### **`flux.loopfq/<arg>`**
 
 
 ```bash 
@@ -967,7 +1273,7 @@ Like flux.loopf, but even more quiet.
 ```
 
  
-#### **`flux.loopu/<arg>`**
+##### **`flux.loopu/<arg>`**
 
 
 ```bash 
@@ -981,7 +1287,7 @@ Loop the given target until it succeeds.
 ```
 
  
-#### **`flux.loopw/<arg>`**
+##### **`flux.loopw/<arg>`**
 
 
 ```bash 
@@ -989,7 +1295,7 @@ Loops the given target forever, using 'watch' instead of the while-loop default
 ```
 
  
-#### **`flux.map/<arg>`**
+##### **`flux.map/<arg>`**
 
 
 ```bash 
@@ -1000,7 +1306,7 @@ Similar to 'flux.apply', but maps input stream sequentially onto the comma-delim
 ```
 
  
-#### **`flux.mux`**
+##### **`flux.mux`**
 
 
 ```bash 
@@ -1023,7 +1329,7 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
 ```
 
  
-#### **`flux.mux/<arg>`**
+##### **`flux.mux/<arg>`**
 
 
 ```bash 
@@ -1031,16 +1337,28 @@ Alias for flux.mux, but accepts arguments directly
 ```
 
  
-#### **`flux.ok`**
+##### **`flux.negate/<arg>`**
+
+
+```bash 
+Negates the status for the given target.
+
+ USAGE: 
+   `./compose.mk flux.negate/flux.fail`
+```
+
+ 
+##### **`flux.ok`**
 
 
 ```bash 
 Alias for 'exit 0', which is success.
- This is mostly for used for testing other pipelines.  See also 'flux.fail'
+ This is mostly for used for testing other pipelines.  
+ See also `flux.fail`
 ```
 
  
-#### **`flux.or/<arg>`**
+##### **`flux.or/<arg>`**
 
 
 ```bash 
@@ -1055,7 +1373,7 @@ Performs an 'or' operation with the named comma-delimited targets.
 ```
 
  
-#### **`flux.retry/<arg>`**
+##### **`flux.retry/<arg>`**
 
 
 ```bash 
@@ -1069,7 +1387,7 @@ Retries the given target a certain number of times.
 ```
 
  
-#### **`flux.sh.tee`**
+##### **`flux.sh.tee`**
 
 
 ```bash 
@@ -1086,7 +1404,7 @@ Helper for constructing a parallel process pipeline with `tee` and command subst
 ```
 
  
-#### **`flux.split`**
+##### **`flux.split`**
 
 
 ```bash 
@@ -1098,7 +1416,7 @@ Demultiplex / fan-out operator that sends stdin to each of the named targets in 
 ```
 
  
-#### **`flux.split/<arg>`**
+##### **`flux.split/<arg>`**
 
 
 ```bash 
@@ -1106,57 +1424,140 @@ Alias for flux.split, but accepts arguments directly
 ```
 
  
-#### **`flux.stage.require/<arg>`**
+##### **`flux.stage`**
+
+
+```bash 
+Returns the name of the current stage.
+```
+
+ 
+##### **`flux.stage.clean`**
+
+
+```bash 
+Cleans all stage-files from all runs, including ones that don't belong to this pid.
+ No arguments.
+```
+
+ 
+##### **`flux.stage.clean/<arg>`**
+
+
+```bash 
+Cleans only stage files that belong to the given stage.
+
+ USAGE: 
+   ./compose.mk flux.stage.clean/<pid>
+```
+
+ 
+##### **`flux.stage.file/<arg>`**
+
+
+```bash 
+Returns the name of the current stage file.
+```
+
+ 
+##### **`flux.stage.pop/<arg>`**
+
+
+```bash 
+Pops the stack for the named stage
+
+ USAGE:
+   ./compose.mk flux.stage.push/<stage_name>
+   {"key":"val"}
+```
+
+ 
+##### **`flux.stage.push/<arg>`**
+
+
+```bash 
+Push the JSON data on stdin into the stack for the named stage.
+
+ USAGE:
+   echo '<json_data>' | ./compose.mk flux.stage.push/<stage_name>
+```
+
+ 
+##### **`flux.stage.require/<arg>`**
 
 
 ```bash 
 Asserts that the given stage should have been already entered.
+
+ USAGE:
+  ./compose.mk flux.stage.
 ```
 
  
-#### **`flux.stage/<arg>`**
+##### **`flux.stage.stack/<arg>`**
+
+
+```bash 
+
+```
+
+ 
+##### **`flux.stage/<arg>`**
 
 
 ```bash 
 Declares entry for the given stage.
+
+ Stage names are generally target names or similar, no spaces allowed.
+ This announces the stage using pretty gum-dividers, 
+ then creates a stage-file which other processes may check for.
+ Stage files are JSON, containing at least the parent pid for 
+ this 'make' process, plus any extra data added by 'flux.stage.push'.
+ File is (usually) cleaned when the process exits.  This additionally
+ sets the FLUX_STAGE variable.  Note that variables / tmpfile 
+ availability depends on the process itself, not the parent process,
+ so behaviour can be surprising with recursive make.
+
+ USAGE:
+  ./compose.mk flux.stage/<stage_name>
 ```
 
  
-#### **`flux.timeout.sh`**
+##### **`flux.timeout.sh`**
 
 
 ```bash 
-Runs the given command for the given amount of seconds, then stops it with SIGINT.
+Runs the given command for the given amount of seconds, then stops it with TERM.
 
  USAGE: (tails docker logs for up to 10s, then stops)
    ./compose.mk flux.timeout.sh cmd='docker logs -f xxxx' timeout=10
 ```
 
  
-#### **`flux.timeout/<arg>`**
+##### **`flux.timeout/<arg>`**
 
 
 ```bash 
-Runs the given target for the given number of seconds, then stops it with SIGINT.
+Runs the given target for the given number of seconds, then stops it with TERM.
 
  USAGE:
    ./compose.mk flux.timeout/<seconds>/<target>
 ```
 
  
-#### **`flux.timer/<arg>`**
+##### **`flux.timer/<arg>`**
 
 
 ```bash 
 Emits run time for the given make-target in seconds.
- Pipe safe; target stdout is sent to stderr.
+ Pipe safe if you wanted runtime, but target stdout is sent to stderr.
 
  USAGE:
    ./compose.mk flux.timer/<target_to_run>
 ```
 
  
-#### **`flux.try.except.finally/<arg>`**
+##### **`flux.try.except.finally/<arg>`**
 
 
 ```bash 
@@ -1171,7 +1572,7 @@ Performs a try/except/finally operation with the named targets.
 ```
 
  
-#### **`flux.wrap/<arg>`**
+##### **`flux.wrap/<arg>`**
 
 
 ```bash 
@@ -1186,81 +1587,80 @@ Wraps all of the given targets as if it were a single target.
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
 #### API: gum
 
-The `gum.*` targets support usage of [charmbracelet/gum](#).  These targets generally use gum natively if available, falling back to using [tux](#api-tux).  See also [`io.print.*`](#api-io).
 
-
-
-
-*This documentation is pulled automatically from [source](compose.mk).*
-
- 
-#### **`gum.dispatch`**
-
-
-```bash 
-Runs a command that's using gum.  See 'gum.style' for example usage.
- This happens on the host if possible, falling back to the 'compose.mk:tux' container otherwise.
-```
-
- 
-#### **`gum.label/<arg>`**
-
-
-```bash 
-
-```
-
- 
-#### **`gum.spin`**
-
-
-```bash 
-USAGE:
-   cmd=.. title=.. ./compose.mk gum.spin
-
- REFS:
- [1] https://github.com/charmbracelet/gum for more details.
-```
-
- 
-#### **`gum.style`**
-
-
-```bash 
-Helper for formatting text and banners using 'gum style' and 'gum format'.
- Expects label text under the 'label' variable, plus supporting optional 'width'.
- Labels automatically go through 'gum format' before 'gum style', so templates are supported.
-
- REFS:
- [1] https://github.com/charmbracelet/gum for more details.
-
- USAGE:
-   ./compose.mk gum.style label="..."
-   ./compose.mk gum.style width=30 label='{{Bold "bonk"}}'
-```
-
- 
-#### **`gum.style/<arg>`**
-
-
-```bash 
-Prints a divider on stdout for the given fraction of the full terminal width,
- with given label.  This automatically detects console width, but
- it requires 'tput' (usually part of a 'ncurses' package).
-
- USAGE: (A half-width labeled divider)
-   label=... make gum.style/2
-```
 
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+
+
+
+*This documentation is pulled automatically from [source](compose.mk).*
+
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+----------------------------------------------------
+
 #### API: stream
 
+
+
+
 The `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+
+
+
+**General purpose tools:**
+
+
+
+* For conversion, see `stream.nl.to.comma`, `stream.comma.to.nl`, etc.
+
+* For generation json, see `stream.jb`[2] and `stream.json.append.*`.
+
+* For formatting and printing, see `stream.dim.*`, etc.
+
+
+
+----------------------------------------------------------------------------
+
+
+
+**Macro Equivalents:**
+
+
+
+Most targets here are also available as macros, which can be used programmatically as an optimization since it saves a process.
+
+
+
+```bash
+
+# For example, from a makefile, these are equivalent commands:
+
+echo "one,two,three" | ${stream.comma.to.nl}
+
+echo "one,two,three" | make stream.comma.to.nl
+
+```
+
+----------------------------------------------------------------------------
+
+DOCS:
+
+
+
+* `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-stream
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 
 
@@ -1268,27 +1668,40 @@ The `stream.*` targets support IO streams, including basic stuff with JSON, newl
 *This documentation is pulled automatically from [source](compose.mk).*
 
  
-#### **`stream.comma.to.json`**
+##### **`stream.comma.to.json`**
 
 
 ```bash 
 Converts comma-delimited input into minimized JSON array
 
- USAGE:
-   echo 1,2,3 | ./compose.mk stream.comma.to.json
+ EXAMPLE:
+   $ echo 1,2,3 | ./compose.mk stream.comma.to.json
    ["1","2","3"]
 ```
 
  
-#### **`stream.comma.to.nl`**
+##### **`stream.comma.to.nl`**
 
 
 ```bash 
-Converts comma-delimited input stream newline-delimited
+Converts comma-delimited input stream to newline-delimited output
+
+ EXAMPLE: 
+   $ echo 'foo,bar' | ./compose.mk stream.comma.to.nl
+   foo
+   bar
 ```
 
  
-#### **`stream.csv.pygmentize`**
+##### **`stream.comma.to.space`**
+
+
+```bash 
+Converts comma-delimited input stream to space-delimited output
+```
+
+ 
+##### **`stream.csv.pygmentize`**
 
 
 ```bash 
@@ -1296,15 +1709,18 @@ Highlights input stream using the 'ini' lexer.
 ```
 
  
-#### **`stream.dim`**
+##### **`stream.dim`**
 
 
 ```bash 
-Pipe-friendly helper for dimming the input text
+Pipe-friendly helper for dimming the input text.  
+
+ USAGE:
+   $ echo "logging info" | ./compose.mk stream.dim
 ```
 
  
-#### **`stream.dim.indent`**
+##### **`stream.dim.indent`**
 
 
 ```bash 
@@ -1312,26 +1728,35 @@ Like 'io.print.indent' except it also dims the text.
 ```
 
  
-#### **`stream.dim.indent.stderr`**
+##### **`stream.dim.indent.stderr`**
 
 
 ```bash 
-
+Dims the input stream, indents it, and sends it to stderr.
 ```
 
  
-#### **`stream.echo`**
+##### **`stream.echo`**
 
 
 ```bash 
 Just echoes the input stream.  Mostly used for testing.
 
- USAGE:
-   echo hello-world | ./compose.mk stream.echo
+ EXAMPLE:
+   $ echo hello-world | ./compose.mk stream.echo
 ```
 
  
-#### **`stream.help`**
+##### **`stream.glow`**
+
+
+```bash 
+Renders markdown from stdin to stdout.
+ See also: `charm.glow`
+```
+
+ 
+##### **`stream.help`**
 
 
 ```bash 
@@ -1339,7 +1764,7 @@ Lists only the targets available under the 'stream' namespace.
 ```
 
  
-#### **`stream.indent`**
+##### **`stream.indent`**
 
 
 ```bash 
@@ -1347,7 +1772,7 @@ Indents input stream
 ```
 
  
-#### **`stream.indent.to.stderr`**
+##### **`stream.indent.to.stderr`**
 
 
 ```bash 
@@ -1355,7 +1780,7 @@ Shortcut for ' | stream.indent | stream.to.stderr'
 ```
 
  
-#### **`stream.ini.pygmentize`**
+##### **`stream.ini.pygmentize`**
 
 
 ```bash 
@@ -1363,53 +1788,86 @@ Highlights input stream using the 'ini' lexer.
 ```
 
  
-#### **`stream.json.array.append`**
+##### **`stream.jb`**
 
 
 ```bash 
-Appends <val> to input array
+Interface to jb[1].  You can use this to build JSON on the fly.
 
- USAGE:
-   echo '[]'|val=1 ./compose.mk stream.json.array.append|val=2 make stream.json.array.append
-   [1,2]
+ EXAMPLE:
+   $ echo foo=bar | ./compose.mk stream.jb
+   {"foo":"bar"}
 ```
 
  
-#### **`stream.json.object.append`**
+##### **`stream.json.append`**
 
 
 ```bash 
 Appends the given key/val to the input object.
  This is usually used to build JSON objects from scratch.
 
- USAGE:
-	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+ EXAMPLE:
+	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
    {"foo":"bar"}
 ```
 
  
-#### **`stream.json.pygmentize`**
+##### **`stream.json.array.append`**
 
 
 ```bash 
+Appends <val> to input array
 
+ EXAMPLE:
+   $ echo '[]' | val=1 ./compose.mk stream.json.array.append | val=2 make stream.json.array.append
+   [1,2]
 ```
 
  
-#### **`stream.nl.enum`**
+##### **`stream.json.object.append`**
+
+
+```bash 
+Appends the given key/val to the input object.
+ This is usually used to build JSON objects from scratch.
+
+ EXAMPLE:
+	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+   {"foo":"bar"}
+```
+
+ 
+##### **`stream.json.pygmentize`**
+
+
+```bash 
+Syntax highlighting for the JSON on stdin.
+```
+
+ 
+##### **`stream.lstrip`**
+
+
+```bash 
+Left-strips the input stream.
+```
+
+ 
+##### **`stream.nl.enum`**
 
 
 ```bash 
 Enumerates the newline-delimited input stream, zipping index with values
 
- USAGE:
-   printf "one\ntwo" | ./compose.mk stream.nl.enum
+ EXAMPLE:
+   $ printf "one\ntwo" | ./compose.mk stream.nl.enum
  		0	one
  		1	two
 ```
 
  
-#### **`stream.nl.to.json.array`**
+##### **`stream.nl.to.json.array`**
 
 
 ```bash 
@@ -1417,28 +1875,41 @@ Converts newline-delimited input stream into a JSON array
 ```
 
  
-#### **`stream.peek`**
+##### **`stream.nl.to.space`**
+
+
+```bash 
+Converts newline-delimited input stream to space-delimited output
+
+ EXAMPLE: 
+   $ echo '\nfoo\nbar' | ./compose.mk stream.nl.to.space
+   > foo bar
+```
+
+ 
+##### **`stream.peek`**
 
 
 ```bash 
 Prints the entire input stream as indented/dimmed text on stderr,
- Then passes-through the entire stream to stdout.
+ Then passes-through the entire stream to stdout.  Note that this uses
+ a tmpfile because proc-substition seems to disorder output.
 
- USAGE:
+ EXAMPLE:
    echo hello-world | ./compose.mk stream.peek | cat
 ```
 
  
-#### **`stream.preview`**
+##### **`stream.preview`**
 
 
 ```bash 
-Previews the input stream, sending output to stderr.
- Alias for stream.to.stderr.
+Sends input stream to stderr.
+ Unlike 'stream.peek', this does not pass on the input stream.
 ```
 
  
-#### **`stream.pygmentize`**
+##### **`stream.pygmentize`**
 
 
 ```bash 
@@ -1446,7 +1917,7 @@ Syntax highlighting for the input stream.
  Lexer will be autodetected unless override is provided.
  Style defaults to 'trac', which works best with dark backgrounds.
 
- USAGE: (using JSON lexer)
+ EXAMPLE: (using JSON lexer)
    echo {} | lexer=json ./compose.mk stream.pygmentize
 
  REFS:
@@ -1455,36 +1926,26 @@ Syntax highlighting for the input stream.
 ```
 
  
-#### **`stream.space.enum`**
+##### **`stream.pygmentize/<arg>`**
+
+ 
+* *Alias for [`io.file.preview/<arg>`](#iofilepreviewarg)*
+
+ 
+##### **`stream.space.enum`**
 
 
 ```bash 
-Enumerates the space-delimited input list, zipping indexes with values.
+Enumerates the space-delimited input list, zipping indexes with values in newline delimited output.
 
- USAGE:
-   printf one two | ./compose.mk io.enum
+ EXAMPLE:
+   printf one two | ./compose.mk stream.space.enum
  		0	one
  		1	two
 ```
 
  
-#### **`stream.split.view`**
-
-
-```bash 
-
-```
-
- 
-#### **`stream.stderr.indent`**
-
-
-```bash 
-Indents the input stream, writing output to stderr
-```
-
- 
-#### **`stream.to.stderr`**
+##### **`stream.to.stderr`**
 
 
 ```bash 
@@ -1495,7 +1956,6 @@ Sends input stream to stderr.
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
-
 
 ----------------------------------------------------
 
@@ -1513,7 +1973,7 @@ See the [API docs](/docs/api#tui-private-api)
 *This documentation is pulled automatically from [source](compose.mk).*
 
  
-#### **`.tux.attach`**
+##### **`.tux.attach`**
 
 
 ```bash 
@@ -1521,15 +1981,7 @@ See the [API docs](/docs/api#tui-private-api)
 ```
 
  
-#### **`.tux.bootstrap`**
-
-
-```bash 
-Private helper for tux.bootstrap
-```
-
- 
-#### **`.tux.commander.layout`**
+##### **`.tux.commander.layout`**
 
 
 ```bash 
@@ -1538,13 +1990,21 @@ Configures a custom geometry on up to 4 panes.
 ```
 
  
-#### **`.tux.dwindle/<arg>`**
+##### **`.tux.demo.layout`**
+
+
+```bash 
+
+```
+
+ 
+##### **`.tux.dwindle/<arg>`**
 
  
 * *Alias for [`.tux.layout/<arg>`](#tuxlayoutarg)*
 
  
-#### **`.tux.dwindle/h`**
+##### **`.tux.dwindle/h`**
 
 
 ```bash 
@@ -1552,7 +2012,7 @@ Configures a custom geometry on up to 4 panes.
 ```
 
  
-#### **`.tux.dwindle/s`**
+##### **`.tux.dwindle/s`**
 
 
 ```bash 
@@ -1560,7 +2020,7 @@ Configures a custom geometry on up to 4 panes.
 ```
 
  
-#### **`.tux.geo.get`**
+##### **`.tux.geo.get`**
 
 
 ```bash 
@@ -1572,7 +2032,7 @@ Gets the current geometry for tmux.  No arguments.
 ```
 
  
-#### **`.tux.geo.set`**
+##### **`.tux.geo.set`**
 
 
 ```bash 
@@ -1583,7 +2043,7 @@ Sets tmux geometry from 'geometry' environment variable.
 ```
 
  
-#### **`.tux.img.display/<arg>`**
+##### **`.tux.img.display/<arg>`**
 
 
 ```bash 
@@ -1594,7 +2054,7 @@ Displays the named file using chafa, and centering it in the available terminal 
 ```
 
  
-#### **`.tux.init`**
+##### **`.tux.init`**
 
 
 ```bash 
@@ -1606,16 +2066,19 @@ Initialization for the TUI (a tmuxinator-managed tmux instance).
 ```
 
  
-#### **`.tux.init.bind_keys`**
+##### **`.tux.init.bind_keys`**
 
 
 ```bash 
 Private helper for .tux.init.
- (This bind default keys for pane resizing, etc)
+ This binds default keys for pane resizing, etc.
+ See also: xmonad defaults[1] 
+
+ [1]: https://gist.github.com/c33k/1ecde9be24959f1c738d
 ```
 
  
-#### **`.tux.init.buttons`**
+##### **`.tux.init.buttons`**
 
 
 ```bash 
@@ -1625,7 +2088,7 @@ Generates tmux-script that configures the buttons for "New Pane" and "Exit".
 ```
 
  
-#### **`.tux.init.panes`**
+##### **`.tux.init.panes`**
 
 
 ```bash 
@@ -1633,7 +2096,7 @@ Private helper for .tux.init.  (This fixes a bug in tmuxp with pane titles)
 ```
 
  
-#### **`.tux.init.status_bar`**
+##### **`.tux.init.status_bar`**
 
 
 ```bash 
@@ -1641,7 +2104,7 @@ Stuff that has to be set before importing the theme
 ```
 
  
-#### **`.tux.init.theme`**
+##### **`.tux.init.theme`**
 
 
 ```bash 
@@ -1649,18 +2112,18 @@ This configures a green theme for the statusbar.
  The tmux themepack green theme is actually yellow!
 
  REFS:
-   [1] Colors at https://www.ditig.com/publications/256-colors-cheat-sheet
-   [2] Gallery at https://github.com/jimeh/tmux-themepack
+   * `[1]`: Colors at https://www.ditig.com/publications/256-colors-cheat-sheet
+   * `[2]`: Gallery at https://github.com/jimeh/tmux-themepack
 ```
 
  
-#### **`.tux.layout.dwindle/<arg>`**
+##### **`.tux.layout.dwindle/<arg>`**
 
  
 * *Alias for [`.tux.layout/<arg>`](#tuxlayoutarg)*
 
  
-#### **`.tux.layout.horizontal`**
+##### **`.tux.layout.horizontal`**
 
 
 ```bash 
@@ -1669,7 +2132,15 @@ Alias for the horizontal layout.
 ```
 
  
-#### **`.tux.layout.spiral`**
+##### **`.tux.layout.shuffle`**
+
+
+```bash 
+
+```
+
+ 
+##### **`.tux.layout.spiral`**
 
 
 ```bash 
@@ -1678,7 +2149,7 @@ Alias for the dwindle spiral layout.
 ```
 
  
-#### **`.tux.layout/<arg>`**
+##### **`.tux.layout/<arg>`**
 
 
 ```bash 
@@ -1687,14 +2158,15 @@ Sets geometry to the given layout, using tmux-layout-dwindle.
 
  See [1] for general docs and discussion of options.
 
- [1] https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
-
  USAGE:
    ./compose.mk .tux.layout/<layout_code>
+
+ REFS:
+   * `[1]`: https://raw.githubusercontent.com/sunaku/home/master/bin/tmux-layout-dwindle
 ```
 
  
-#### **`.tux.msg`**
+##### **`.tux.msg`**
 
 
 ```bash 
@@ -1702,7 +2174,7 @@ Flashes a message on the tmux UI.
 ```
 
  
-#### **`.tux.pane.focus/<arg>`**
+##### **`.tux.pane.focus/<arg>`**
 
 
 ```bash 
@@ -1713,7 +2185,7 @@ Focuses the given pane.  This always assumes we're using the first tmux window.
 ```
 
  
-#### **`.tux.pane.sh/<arg>`**
+##### **`.tux.pane.sh/<arg>`**
 
 
 ```bash 
@@ -1725,7 +2197,7 @@ Runs command on the given tmux pane with the given ID.
 ```
 
  
-#### **`.tux.pane.title/<arg>`**
+##### **`.tux.pane.title/<arg>`**
 
 
 ```bash 
@@ -1736,7 +2208,7 @@ Sets the title for the given pane.
 ```
 
  
-#### **`.tux.pane/<arg>`**
+##### **`.tux.pane/<arg>`**
 
 
 ```bash 
@@ -1747,7 +2219,7 @@ Dispatches the given make-target to the tmux pane with the given id.
 ```
 
  
-#### **`.tux.panes/<arg>`**
+##### **`.tux.panes/<arg>`**
 
 
 ```bash 
@@ -1756,7 +2228,7 @@ This generates the tmuxp panes data structure (a JSON array) from comma-separate
 ```
 
  
-#### **`.tux.panic`**
+##### **`.tux.panic`**
 
 
 ```bash 
@@ -1766,23 +2238,17 @@ Closes the entire session, from inside the session.  No arguments.
 ```
 
  
-#### **`.tux.stream.split`**
+##### **`.tux.quit`**
 
 
 ```bash 
-
+Closes the entire session, from inside the session.  No arguments.
+ This is used by the 'Exit' button in the main status-bar.
+ See also 'tux.panic', which can be used from the docker host, and which stops *all* sessions.
 ```
 
  
-#### **`.tux.stream.split.layout`**
-
-
-```bash 
-
-```
-
- 
-#### **`.tux.theme`**
+##### **`.tux.theme`**
 
 
 ```bash 
@@ -1793,7 +2259,7 @@ Setup for the TUI's tmux theme.
 ```
 
  
-#### **`.tux.theme.set/<arg>`**
+##### **`.tux.theme.set/<arg>`**
 
 
 ```bash 
@@ -1809,7 +2275,7 @@ Sets the named theme for current tmux session.
 ```
 
  
-#### **`.tux.widget.env`**
+##### **`.tux.widget.env`**
 
 
 ```bash 
@@ -1821,13 +2287,13 @@ Pretty version of io.env, this includes some syntax highlighting.
 ```
 
  
-#### **`.tux.widget.env/<arg>`**
+##### **`.tux.widget.env/<arg>`**
 
  
 * *Alias for [`io.envp/<arg>`](#ioenvparg)*
 
  
-#### **`.tux.widget.img`**
+##### **`.tux.widget.img`**
 
 
 ```bash 
@@ -1845,7 +2311,7 @@ Displays the given image URL or file-path forever, as a TUI widget.
 ```
 
  
-#### **`.tux.widget.img.var/<arg>`**
+##### **`.tux.widget.img.var/<arg>`**
 
 
 ```bash 
@@ -1859,15 +2325,7 @@ Unpacks an image URL from the given make/shell variable name, then displays it a
 ```
 
  
-#### **`.tux.widget.lazydocker`**
-
-
-```bash 
-
-```
-
- 
-#### **`.tux.widget.lazydocker/<arg>`**
+##### **`.tux.widget.lazydocker`**
 
 
 ```bash 
@@ -1875,15 +2333,23 @@ Starts lazydocker in the TUI, then switches to the "statistics" tab.
 ```
 
  
-#### **`.tux.widget.lazydocker/1`**
+##### **`.tux.widget.lazydocker/<arg>`**
 
 
 ```bash 
-
+Starts lazydocker in the TUI, then switches to the "statistics" tab.
 ```
 
  
-#### **`.tux.widget.ticker`**
+##### **`.tux.widget.lazydocker/0`**
+
+
+```bash 
+Starts lazydocker in the TUI, then switches to the "statistics" tab.
+```
+
+ 
+##### **`.tux.widget.ticker`**
 
 
 ```bash 
@@ -1901,9 +2367,46 @@ A ticker-style display for the given text, suitable for usage with tmux status b
 
 ----------------------------------------------------
 
-### API: k8s.mk
+## API: k8s.mk
 
-This is the complete list of namespaces & public targets available from `k8s.mk`, along with their documentation.  Most documentation is pulled automatically from [the latest source](/compose.mk). First, some important notes about how these targets work.
+<div class="toc">
+<ul>
+<li><a href="#api-k8smk">API: k8s.mk</a><ul>
+<li><a href="#k8smk-dynamic-targets">k8s.mk: (Dynamic Targets)</a></li>
+<li><a href="#k8smk-static-targets">k8s.mk: (Static Targets)</a><ul>
+<li><a href="#api-k8s">API: k8s</a></li>
+<li><a href="#api-ansible">API: ansible</a></li>
+<li><a href="#api-k3d">API k3d</a></li>
+<li><a href="#api-kubefwd">API: kubefwd</a></li>
+<li><a href="#api-helm">API: helm</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+------------------------------------------------------------
+
+### k8s.mk: (Dynamic Targets)
+
+The autogenerated section of the API (i.e. what's created by `compose.import` running k8s-tools.yml) documented below
+
+
+
+----------------------------------------------------
+
+### k8s.mk: (Static Targets)
+
+This is the complete list of namespaces & public targets available from `compose.mk`, along with their documentation.  Most documentation is pulled automatically from [the latest source](/compose.mk).  Some important notes about how these targets work:
+
+This is the complete list of namespaces & public targets available from `k8s.mk`, along with their documentation.  Most documentation is pulled automatically from [the latest source](/compose.mk). First, some important notes about how these targets work:
+
+* **Targets are usable interactively from your shell** as `make <target>` or `./compose.mk <target>`
+* **Targets are usable as an API,** either as prereq-targets or as part of the body in your project automation.
+* **Most targets are pure shell, and have no exotic dependencies.** That means that they generally run fine on host or as dispatched targets inside containers.  *(Exceptions: targets in `stream.json.*` require `jq` and targets in `docker.*` require docker.)*
+* **Target names are reserved names after declaration.**
 
 The best way to use these targets is in combination with `compose.mk` and `k8s-tools.yml`, following the [integration docs](/#embedding-tools-with-makefiles).  See also the docs for the [Make/Compose Bridge](/#makecompose-bridge) and [Container Dispatch](/#container-dispatch).
 
@@ -1930,10 +2433,17 @@ Things are organized into a few namespaces, which hopefully avoids collisions wi
 
 
 
+----------------------------------------------------
 
 #### API: k8s
 
-This is the default target-namespace for `k8s.mk`.  It covers general helpers.  For more details, read on into the API, or see the [k8s:base container spec in k8s-tools.yml](
+
+
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+For more details, read on into the API, or see the [k8s:base container spec in k8s-tools.yml](
 https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+content%3Ak8s%3Abase&type=code)
 
 
@@ -1942,7 +2452,19 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 *This documentation is pulled automatically from [source](k8s.mk).*
 
  
-#### **`k8s.cluster.wait`**
+##### **`k8s.ansible`**
+
+
+```bash 
+Interface for ansible's helm module[1].
+ This accepts only module args, but there are a few ways to pass them.  
+ See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
+
+ [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+```
+
+ 
+##### **`k8s.cluster.wait`**
 
 
 ```bash 
@@ -1950,7 +2472,7 @@ Waits until all pods in all namespaces are ready.  (Alias for 'k8s.namespace.wai
 ```
 
  
-#### **`k8s.commander`**
+##### **`k8s.commander`**
 
 
 ```bash 
@@ -1960,7 +2482,7 @@ TUI layout providing an overview for docker.
 ```
 
  
-#### **`k8s.commander/<arg>`**
+##### **`k8s.commander/<arg>`**
 
 
 ```bash 
@@ -1971,7 +2493,7 @@ Sends the given target(s) to the main pane.
 ```
 
  
-#### **`k8s.get/<arg>`**
+##### **`k8s.get/<arg>`**
 
 
 ```bash 
@@ -1987,50 +2509,23 @@ Returns resources under the given namespace, for the given kind.
 ```
 
  
-#### **`k8s.graph`**
+##### **`k8s.graph`**
 
 
 ```bash 
-
+Alias for k8s.graph/all/pods.  This returns dot-format data.
 ```
 
  
-#### **`k8s.graph.tui`**
+##### **`k8s.graph.tui`**
 
 
 ```bash 
-
+Alias for 'k8s.graph.tui/all/pods'.  This prints a visual graph on the terminal.
 ```
 
  
-#### **`k8s.graph.tui.loop`**
-
-
-```bash 
-Loops the graph for the kube-system namespace
-```
-
- 
-#### **`k8s.graph.tui.loop/<arg>`**
-
-
-```bash 
-Display an updating, low-resolution image of the given namespace topology.
-
- USAGE:  
-   ./k8s.mk k8s.graph.tui.loop/<namespace>
-```
-
- 
-#### **`k8s.graph.tui.loop/kube-system/pods`**
-
-
-```bash 
-
-```
-
- 
-#### **`k8s.graph.tui/<arg>`**
+##### **`k8s.graph.tui/<arg>`**
 
 
 ```bash 
@@ -2038,28 +2533,41 @@ Previews topology for a given kubernetes <namespace>/<kind> in a way that's term
 
  This is a human-friendly way to visualize progress or changes, because it supports 
  very large input data from complex deployments with lots of services/pods, either in 
- one namespace or across the whole cluster. To do that, it has throw away some 
- information compared with raw kubectl output, and node labels on the graph aren't visible.  
+ one namespace or across the whole cluster. To do that, it has to throw away some 
+ information compared with raw kubectl output, and node labels on the graph aren't 
+ visible.
 
- This is basically a pipeline from graphs in dot format, 
- generated by kubectl-graph, then passed through some image-magick 
- transformations, and then pushed into the 'chafa' tool for 
- generating ASCII-art from images.
+ This is basically a pipeline from graphs in dot format, generated by kubectl-graph, 
+ then passed through some image-magick transformations, and then pushed into 
+ the 'chafa' tool for generating ASCII-art from images.
 
  USAGE: (same as k8s.graph)
    ./k8s.mk k8s.graph.tui/<namespace>/<kind>
 ```
 
  
-#### **`k8s.graph.tui/all/pods`**
+##### **`k8s.graph.tui/all/pods`**
 
 
 ```bash 
+Previews topology for a given kubernetes <namespace>/<kind> in a way that's terminal-friendly.
 
+ This is a human-friendly way to visualize progress or changes, because it supports 
+ very large input data from complex deployments with lots of services/pods, either in 
+ one namespace or across the whole cluster. To do that, it has to throw away some 
+ information compared with raw kubectl output, and node labels on the graph aren't 
+ visible.
+
+ This is basically a pipeline from graphs in dot format, generated by kubectl-graph, 
+ then passed through some image-magick transformations, and then pushed into 
+ the 'chafa' tool for generating ASCII-art from images.
+
+ USAGE: (same as k8s.graph)
+   ./k8s.mk k8s.graph.tui/<namespace>/<kind>
 ```
 
  
-#### **`k8s.graph/<arg>`**
+##### **`k8s.graph/<arg>`**
 
 
 ```bash 
@@ -2076,15 +2584,24 @@ Graphs resources under the given namespace, for the given kind, in dot-format.
 ```
 
  
-#### **`k8s.graph/all/pods`**
+##### **`k8s.graph/all/pods`**
 
 
 ```bash 
+Graphs resources under the given namespace, for the given kind, in dot-format.
+ Pipe Friendly: results are always dot files.  Caller should handle any errors.
 
+ This requires the krew plugin "graph" (installed by default with k8s-tools.yml).
+
+ USAGE: 
+	 ./k8s.mk k8s.graph/<namespace>/<kind>/<field_selector>
+
+ Argument for 'kind' must be provided, but may be "all".  
+ Argument for field-selector is optional.  (Default value is 'status.phase=Running')
 ```
 
  
-#### **`k8s.help`**
+##### **`k8s.help`**
 
 
 ```bash 
@@ -2092,7 +2609,7 @@ Shows targets for just the 'k8s' namespace.
 ```
 
  
-#### **`k8s.kubens.create/<arg>`**
+##### **`k8s.kubens.create/<arg>`**
 
 
 ```bash 
@@ -2106,7 +2623,7 @@ Context-manager.  Activates the given namespace, creating it first if necessary.
 ```
 
  
-#### **`k8s.kubens/<arg>`**
+##### **`k8s.kubens/<arg>`**
 
 
 ```bash 
@@ -2119,7 +2636,7 @@ Context-manager.  Activates the given namespace.
 ```
 
  
-#### **`k8s.namespace.create/<arg>`**
+##### **`k8s.namespace.create/<arg>`**
 
 
 ```bash 
@@ -2130,13 +2647,24 @@ Idempotent version of namespace-create
 ```
 
  
-#### **`k8s.namespace.fwd/<arg>`**
+##### **`k8s.namespace.fwd/<arg>`**
 
  
 * *Alias for [`kubefwd.start/<arg>`](#kubefwdstartarg)*
 
  
-#### **`k8s.namespace.list`**
+##### **`k8s.namespace.label/<arg>`**
+
+
+```bash 
+Appends the given label to the given namespace.
+
+ USAGE: 
+   key=<key> val=<val> ./k8s.mk k8s.namespace.label/<namespace>
+```
+
+ 
+##### **`k8s.namespace.list`**
 
 
 ```bash 
@@ -2145,7 +2673,7 @@ Returns all namespaces in a simple array.
 ```
 
  
-#### **`k8s.namespace.purge.by.prefix/<arg>`**
+##### **`k8s.namespace.purge.by.prefix/<arg>`**
 
 
 ```bash 
@@ -2157,7 +2685,7 @@ Runs a separate purge for every matching namespace.
 ```
 
  
-#### **`k8s.namespace.purge/<arg>`**
+##### **`k8s.namespace.purge/<arg>`**
 
 
 ```bash 
@@ -2168,7 +2696,7 @@ Wipes everything inside the given namespace
 ```
 
  
-#### **`k8s.namespace.wait/<arg>`**
+##### **`k8s.namespace.wait/<arg>`**
 
 
 ```bash 
@@ -2188,15 +2716,27 @@ Waits for every pod in the given namespace to be ready.
 ```
 
  
-#### **`k8s.namespace.wait/all`**
+##### **`k8s.namespace.wait/all`**
 
 
 ```bash 
+Waits for every pod in the given namespace to be ready.
 
+ This uses only kubectl/jq to loop on pod-status, but assumes that 
+ the krew-plugin 'sick-pods'[1] is available for formatting the 
+ user-message.  See `k8s.wait` for an alias that waits on all pods.
+
+ NB: If the parameter is "all" then this uses --all-namespaces
+
+ USAGE: 
+   ./k8s.mk k8s.namespace.wait/<namespace>
+
+ REFS:
+   [1]: https://github.com/alecjacobs5401/kubectl-sick-pods
 ```
 
  
-#### **`k8s.namespace/<arg>`**
+##### **`k8s.namespace/<arg>`**
 
 
 ```bash 
@@ -2210,7 +2750,7 @@ Context-manager.  Activates the given namespace.
 ```
 
  
-#### **`k8s.shell/<arg>`**
+##### **`k8s.shell/<arg>`**
 
 
 ```bash 
@@ -2233,7 +2773,7 @@ This drops into a debugging shell for the named pod using `kubectl exec`,
 ```
 
  
-#### **`k8s.stat`**
+##### **`k8s.stat`**
 
 
 ```bash 
@@ -2247,7 +2787,7 @@ Describes status for cluster, cluster auth, and namespaces.
 ```
 
  
-#### **`k8s.stat.auth`**
+##### **`k8s.stat.auth`**
 
 
 ```bash 
@@ -2255,7 +2795,15 @@ Describes status for cluster, cluster auth, and namespaces.
 ```
 
  
-#### **`k8s.stat.cluster`**
+##### **`k8s.stat.cluster`**
+
+
+```bash 
+Shows cluster status.
+```
+
+ 
+##### **`k8s.stat.ctx`**
 
 
 ```bash 
@@ -2263,7 +2811,7 @@ Describes status for cluster, cluster auth, and namespaces.
 ```
 
  
-#### **`k8s.stat.ctx`**
+##### **`k8s.stat.env`**
 
 
 ```bash 
@@ -2271,15 +2819,7 @@ Describes status for cluster, cluster auth, and namespaces.
 ```
 
  
-#### **`k8s.stat.env`**
-
-
-```bash 
-
-```
-
- 
-#### **`k8s.stat.node_info`**
+##### **`k8s.stat.node_info`**
 
 
 ```bash 
@@ -2288,7 +2828,7 @@ Status for nodes.
 ```
 
  
-#### **`k8s.stat.ns`**
+##### **`k8s.stat.ns`**
 
 
 ```bash 
@@ -2296,7 +2836,7 @@ Status for nodes.
 ```
 
  
-#### **`k8s.test_harness.random`**
+##### **`k8s.test_harness.random`**
 
 
 ```bash 
@@ -2307,7 +2847,7 @@ Starts a test-pod with a random name in the given namespace, optionally blocking
 ```
 
  
-#### **`k8s.test_harness/<arg>`**
+##### **`k8s.test_harness/<arg>`**
 
 
 ```bash 
@@ -2320,7 +2860,7 @@ Starts a test-pod in the given namespace, optionally blocking until it's ready.
 ```
 
  
-#### **`k8s.wait`**
+##### **`k8s.wait`**
 
 
 ```bash 
@@ -2331,9 +2871,258 @@ Waits until all pods in all namespaces are ready.  (Alias for 'k8s.namespace.wai
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
+#### API: ansible
+
+
+
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+These targets use [the ansible container](
+https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+content%3Ak8s%3Aansible&type=code), but are generally safe to run from the docker-host.  
+
+
+
+
+*This documentation is pulled automatically from [source](k8s.mk).*
+
+ 
+##### **`ansible`**
+
+
+```bash 
+Shorthand for ▰/ansible
+```
+
+ 
+##### **`ansible.adhoc/<arg>`**
+
+
+```bash 
+An interface into the named ansible module.  Just pass the module-arguments.  
+ Like adhoc ansible, this allows you to call a task without a playbook.
+ This actually generates a playbook JIT though, which makes things 
+ more flexible.
+
+ USAGE:
+   echo '<arg_json>' | ./compose.mk ansible.adhoc/<ansible_module_name>
+```
+
+ 
+##### **`ansible.adhoc/blockinfile`**
+
+
+```bash 
+An interface into the named ansible module.  Just pass the module-arguments.  
+ Like adhoc ansible, this allows you to call a task without a playbook.
+ This actually generates a playbook JIT though, which makes things 
+ more flexible.
+
+ USAGE:
+   echo '<arg_json>' | ./compose.mk ansible.adhoc/<ansible_module_name>
+```
+
+ 
+##### **`ansible.adhoc/kubernetes.core.helm`**
+
+
+```bash 
+An interface into the named ansible module.  Just pass the module-arguments.  
+ Like adhoc ansible, this allows you to call a task without a playbook.
+ This actually generates a playbook JIT though, which makes things 
+ more flexible.
+
+ USAGE:
+   echo '<arg_json>' | ./compose.mk ansible.adhoc/<ansible_module_name>
+```
+
+ 
+##### **`ansible.adhoc/kubernetes.core.k8s`**
+
+
+```bash 
+An interface into the named ansible module.  Just pass the module-arguments.  
+ Like adhoc ansible, this allows you to call a task without a playbook.
+ This actually generates a playbook JIT though, which makes things 
+ more flexible.
+
+ USAGE:
+   echo '<arg_json>' | ./compose.mk ansible.adhoc/<ansible_module_name>
+```
+
+ 
+##### **`ansible.blockinfile`**
+
+
+```bash 
+Interface for ansible's block-in-file module[1].
+ This accepts only module args, but there are several ways to pass them.  
+ See the docs in ansible.adhoc/<module> for discussion of examples.
+
+ USAGE:
+   echo <json_data> | ./k8s.mk ansible.blockinfile
+   ./k8s.mk jb <key1>=<val1> <keyn>=<valn> | ./k8s.mk ansible.blockinfile
+   data="<key1>=<val1> <keyn>=<valn>" ./k8s.mk ansible.blockinfile
+
+ EXAMPLE:
+   path=.gitignore block=".flux.stage.*" | ./k8s.mk ansible.blockinfile
+
+ [1] https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
+```
+
+ 
+##### **`ansible.helm`**
+
+
+```bash 
+Interface for ansible's helm module[1].
+ This accepts only module args, but there are a few ways to pass them.  
+ See the docs in 'ansible.adhoc/<module>' for discussion of examples.
+
+
+ [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html#examples
+```
+
+ 
+##### **`ansible.k8s`**
+
+
+```bash 
+Interface for ansible's helm module[1].
+ This accepts only module args, but there are a few ways to pass them.  
+ See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
+
+ [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+```
+
+ 
+##### **`ansible.kubernetes.core.k8s`**
+
+
+```bash 
+Interface for ansible's helm module[1].
+ This accepts only module args, but there are a few ways to pass them.  
+ See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
+
+ [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+```
+
+ 
+##### **`ansible.run`**
+
+
+```bash 
+Runs the input-stream as an ansible playbook.
+ This calls ansible in a way that ensures all output is JSON.
+
+ EXAMPLE: (pass a string)
+   echo '{"msg":"some info here"}'' | ./compose.mk .ansible.gen.task/debug | jq .
+
+ EXAMPLE: (pass data in environment variables)
+   data="msg='some info here" ./compose.mk .ansible.gen.task/debug | jq .
+
+ EXAMPLE: (use jb[1] to generate input)
+   jb msg='my info' | ./compose.mk .ansible.gen.task/debug | jq .	@# USAGE:
+   cat <playbook> | ./compose.mk ansible.run
+```
+
+ 
+##### **`ansible.run/<arg>`**
+
+
+```bash 
+Runs the given playbook file.
+ This calls ansible in a way that ensures all output is JSON.
+
+ USAGE: ./k8s.mk ansible.run/<path>
+```
+
+ 
+##### **`ansible/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/ansible
+```
+
+ 
+##### **`ansible/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/ansible
+```
+
+ 
+##### **`ansible/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/ansible/<target_name>
+```
+
+ 
+##### **`ansible/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/ansible/get_shell
+```
+
+ 
+##### **`ansible/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/ansible
+```
+
+ 
+##### **`ansible/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/ansible/shell
+```
+
+ 
+##### **`ansible/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/ansible/shell/pipe
+```
+
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+----------------------------------------------------
+
 #### API k3d
 
-The *`k3d.*`* targets describe a small interface for working with `k3d`.  Most targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host.  Most targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d:
+
+
+
+The *`k3d.*`* targets describe a small interface for working with `k3d`[2].
+
+
+
+Most targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host.
+
+Most targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d
+
+
+
+DOCS:
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 For more details, read on into the API, or see the [k8s:k3d container spec in k8s-tools.yml](
 https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+content%3Ak3d&type=code)
@@ -2344,7 +3133,15 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 *This documentation is pulled automatically from [source](k8s.mk).*
 
  
-#### **`k3d.cluster.delete/<arg>`**
+##### **`k3d`**
+
+
+```bash 
+Shorthand for ▰/k3d
+```
+
+ 
+##### **`k3d.cluster.delete/<arg>`**
 
 
 ```bash 
@@ -2355,7 +3152,7 @@ Idempotent version of k3d cluster delete
 ```
 
  
-#### **`k3d.cluster.list`**
+##### **`k3d.cluster.list`**
 
 
 ```bash 
@@ -2366,7 +3163,7 @@ Returns cluster-names, newline delimited.
 ```
 
  
-#### **`k3d.commander`**
+##### **`k3d.commander`**
 
 
 ```bash 
@@ -2378,18 +3175,18 @@ Starts a 4-pane TUI dashboard, using the commander layout.
 ```
 
  
-#### **`k3d.commander/<arg>`**
+##### **`k3d.commander/<arg>`**
 
 
 ```bash 
-Like 'k3d.commander', but additionally sends the given target(s) to the main pane.
+A TUI interface like 'k3d.commander', but additionally sends the given target(s) to the main pane.
 
  USAGE:
    ./k8s.mk k3d.commander/<target1>,<target2>
 ```
 
  
-#### **`k3d.help`**
+##### **`k3d.help`**
 
 
 ```bash 
@@ -2397,7 +3194,7 @@ Shows targets for just the 'k3d' namespace.
 ```
 
  
-#### **`k3d.list`**
+##### **`k3d.list`**
 
 
 ```bash 
@@ -2408,7 +3205,7 @@ Returns cluster-names, newline delimited.
 ```
 
  
-#### **`k3d.panic`**
+##### **`k3d.panic`**
 
 
 ```bash 
@@ -2419,7 +3216,7 @@ Non-graceful stop for everything that is k3d related.
 ```
 
  
-#### **`k3d.ps`**
+##### **`k3d.ps`**
 
 
 ```bash 
@@ -2430,7 +3227,7 @@ Container names for everything that is k3d related.
 ```
 
  
-#### **`k3d.stat`**
+##### **`k3d.stat`**
 
 
 ```bash 
@@ -2438,21 +3235,89 @@ Show status for k3d.
 ```
 
  
-#### **`k3d.stat.widget`**
+##### **`k3d/build`**
 
 
 ```bash 
+Shorthand for k8s-tools.build/k3d
+```
 
+ 
+##### **`k3d/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/k3d
+```
+
+ 
+##### **`k3d/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/k3d/<target_name>
+```
+
+ 
+##### **`k3d/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/k3d/get_shell
+```
+
+ 
+##### **`k3d/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/k3d
+```
+
+ 
+##### **`k3d/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/k3d/shell
+```
+
+ 
+##### **`k3d/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/k3d/shell/pipe
 ```
 
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
 #### API: kubefwd
 
-The *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.  These targets use [the kubefwd container](
-https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+content%3Ak8s%3Akubefwd&type=code), but are generally safe to run from the docker-host.  Forwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
+These targets use [the kubefwd container](
+https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+content%3Ak8s%3Akubefwd&type=code), but are generally safe to run from the docker-host. 
+
+
+
+
+The *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.
+
+
+
+
+
+Forwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
+
+
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
 
 
@@ -2460,7 +3325,15 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 *This documentation is pulled automatically from [source](k8s.mk).*
 
  
-#### **`kubefwd.help`**
+##### **`kubefwd`**
+
+
+```bash 
+Shorthand for ▰/kubefwd
+```
+
+ 
+##### **`kubefwd.help`**
 
 
 ```bash 
@@ -2468,7 +3341,7 @@ Shows targets for just the 'kubefwd' namespace.
 ```
 
  
-#### **`kubefwd.panic`**
+##### **`kubefwd.panic`**
 
 
 ```bash 
@@ -2482,7 +3355,7 @@ Non-graceful stop for everything that is kubefwd related.
 ```
 
  
-#### **`kubefwd.ps`**
+##### **`kubefwd.ps`**
 
 
 ```bash 
@@ -2493,7 +3366,7 @@ Container names for everything that is kubefwd related
 ```
 
  
-#### **`kubefwd.start/<arg>`**
+##### **`kubefwd.start/<arg>`**
 
 
 ```bash 
@@ -2514,7 +3387,7 @@ Runs kubefwd for the given namespace, finding and forwarding ports/DNS for the g
 ```
 
  
-#### **`kubefwd.stat`**
+##### **`kubefwd.stat`**
 
 
 ```bash 
@@ -2522,7 +3395,7 @@ Display status info for all kubefwd instances that are running
 ```
 
  
-#### **`kubefwd.stop/<arg>`**
+##### **`kubefwd.stop/<arg>`**
 
 
 ```bash 
@@ -2533,13 +3406,80 @@ Stops the named kubefwd instance.
 	./k8s.mk kubefwd.stop/<namespace>/<svc_name>
 ```
 
+ 
+##### **`kubefwd/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/kubefwd
+```
+
+ 
+##### **`kubefwd/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/kubefwd
+```
+
+ 
+##### **`kubefwd/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/kubefwd/<target_name>
+```
+
+ 
+##### **`kubefwd/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/kubefwd/get_shell
+```
+
+ 
+##### **`kubefwd/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/kubefwd
+```
+
+ 
+##### **`kubefwd/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/kubefwd/shell
+```
+
+ 
+##### **`kubefwd/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/kubefwd/shell/pipe
+```
+
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
+----------------------------------------------------
+
 #### API: helm
 
-Nothing fancy, just a very small interface for idempotent operations with `helm`.  For more details, read on into the API, or see the [`k8s:helm` container spec in k8s-tools.yml](
+
+
+
+
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+For more details, read on into the API, or see the [`k8s:helm` container spec in k8s-tools.yml](
 https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.yml+content%3Ahelm&type=code).
 
 
@@ -2548,7 +3488,213 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 *This documentation is pulled automatically from [source](k8s.mk).*
 
  
-#### **`helm.chart.install/<arg>`**
+##### **`helm`**
+
+
+```bash 
+Shorthand for ▰/helm
+```
+
+ 
+##### **`helm-diff`**
+
+
+```bash 
+Shorthand for ▰/helm-diff
+```
+
+ 
+##### **`helm-diff/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/helm-diff
+```
+
+ 
+##### **`helm-diff/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/helm-diff
+```
+
+ 
+##### **`helm-diff/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/helm-diff/<target_name>
+```
+
+ 
+##### **`helm-diff/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-diff/get_shell
+```
+
+ 
+##### **`helm-diff/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/helm-diff
+```
+
+ 
+##### **`helm-diff/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-diff/shell
+```
+
+ 
+##### **`helm-diff/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-diff/shell/pipe
+```
+
+ 
+##### **`helm-push`**
+
+
+```bash 
+Shorthand for ▰/helm-push
+```
+
+ 
+##### **`helm-push/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/helm-push
+```
+
+ 
+##### **`helm-push/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/helm-push
+```
+
+ 
+##### **`helm-push/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/helm-push/<target_name>
+```
+
+ 
+##### **`helm-push/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-push/get_shell
+```
+
+ 
+##### **`helm-push/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/helm-push
+```
+
+ 
+##### **`helm-push/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-push/shell
+```
+
+ 
+##### **`helm-push/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-push/shell/pipe
+```
+
+ 
+##### **`helm-unittest`**
+
+
+```bash 
+Shorthand for ▰/helm-unittest
+```
+
+ 
+##### **`helm-unittest/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/helm-unittest
+```
+
+ 
+##### **`helm-unittest/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/helm-unittest
+```
+
+ 
+##### **`helm-unittest/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/helm-unittest/<target_name>
+```
+
+ 
+##### **`helm-unittest/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-unittest/get_shell
+```
+
+ 
+##### **`helm-unittest/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/helm-unittest
+```
+
+ 
+##### **`helm-unittest/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-unittest/shell
+```
+
+ 
+##### **`helm-unittest/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/helm-unittest/shell/pipe
+```
+
+ 
+##### **`helm.chart.install/<arg>`**
 
 
 ```bash 
@@ -2559,7 +3705,7 @@ Idempotent version of a 'helm install'
 ```
 
  
-#### **`helm.repo.add/<arg>`**
+##### **`helm.repo.add/<arg>`**
 
 
 ```bash 
@@ -2567,6 +3713,130 @@ Idempotent version 'helm repo add'
 
  USAGE:
    ./k8s.mk helm.repo.add/<repo_name> url=<repo_url>
+```
+
+ 
+##### **`helm/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/helm
+```
+
+ 
+##### **`helm/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/helm
+```
+
+ 
+##### **`helm/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/helm/<target_name>
+```
+
+ 
+##### **`helm/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm/get_shell
+```
+
+ 
+##### **`helm/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/helm
+```
+
+ 
+##### **`helm/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helm/shell
+```
+
+ 
+##### **`helm/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/helm/shell/pipe
+```
+
+ 
+##### **`helmify`**
+
+
+```bash 
+Shorthand for ▰/helmify
+```
+
+ 
+##### **`helmify/build`**
+
+
+```bash 
+Shorthand for k8s-tools.build/helmify
+```
+
+ 
+##### **`helmify/clean`**
+
+
+```bash 
+Cleans the given service, removing local image cache etc.
+
+ Shorthand for k8s-tools.clean/helmify
+```
+
+ 
+##### **`helmify/dispatch/<arg>`**
+
+
+```bash 
+Shorthand for k8s-tools.dispatch/helmify/<target_name>
+```
+
+ 
+##### **`helmify/get_shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helmify/get_shell
+```
+
+ 
+##### **`helmify/pipe`**
+
+
+```bash 
+Pipe into the default shell for k8s-tools/helmify
+```
+
+ 
+##### **`helmify/shell`**
+
+
+```bash 
+Shorthand for k8s-tools/helmify/shell
+```
+
+ 
+##### **`helmify/shell/pipe`**
+
+
+```bash 
+Shorthand for k8s-tools/helmify/shell/pipe
 ```
 
 

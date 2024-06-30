@@ -2,7 +2,7 @@
 
 A tool / library / automation framework for working with containers.
 
-  * Library-mode extends `make`, adding native support for working with (external) container definitions
+  * Library-mode extends `make`, adding native support for working with container definitions
   * Stand-alone mode also available, i.e. a tool that requires no external Makefile / compose file.
   * A small-but-powerful built-in TUI framework with no host dependencies. (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
   * **Zero host-dependencies,** as long as you have docker + make.  Even the [TUI backend](#embedded-tui) is dockerized.
@@ -52,3 +52,7 @@ If you're interested in the gory details of a longer-format answer, see [the Des
 ----------------------------------------------------
 
 {% include "embedded-tui.md" %}
+
+----------------------------------------------------
+
+{% include "signals.md" %}

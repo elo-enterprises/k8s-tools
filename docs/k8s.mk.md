@@ -69,5 +69,3 @@ If you're interested in the gory details of a longer-format answer, see [the Des
 Documentation per-target is included in the next section, but these tools aren't that interesting in isolation.  See the [Cluster Automation Demo](#demo-cluster-automation) for an example of how you can put all this stuff together.
 
 ----------------------------------------------------
-
-{% include "api/k8s.mk.md" %}

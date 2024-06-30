@@ -15,7 +15,6 @@ MAKEFLAGS=-s -S --warn-undefined-variables
 export KUBECONFIG:=./fake.profile.yaml
 export _:=$(shell umask 066;touch ${KUBECONFIG})
 
-
 # testing the compose integration
 include compose.mk
 
@@ -27,33 +26,56 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 $(eval $(call compose.import, ▰, FALSE, k8s-tools.yml))
 
 .DEFAULT_GOAL := all 
-all: docker-compose.qbuild #k8s-tools.qbuild/k8s k8s-tools.qbuild/k3d
+all: #tux.require #docker-compose.build.quiet #k8s-tools.build.quiet/k8s k8s-tools.build.quiet/k3d
 	printf '\n' && set -x \
 	&& make \
+		test.mk \
 		flux.stage/core-compose \
 		demo demo-double-dispatch \
 		test.dispatch \
+		test.dispatch.retvals \
 		test.compose.pipes \
 		test.compose.services \
 		test.import.root \
 		test.main.bridge \
 		test.multiple.compose.files \
-		flux.stage/core-docker \
-		test.docker.run \
+		test.docker.core \
 		flux.stage/core-tui \
 		test.ticker \
 		test.containerized.tty.output \
 		flux.stage/core-flux \
 		test.flux.lib
-		
-# New target declaration that we can use to run stuff
-# inside the `debian` container.  The syntax conventions
-# are configured by the `compose.import` call we used above.
+
+test.mk:
+	./compose.mk \
+		mk.set/foo/bar mk.get/foo \
+		mk.ifdef/foo mk.ifndef/baz
+
+test.flux.if.then:
+	./compose.mk flux.if.then/flux.ok,flux.ok
+	./compose.mk flux.if.then/flux.fail,flux.ok
+	./compose.mk flux.do.when/flux.fail,flux.ok
+	./compose.mk flux.do.when/flux.ok,flux.ok
+
+test.stage:
+	@# declare a stage, 
+	./compose.mk flux.stage/${@} flux.stage.push/${@} flux.stage.pull
+
+test.signals: flux.stage/test-signals
+	# successful because this uses the signal handler 
+	./k8s.mk mk.interrupt
+	./compose.mk mk.interrupt
+	# not successful because it's not installed for this makefile 
+	# ! make mk.interrupt
+	
 demo: ▰/debian/self.demo
+	@# New target declaration that we can use to run stuff
+	@# inside the `debian` container.  The syntax conventions
+	@# are configured by the `compose.import` call we used above.
 
 test.ticker:
-	# FIXME: timeout kills the whole process?
-	# text=" testing ticker " make flux.timeout/2/tux.widget.ticker || true
+	@# FIXME: timeout kills the whole process?
+	@# text=" testing ticker " make flux.timeout/2/tux.widget.ticker || true
 
 # Displays platform info to show where target is running.
 # Since this target is intended to be private, we will 
@@ -64,38 +86,38 @@ self.demo:
 demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 test.containerized.tty.output: 
-	cmd='sleep 2' \
-	label='testing gum spinner inside container' \
-	make gum.spin
-
+	cmd='sleep 2' label='testing gum spinner inside container' make charm.gum.spin
+test.docker.core: \
+	flux.stage/core-docker \
+		test.docker.run
 test.import.root:
 	make io.print.div label="${bold_cyan}${@}${no_ansi}"
-	printf "\n${dim_cyan}Test import-to-root argument for compose.import${no_color}\n"
+	$(call log, ${dim_cyan}Test import-to-root argument for compose.import)
 	# test that the 4th argument for
 	# import-to-root-namespace is honored
-	! echo uname | make ansible/pipe 2>/dev/null
-	echo uname | make cm-tools/ansible/pipe 2>/dev/null
+	! echo uname | make chef/pipe 2>/dev/null
+	echo uname | make cm-tools/chef/pipe 2>/dev/null
 	echo uname | make k8s-tools/k3d/shell/pipe
 
 test.main.bridge:
 	make io.print.div label="${cyan}${@}${no_ansi}"
-	printf "\n${dim_cyan}Test service enumeration\nTarget @ <compose_file>.services ${no_color}\n"
+	$(call log, ${dim_cyan}Test service enumeration\nTarget @ <compose_file>.services)
 	make k8s-tools.services
-	printf "\n${dim_cyan}Test detection\nTarget @ <compose_file>/get_shell ${no_color}\n"
+	$(call log, ${dim_cyan}Test detection\nTarget @ <compose_file>/get_shell)
 	make k8s-tools/k8s/get_shell
 
 test.multiple.compose.files:
 	make io.print.div label="${cyan}${@}${no_ansi}"
-	printf "\n${dim_cyan}Test services enumeration, 2nd file\nTarget @ <compose_file>/<svc>.services ${no_color}\n"
+	$(call log, ${dim_cyan}Test services enumeration, 2nd file\nTarget @ <compose_file>/<svc>.services)
 	make docker-compose.services
-	printf "\n${dim_cyan}Test Streaming commands, 2nd file\nTarget @ <compose_file>/<svc>/pipe ${no_color}\n"
+	$(call log, ${dim_cyan}Test Streaming commands, 2nd file\nTarget @ <compose_file>/<svc>/pipe)
 	echo uname -n -v | make docker-compose/debian/pipe \
 
 test.compose.pipes:
 	make io.print.div label="${cyan}${@}${no_ansi}"
-	printf "\n${dim_cyan}Streaming commands to container\nTarget @ <svc>/shell/pipe ${no_color}\n"
+	$(call log, ${dim_cyan}Streaming commands to container\nTarget @ <svc>/shell/pipe)
 	echo uname -n -v | make k8s-tools/k8s/shell/pipe
-	printf "\n${dim_cyan}Test streaming commands to container\nTarget @ <compose_file_stem><svc>/shell/pipe ${no_color}\n"
+	$(call log, ${dim_cyan}Test streaming commands to container\nTarget @ <compose_file_stem><svc>/shell/pipe)
 	echo uname -n -v | make k8s-tools/k8s/shell/pipe
 	printf "\n${dim_cyan}Test streaming data to container\nTarget @ <svc>/shell/pipe ${no_color}\n"
 	echo 'foo: bar' | make k8s-tools/yq/pipe
@@ -107,6 +129,11 @@ test.compose.services:
 	make k8s-tools/helm > /dev/null
 	make k8s-tools/kubectl > /dev/null
 	make k8s-tools/k3d cmd='--version'
+
+test.dispatch.retvals:
+	printf "\n${dim_cyan}Checking dispatch return codes:${no_color}\n"
+	! (echo exit 1 | make docker-compose/debian/shell/pipe 2>/dev/null)
+	echo exit  | make docker-compose/debian/shell/pipe
 
 test.dispatch:
 	make io.print.div label="${cyan}${@}${no_ansi}"
@@ -163,12 +190,13 @@ test.flux.mux:
 	make flux.mux/io.time.wait
 
 test.docker.run:
-	make docker.run/python:3.11-bookworm/flux.ok
-	echo hello-python-docker1 | make test.docker.run.script
-	echo hello-python-docker2 | entrypoint=cat cmd=/dev/stdin make docker.run.sh/python:3.11-slim-bookworm
-	entrypoint=python cmd='--version' make docker.run.sh/python:3.11-slim-bookworm
+	img=python:3.11-bookworm make docker.run/flux.ok
+	echo hello-python-docker1 | make .test.docker.run.script
+	echo hello-python-docker2 | entrypoint=cat cmd=/dev/stdin img=python:3.11-slim-bookworm make docker.run.sh
+	entrypoint=python cmd='--version' img=python:3.11-slim-bookworm make docker.run.sh
+	echo {} | cmd=. img=ghcr.io/jqlang/jq:1.7.1 make docker.start
 
-test.docker.run.script:; entrypoint=python make docker.run.script/${@}/python:3.11-slim-bookworm
+.test.docker.run.script:; entrypoint=python make docker.run.script/${@}/python:3.11-slim-bookworm
 define script.demo.docker.run.script 
 # python script 
 import sys

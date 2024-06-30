@@ -4,3 +4,6 @@ tests/k8s.mk
 tests/Makefile
 docs/README.md
 docs/macros
+# BEGIN ANSIBLE MANAGED BLOCK
+.flux.stage.*
+# END ANSIBLE MANAGED BLOCK

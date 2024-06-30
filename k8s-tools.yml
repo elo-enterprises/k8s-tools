@@ -27,7 +27,7 @@ services:
   k8s: &base
     hostname: k8s-base
     environment: &base_environment
-      KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
+      KUBECONFIG: /home/${DOCKER_UGNAME:-root}/.kube/config
       DOCKER_UID: ${DOCKER_UID:-1000}
       DOCKER_GID: ${DOCKER_GID:-1000}
       DOCKER_UGNAME: ${DOCKER_UGNAME:-root}
@@ -35,7 +35,7 @@ services:
       TERM: ${TERM:-xterm-256color}
       PS1: '\u@\[\033[1;97;4m\]\h\[\033[0m\]:\w\$ '
     build:
-      tags: ['k8s:base']
+      tags: ['k8s:base', 'k8s:k8s']
       context: .
       dockerfile_inline: |
         FROM ${ALPINE_K8S_VERSION:-alpine/k8s:1.30.0} as builder
@@ -91,7 +91,7 @@ services:
       # NB: Add this if you're working with EKS and need AWS creds, similar for azure
       # - ${HOME}/.aws:/home/${DOCKER_UGNAME:-root}/.aws
     tty: true 
-
+  
   # https://github.com/charmbracelet/gum
   gum:
     <<: *base
@@ -413,14 +413,43 @@ services:
         USER ${DOCKER_UGNAME:-root}
     entrypoint: bash
   
+  # https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+  ansible:
+    <<: *base
+    hostname: k8s:ansible
+    tty: true 
+    build: 
+      context: .
+      tags: ['k8s:ansible']
+      dockerfile_inline: |
+        # Ansible has no official images and doesn't work well on alpine :(
+        # So kubectl/helm versions here are chosen to match current alpine k8s:base,
+        # but they don't track automatically if things are updated!
+        # FROM ${ANSIBLE_BASE:-${PYTHON_BASE:-python:3.11-slim-bookworm}}
+        FROM k8s:dind
+        # COPY --from=builder /opt/bitnami/kubectl/bin/kubectl /usr/bin
+        #   /bin/bash /usr/bin/make \
+        #     /usr/bin/kube* /usr/bin/helm* \
+        #       /usr/bin/gum /usr/bin
+        USER root
+        RUN apt-get update && apt-get install -y python3 python3-pip
+        RUN pip3 install --break-system-packages ansible==${ANSIBLE_VERSION:-10.1.0}
+        RUN ansible-galaxy collection install kubernetes.core
+        RUN pip install kubernetes --break-system-packages
+        RUN pip freeze|grep kuber
+        # RUN curl -LO https://dl.k8s.io/release/${KUBECTL_CLI_VERSION:-v1.30.0}/bin/linux/amd64/kubectl && mv kubectl /usr/bin
+        # RUN wget https://get.helm.sh/helm-${HELM_CLI_VERSION:-v3.14.4}-linux-amd64.tar.gz && tar -zxvf helm* && mv */helm /usr/bin
+        USER ${DOCKER_UGNAME:-root}
+
   # https://github.com/elo-enterprises/k8s-tools#embedded-tui
   tui: 
     <<: *base
     hostname: k8s:tui
     environment:
       <<: *base_environment
+      CMK_DIND: "1"
       KUBECONFIG: "${KUBECONFIG:-~/.kube/config}"
-      COMPOSE_MK_DIND: "1"
+      TMUX: "${TUI_TMUX_SOCKET:-/workspace/tmux.sock}"
     image: k8s:tui
     build:
       tags: ['k8s:tui']

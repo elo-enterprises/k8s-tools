@@ -1,6 +1,6 @@
 ### Macro Arguments
 
-Make isn't big on named-arguments, so let's unpack the `compose.import` macro invocation.
+Make isn't big on named-arguments, so let's unpack the typical `compose.import` macro invocation.
 
 ```Makefile
 include compose.mk

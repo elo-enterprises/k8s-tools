@@ -4,6 +4,14 @@ You can embed the k8s-tools suite in your project in two ways, either with some 
 
 ----------------------------------------------------
 
+### Compatibility Notes
+
+Platforms used in development include modern docker (say `25+`), make (`3.8+`), and bash `(~5`) on both Linux and MacOS, but testing in github-actions only uses Linux and won't try every possible combination of versions.  
+
+In general, the goal *is* to support most things you'll encounter in the wild, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to OSX default `sed` / `ps` / `xargs`, etc.  Please report issues!
+
+----------------------------------------------------
+
 ### Embedding Tools With Aliases
 
 To use this pattern with your existing projects, you might want to maintain separated compose files and setup aliases.
@@ -19,7 +27,9 @@ $ alias helm=docker compose -f myproject/k8s-tools.yml run helm
 $ helm ....
 ```
 
-Aliases are convenient but rather fragile (obviously this will break if you move your `myproject` folder around).  See the next section for something that is a more durable and flexible.
+Aliases are convenient but rather fragile (obviously this will break if you move your `myproject` folder around).  
+
+See the next section for something that is a more durable and flexible.
 
 ----------------------------------------------------
 
@@ -50,16 +60,16 @@ $ curl -sL \
     > k8s.mk
 ```
 
-These 3 files are usually working together, but in some cases they are useful in a stand-alone mode.  Make them all executable if you want to use that:
+These 3 files are usually working together, but in some cases they are useful in a stand-alone mode.  Make them all executable like this:
 
 ```bash
 $ chmod ugo+x k8s-tools.yml compose.mk k8s.mk
 
 # equivalent to `make -f k8s.mk ..`
-./k8s.mk ... # ===> 
+./k8s.mk ... 
 
 # equivalent to `make -f compose.mk ..`
-$ ./compose.mk ... ===> 
+$ ./compose.mk ... 
 
 # equivalent to `docker compose -f k8s-tools.yml run ...`
 $ ./k8s-tools.yml run ...
@@ -90,4 +100,4 @@ self.test:
 
 ### Stand-Alone Tools
 
-If you're not interested in custom automation that requires project-Makefile integration, some features of `compose.mk` and `k8s.mk` can be used without that.  See the docs for [Loading Compose Files](#loading-compose-files) for more details.
+If you're not interested in custom automation that requires project-Makefile integration, some features of `compose.mk` and `k8s.mk` can be used without that.  See the [Loading Compose Files](#loading-compose-files) docs, plus the [full CLI docs](/api) for more details.

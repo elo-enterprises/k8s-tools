@@ -1,0 +1,21 @@
+{% import 'macros.j2' as macros -%}
+### Supervisor and Signals
+
+Placeholder 
+
+#### Motivation
+
+Placeholder 
+
+{{macros.hr2()}}
+
+#### Implementation
+
+{% set targets=bash('./compose.mk mk.namespace.filter/mk.super') %}
+{% set targets=targets + bash('./compose.mk mk.namespace.filter/mk.interrupt')%}
+{% set targets=targets.split('\n') %}
+{%for target in targets %} {% set target=target.strip().replace('%','<arg>') %}{%if target%}
+* [{{target}}](docs/api#{{target.replace('<','').replace('>','').replace('/','')}}){%endif%}{%endfor%}
+
+{#{macros.img_link("img/tui-1.gif","50%")}#}
+{#{macros.hr2()}#}

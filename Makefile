@@ -1,14 +1,23 @@
 #!/usr/bin/env -S make -s -S -f 
 ##
 # Project Automation
+#
 # Typical usage: `make clean build test`
+#
+# https://clarkgrubb.com/makefile-style-guide
+# https://gist.github.com/rueycheng/42e355d1480fd7a33ee81c866c7fdf78
+# https://www.gnu.org/software/make/manual/html_node/Quick-Reference.html
 ##
 SHELL := bash
 .SHELLFLAGS?=-euo pipefail -c
 MAKEFLAGS=-s -S --warn-undefined-variables
-THIS_MAKEFILE := $(abspath $(firstword $(MAKEFILE_LIST)))
+THIS_MAKEFILE:=$(abspath $(firstword $(MAKEFILE_LIST)))
+.DEFAULT_GOAL:=help
 
-export SRC_ROOT := $(shell git rev-parse --show-toplevel)
+.SUFFIXES:
+.PHONY: docs
+
+export SRC_ROOT := $(shell git rev-parse --show-toplevel 2>/dev/null || pwd)
 export PROJECT_ROOT := $(shell dirname ${THIS_MAKEFILE})
 
 export KUBECONFIG?=./fake.profile.yaml
@@ -23,28 +32,28 @@ include k8s.mk
 include compose.mk
 $(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
 
-.PHONY: docs
-.DEFAULT_GOAL :=  all 
 
 ## BEGIN: Top-level
 ##
 
 all: init clean build test docs
-init: make.stat docker.stat
-clean: k8s-tools.clean
+init: mk.stat docker.stat
+clean: flux.stage.clean
 	@# Only used during development; normal usage involves build-on-demand.
 	@# Cache-busting & removes temporary files used by build / tests 
 	rm -f tests/compose.mk tests/k8s.mk tests/k8s-tools.yml
-	find .|grep .tmp|xargs rm || true
-	find .|grep .flux.stage|xargs rm || true
+	find .| grep .tmp|xargs rm 2>/dev/null|| true
 	
-build: #io.quiet.stderr/tux.bootstrap k8s-tools.qbuild
+build: 
 	@# Only used during development; normal usage involves build-on-demand.
 	@# This uses explicit ordering that is required because compose 
 	@# key for 'depends_on' affects the ordering for 'docker compose up', 
 	@# but doesn't affect ordering for 'docker compose build'.
-test: integration-test smoke-test e2e-test # tui-test 
+
+test: e2e-test integration-test smoke-test tui-test 
+
 docs: docs.jinja docs.mermaid
+
 normalize: 
 
 ## BEGIN: CI/CD related targets
@@ -82,37 +91,33 @@ test-suite/%:
 	@# USAGE: (run the named test from the named test-suite)
 	@#   make test-suite/mad-science -- demo.python
 	@#
-	$(call gum.style.target)
-	cd tests && bash ./bootstrap.sh
-	cp tests/Makefile.${*}.mk tests/Makefile
-	[[ $${MAKE_CLI} == *" -- "* ]] \
-	&& extra="$${MAKE_CLI#*--}" \
-	|| extra="" \
-	&& env -i PATH=$${PATH} HOME=$${HOME} bash -x -c "cd tests && make ${MAKE_FLAGS} $${extra}" 
-	[[ $${MAKE_CLI} == *" -- "* ]] && $(call _make.interrupt) || true
+	${make} io.print.div/${@}
+	$(trace_maybe) \
+	&& cd tests && bash ./bootstrap.sh \
+	&& suite="`printf "${*}"|cut -d/ -f1`" \
+	&& target="`printf "${*}"|cut -d/ -f2-`" \
+	&& cp Makefile.$${suite}.mk Makefile \
+	&& extra="$${target:$${targets:-}}" \
+	&& env -i PATH=$${PATH} HOME=$${HOME} bash ${dash_x_maybe} -c "make ${MAKE_FLAGS} -f Makefile $${extra}" 
 
-test-suite/mad: test-suite/mad-science
-ttest: tui-test
-etest: e2e-test 
-mtest: test-suite/mad-science
-lme-test: test-suite/lme
+mtest test-suite/mad: test-suite/mad-science
 
-itest: integration-test
-stest: smoke-test 
-
-tui-test: test-suite/tui 
+ttest tui-test: test-suite/tui/all
 	@# TUI test-suite, exercising the embedded 'compose.mk:tux'
 	@# container and various ways to automate tmux.
 
-smoke-test: test-suite/stest
+ttest/%:; make test-suite/tui/${*}
+stest smoke-test: test-suite/smoke-test-k8s/all test-suite/smoke-test-k8s-tools/all
 	@# Smoke-test suite, exercising the containers we built.
 	@# This just covers the compose file at k8s-tools.yml, ignoring Makefile integration
 
-integration-test: test-suite/itest
+itest integration-test: test-suite/itest/all
 	@# Integration-test suite.  This tests compose.mk and ignores k8s-tools.yml.
 	@# Exercises container dispatch and the make/compose bridge.  No kubernetes.
+itest/%:; make test-suite/itest/${*}
 
-e2e-test: test-suite/e2e
+etest/% e2e/%:; make test-suite/e2e/${*}
+etest e2e-test: test-suite/e2e/all
 	@# End-to-end tests.  This tests k8s.mk + compose.mk + k8s-tools.yml
 	@# by walking through cluster-lifecycle stuff inside a 
 	@# project-local kubernetes cluster.
@@ -132,17 +137,19 @@ mad/%:; set -x && make test-suite/mad-science -- ${*}
 
 docs.jinja:
 	@#
-	find docs|grep .j2|sed 's/docs\///g' | grep -v macros.j2 \
+	find docs|grep .j2 | sort | sed 's/docs\///g' | grep -v macros.j2 \
 	| xargs -I% sh -x -c "make docs.jinja/%"
 
 docs.jinja/%: 
 	@# Render docs twice to use includes, then get the ToC 
 	true \
 	&& $(call io.mktemp) && first=$${tmpf} \
-	&& set -x \
-	&& pynchon jinja render docs/${*} -o $${tmpf} \
-	&& (pynchon jinja render $${tmpf} -o $${tmpf} || printf "${red}2nd render failed,${no_ansi} TOC for "${*}" file may not be available.. \n") \
-	&& pynchon markdown preview $${tmpf} \
+	&& set -x && pynchon jinja render docs/${*} -o $${tmpf} \
+	&& set +x && (printf "${*}"|grep api.md \
+	&& $(call log, skipping 2nd render) \
+	|| ($(call log, rendering 2nd time to pickup toc) \
+		; (pynchon jinja render $${tmpf} -o $${tmpf} || printf "${red}2nd render failed,${no_ansi} TOC for "${*}" file may not be available.. \n") \
+	)); echo pynchon markdown preview $${tmpf} \
 	&& [ "${*}" == "README.md.j2" ] && mv $${tmpf} README.md || mv $${tmpf} docs/`dirname ${*}`/`basename -s .j2 ${*}`
 	
 docs.mermaid:; pynchon mermaid apply

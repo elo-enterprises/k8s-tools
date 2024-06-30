@@ -21,6 +21,16 @@ Jinja macros used in building docs (not make macros :)
 {{search_base}}
 {%- endmacro -%}
 
+{% macro parse_module_help(fname, namespace) -%}
+{% set lines=bash('pynchon makefile parse --module-docs ' + fname + '| jq \'.'+namespace+'\'', load_json=True) %}{% if not lines %}{%set lines=['fake','lines']%}{%endif%}
+{% if lines|length > 2%}{% set lines=lines[1:-1] %}{% endif %}
+{% for line in lines[1:-1] %}
+{{line[2:].lstrip()}}
+{% endfor %}
+
+<hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
+
+{%- endmacro -%}
 
 {% macro parse_help(fname, namespace, include_private=False) -%}
 {% set include_private = '--include-private' if include_private else '' %}
@@ -29,7 +39,7 @@ Jinja macros used in building docs (not make macros :)
 *This documentation is pulled automatically from [source]({{fname}}).{{help_extra}}*
 {% set targets=bash('pynchon makefile parse ' + include_private + ' ' + fname + '| jq \'with_entries(select(.key | startswith("'+namespace+'")))\'', load_json=True) %}
 {% for tname in targets %} {%set tdata=targets[tname]%}
-#### **`{{tname.replace('%','<arg>')}}`**
+##### **`{{tname.replace('%','<arg>')}}`**
 
 {%if tdata['alias']|default(false)%}{%set primary=(tdata.primary|default('?')).replace('%','<arg>') %} {% set primary_slug=primary.replace('<','').replace('>','').replace('/','').replace('-', '').replace('.','')%}
 * *Alias for [`{{primary}}`](#{{primary_slug}})*

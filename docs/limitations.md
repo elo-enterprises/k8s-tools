@@ -12,7 +12,9 @@ By default, the compose file shares the working directory with containers it's u
 
 #### General Argument Passing
 
-Unfortunately, there's not a good way to convince `make` to just proxy arguments without parsing them.  **For example `make kubectl apply -f` looks convenient, but it won't work.**  (It will instead parse `apply -f` as arguments to make.)
+Unfortunately, there's not a good way to convince `make` to just proxy arguments without parsing them.  **For example `./k8s.mk kubectl apply -f` looks convenient, but it won't work.**  (It will instead parse `apply -f` as arguments to make.)  
+
+The simplest workaround is to just use `cmd="apply ..." ./k8s.mk kubectl`.  However if [supervisors and signals](#supervisors-and-signals) are supported, then you can use the special form ' -- ', as in "./k8s.mk kubectl -- version --client".  See also [the smoke-tests](tests/Makefile.smoke-test-k8s.mk).
 
 #### Docker and File Permissions 
 
