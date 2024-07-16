@@ -25,13 +25,12 @@
 <td align=center width="13%"><a href=/docs/api/>API</a></td>
 <td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
       </table>
-      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="cdk:2.149.0" src="https://img.shields.io/badge/cdk%3A2.149.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
     </td>
   </tr>
 </table><center><span align=center>
-  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.<br/>
-  Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
-</span></center><hr style="border-bottom:1px solid black;">
+  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+</span></center>
 
 
 --------------------------------
@@ -44,43 +43,10 @@
 <ul>
 <li><a href="#overview">Overview</a></li>
 <li><a href="#features">Features</a></li>
-<li><a href="#quick-start">Quick Start</a><ul>
-<li><a href="#clonebuildtest-this-repo">Clone/Build/Test This Repo</a></li>
-<li><a href="#tools-via-compose-cli">Tools via Compose CLI</a></li>
-<li><a href="#tools-via-make">Tools via Make</a></li>
-</ul>
-</li>
-<li><a href="#integration-with-your-project">Integration With Your Project</a><ul>
-<li><a href="#compatibility-notes">Compatibility Notes</a></li>
-<li><a href="#embedding-tools-with-aliases">Embedding Tools With Aliases</a></li>
-<li><a href="#embedding-tools-with-makefiles">Embedding Tools With Makefiles</a></li>
-<li><a href="#stand-alone-tools">Stand-Alone Tools</a></li>
-</ul>
-</li>
-<li><a href="#composemk">compose.mk</a><ul>
-<li><a href="#but-why">But Why?</a></li>
-<li><a href="#dynamic-api">Dynamic API</a></li>
-<li><a href="#makecompose-bridge-with-k8s-toolsyml">Make/Compose Bridge with k8s-tools.yml</a></li>
-<li><a href="#container-dispatch">Container Dispatch</a></li>
-<li><a href="#macro-arguments">Macro Arguments</a></li>
-<li><a href="#container-dispatch-syntaxsemantics">Container Dispatch Syntax/Semantics</a></li>
-<li><a href="#multiple-compose-files">Multiple Compose Files</a></li>
-<li><a href="#loading-compose-files">Loading Compose Files</a></li>
-<li><a href="#signals-and-supervisors">Signals and Supervisors</a></li>
-<li><a href="#supervisor-and-signals">Supervisor and Signals</a></li>
-</ul>
-</li>
-<li><a href="#k8smk">k8s.mk</a><ul>
-<li><a href="#automation-apis-over-tool-containers">Automation APIs over Tool Containers</a></li>
-<li><a href="#but-why_1">But Why?</a></li>
-</ul>
-</li>
-<li><a href="#demos">Demos</a><ul>
-<li><a href="#demo-cluster-automation">Demo: Cluster Automation</a></li>
-<li><a href="#demo-platform-setup">Demo: Platform Setup</a></li>
-</ul>
-</li>
-<li><a href="#known-limitations-and-issues">Known Limitations and Issues</a></li>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#integration-with-your-project">Integration With Your Project</a></li>
+<li><a href="#composemk">compose.mk</a></li>
+<li><a href="#k8smk">k8s.mk</a></li>
 </ul>
 </div>
 
@@ -95,36 +61,28 @@ Containers defined here aren't built from scratch, and official sources are used
 
 **Besides bundling some tooling, this repository is a reference implementation** for a pattern that [bridges compose services and Makefile targets](#makecompose-bridge), creating a "minimum viable automation framework" for things like [orchestrating tasks across tool containers](#container-dispatch).  It's expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It's incredibly useful for lots of things, and whether it is a tool, a library, or a framework  depends on how you decide to use it.  
 
-This reference focuses on a few use-cases in particular:
+Besides k8s-tools.yml, there are two other pieces involved: the first one is [compose.mk](#composemk), which defines the core support for docker, and [k8s.mk](#k8smk), which uses it.  This reference focuses on a few use-cases in particular:
 
 1. Cluster lifecycle / development / debugging workflows in general.
 1. Decoupling project automation from the choice of CI/CD backend.
-1. Project-local kubernetes clusters & corresponding lifecycle automation using kind or k3d.
+1. Project-local kubernetes clusters & corresponding lifecycle automation using `kind` or `k3d`.
 1. Proper separation of automation tasks from specifications for runtime / container context.
 1. Less shell code in general, but where we need it: it <u>shouldn't</u> be embedded in YAML, Jenkinsfiles, etc.
 1. Per-project tool-versioning, providing defaults but allowing overrides, and ensuring versions match everywhere.
-1. Generally modernizing & extending `make` for containers, colors, and concurrency, making it ready for the 21st Century.
+1. Generally modernizing & extending `make` for containers, colors, & concurrency, making it ready for the 21st Century.
 
-There's a lot of hate for `make` (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for [container dispatch](#container-dispatch) feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, *the build-bots themselves will be happy to run your automation,* and the output is easy to parse.  See the [this repo's github actions](https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster), which bootstrap and exercise a cluster as part of the [end to end tests](#demo-cluster-automation).
+There's a lot of hate for `make` (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for [container dispatch](#container-dispatch) feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, *the build-bots themselves will be happy to run your automation,* and the output is easy to parse.  See the [this repo's github actions](https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster), which bootstrap and exercise a cluster as part of the [end to end tests](/docs/demos#demo-cluster-automation).
 
 **Working with [compose.mk](#composemk) and [k8s.mk](#k8smk) makes `make` hit different.**  
 
-Beyond addressing the issues above, these tools add new capabilities to `make` itself, including some support for [quickly building custom TUIs](#embedded-tui).
+Beyond addressing the issues above, these tools add new capabilities to `make` itself, including some support for [quickly building custom TUIs](#embedded-tui) from dockerized components.
 
-<table>
-    <tr>
-        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-4.gif"><img width="200px" src="img/tui-4.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-6.gif"><img width="200px" src="img/tui-6.gif"></a></p></td>
-    </tr>
-    <tr>
-        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-3.gif"><img width="200px" src="img/tui-3.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-5.gif"><img width="200px" src="img/tui-5.gif"></a></p></td>
-    </tr>
-</table>
+<p align="center"><a href="img/tui-6.gif"><img width="90%" src="img/tui-6.gif"></a></p>
 
-With or without the TUI, all output is carefully curated, aiming to be readable and human-friendly while still remaining machine-friendly for downstream processing.
+With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Oh yeah, and help even works:
+
+<p align="center"><a href="img/tui-7.gif"><img width="90%" src="img/tui-7.gif"></a></p>
+
 
 
 
@@ -133,9 +91,11 @@ With or without the TUI, all output is carefully curated, aiming to be readable 
 
 ## Features
 
-[k8s-tools.yml](#) | [compose.mk](#) | [k8s.mk](#)
+
 
 **[k8s-tools.yml](k8s-tools.yml)** is a compose file with 20+ container specifications covering popular platforming tools and other utilities for working with Kubernetes.  This file makes use of the [dockerfile_inline directive](https://docs.docker.com/compose/compose-file/build/#dockerfile_inline), plus the fact that tool-containers  *tend to involve layering really small customizations*.  Now you can version these tools explicitly, customize them if you need to, and still avoid having N Dockerfiles cluttering up your whole repository.  Here's a quick overview of the manifest and some details about versioning:
+
+<details><summary>&nbsp;&nbsp; <h4>Tool Manifest</h4> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 * **Local parts of the tool bundle** ([See the latest here](k8s-tools.yml))
   * <ins>Cluster management:</ins> [kind](https://github.com/kubernetes-sigs/kind), [k3d](https://k3d.io/)
@@ -143,71 +103,57 @@ With or without the TUI, all output is carefully curated, aiming to be readable 
   * <ins>Lower-level helpers:</ins> [helmify](https://github.com/arttor/helmify), [kompose](https://kompose.io/), [kubefwd](https://github.com/txn2/kubefwd)
   * <ins>Monitoring and metrics tools:</ins> [promtool](https://prometheus.io/docs/prometheus/latest/command-line/promtool/), [k9s](https://k9scli.io/), [lazydocker](https://github.com/jesseduffield/lazydocker)
   * <ins>Krew plugins:</ins> [sick-pods](https://github.com/alecjacobs5401/kubectl-sick-pods), [ktop](https://github.com/vladimirvivien/ktop), [kubectx, and kubens](https://github.com/ahmetb/kubectx) available by default, and more on demand.
-  * <ins>TUI and user-messaging utilities</ins>: [gum](https://github.com/charmbracelet/gum), [pv](https://www.ivarch.com/programs/pv.shtml), [spark](https://raw.githubusercontent.com/holman/spark/)
+  * <ins>TUI and user-messaging utilities</ins>: [gum](https://github.com/charmbracelet/gum), [pv](https://www.ivarch.com/programs/pv.shtml), [spark](https://raw.githubusercontent.com/holman/spark/), [tte](https://github.com/ChrisBuilds/terminaltexteffects)
   * <ins>General Utilities:</ins> Fixed (i.e. non-busybox) versions of things like date, ps, uuidgen, etc
+  * **Tooling in the local bundle is all versioned independently:**
+    * Defaults are provided, but [overrides allowed from environment variables](docs/env-vars.md#k8stoolsyml).
 * **Upstream parts of the tool bundle** ([See the latest here](https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools) for more details on that.)
   * <ins>Cluster management:</ins> [eksctl](https://github.com/weaveworks/eksctl)
   * <ins>Core Utilities:</ins> [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/), [kustomize](https://github.com/kubernetes-sigs/kustomize), [helm](https://github.com/helm/helm), [krew](https://github.com/kubernetes-sigs/krew)
   * <ins>Misc Utilities:</ins> [helm-diff](https://github.com/databus23/helm-diff), [helm-unittest](https://github.com/helm-unittest/helm-unittest), [helm-push](https://github.com/chartmuseum/helm-push), [kubeseal](https://github.com/bitnami-labs/sealed-secrets), [vals](https://github.com/helmfile/vals), [kubeconform](https://github.com/yannh/kubeconform)
   * <ins>Cloud Utilities:</ins> [awscli v1](https://github.com/aws/aws-cli), [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator)
   * <ins>General Utilities:</ins> Such as bash, curl, jq, yq, etc
-* **Versioning for Tools:**
-  * *Tooling in the local bundle is all versioned independently:*
-    * Defaults are provided, but [overrides allowed from environment variables](docs/env-vars.md#k8stoolsyml).
-  * *Upstream tool versioning is determined by the alpine-k8s base,*
-    * But *k8s-tools.yml* has service-stubs and layout that can be easily changed if you need something specific.
-* **Other Features:**
-  * *Just-in-Time & On-Demand:*
-    * As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.
-    * *Having these declared in case of eventual use won't saddle you with an enormous bootstrap process!*
-  * *Sane default volumes for tool-containers,* including:
-    * Sharing the working directory, docker socket, and kubeconfigs for you automatically.  
-  * *Fixes docker file-permissions for root-user containers* (*[more details here](#docker-and-file-permissions)*).
-  * 🚀 *Executable file:*  
-    * `./k8s-tools.yml ...  <==> docker compose -f k8s-tools.yml ...`
+  * **Upstream tool versioning is determined by the alpine-k8s base,**
+    * But *k8s-tools.yml* has service-stubs for quick overrides if you need something specific.
+</details>
 
-The focus for k8s-tools.yml is to stand alone with no host dependencies, not even Dockerfiles, yet provide boilerplate that's parametric enough to work pretty well across different projects, without changing the compose file.  If the default tool versions don't work for your use-cases, [k8s-tools.yml probably has an environment variable you can override](#environment-variables).
 
--------
 
-After you've made your whole tool chain portable in one swipe, you might also be interested in *driving* those tools with something that offers more structure than a shell script, and something that also *won't add to your dependencies*.  If that sounds interesting, you might like to meet `compose.mk` and `k8s.mk`.
+**Tool containers are just-in-time & on-demand,** so that having these declared in case of eventual use won't saddle you with an enormous bootstrap process.  As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.  
 
-<ins>**[compose.mk](#composemk)** is simultaneously a Makefile automation library and a stand-alone CLI tool. It defines targets and macros that can extend Make's core functionality in a variety of ways.</ins> One of the most important goals for these extensions is **working with compose files & services**, and describing the `compose.import` macro so that it's very simple to write automation that works with tool containers:
+**Sane defaults for volumes & environments are included for each tool-container,** meaning that sharing the working directory, docker socket, and kubeconfigs is done automatically.  For host vs. container file permissions, `k8s-tools.yml` also attempts to provide *smoother operations with root-user containers* (*[more details here](#docker-and-file-permissions)*.  
 
-* <ins>Importing Compose Services:</ins>
-  * **Tool containers can be 'imported' as a group of related make-targets.**
-    * Interact with them using the [Make/compose bridge](#makecompose-bridge)
-    * [Use container-dispatch syntax](#container-dispatch) to run existing make-targets **inside** tool containers
-    * Use the containers effectively from "outside", or drop into debugging shell "inside"
-  * <ins>Tool containers can be anything, defined anywhere:</ins>
-      * No explicit dependency for k8s-tools.yml
-      * [Multiple compose-files are supported](#multiple-compose-files)
-  
-  Besides adding docker-compose support, there are many other features that might be interesting:
-  
-  * **Make Extensions:**  
-    * 🚀 **Executable file:** `./compose.mk ...  <==> make -f compose.mk ...`
-    * Built-in supervisor process and improved support for signal handling
-    * **[Curated collection of reusable utility targets](#composemk-api)**, which can be used as a library with the rest of this automation framework or can be used from the CLI, to complement or simplify existing bash script, etc.  These targets are arranged into a few namespaces:
-      * [**`flux.*` targets:**](/docs/api#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides composable concurrency & staging operators, where the primitives are usually make-target names.  
-      * [**`tux.*` targets:**](#embedded-tui) Control-surface for a tmux-backed console geometry manager.
-        * **No host dependencies.** This uses the `compose.mk:tux` tool container to dockerize tmux itself.
-        * **Supports docker-in-docker style host-socket sharing with zero configuration,** so your TUI can generally do all the same container orchestration tasks as the docker host.
-        * Open split-screen displays, shelling into 1 or more of the tool containers in k8s-tools.yml (or any other compose file).
-        * Combines well with `flux.*` targets to quickly create dashboards / custom development environments.
-      * [**`stream.*`:**](/docs/api#api-stream) Support for working with streams, including newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It's not what you'd call "typed", but it reduces error-prone parsing and moves a little bit closer to structured data.
-      * [**`io.*`:**](/docs/api#api-io) Misc. utilities for printing, formatting, timers, etc.
-    * **Core**
-      * [**`docker.*`:**](/docs/api#api-docker) An interface for working with docker.
-      * [**`mk.*`:**](/docs/api#api-docker) Meta-tooling for 'make' itself. This enables help functions, signals and supervisors, some utilities for reflection, etc.
-      * [**`compose.*`:**](/docs/api#api-docker) An interface for working with compose.  
+For advanced usage of the tool containers defined in `k8s-tools.yml` it's best to pair with `k8s.mk`, but the compose file also works in stand-alone mode.  The file is even executable: 🚀 *./k8s-tools.yml ...*  <==> *docker compose -f k8s-tools.yml ...*
+
+
+
+**The focus for k8s-tools.yml is to stand alone with no host dependencies, not even Dockerfiles, yet provide boilerplate that's parametric enough to work pretty well across different projects, without changing the compose file.**  If the default tool versions don't work for your use-cases, [k8s-tools.yml probably has an environment variable you can override](docs/environment-variables).
 
 -------
 
-<ins>**[k8s.mk](#k8smk)** inherits all the compose.mk features, then adds implicit integration with k8s-tools.yml.</ins>  Both `compose.mk` and `k8s-tools.yml` files are a soft-dependency for `k8s.mk`, because the emphasis is on seamless usage of those containers.  All the simple targets described by the [Make/Compose Bridge](#makecompose-bridge) are available for k8s-tools services.
+After you've made your whole tool chain portable in one swipe, you might want to focus on *driving* those tools with something that offers more structure than a shell script, and something that also *won't add to your host dependencies*.  If that sounds interesting, you might like to meet `compose.mk` and `k8s.mk`.
 
-`k8s.mk` also provides some primitives for common tasks (like waiting for all pods to be ready), context management (*like setting the active namespace*), and the usual patterns (*like idempotent usage of `helm`*).  It can help to smooth over lots of other typical difficulties, like places where `kubefwd` or `ansible` are difficult to use.  `k8s.mk` also inherits and extends the TUI support from compose.mk, including the ability to automate the TUI itself (*like sending specific targets to specific panes*).
+<ins>**[compose.mk](#composemk)** is simultaneously a Makefile automation library and a stand-alone CLI tool.</ins>  It defines targets and macros that can extend Make's core functionality in a variety of ways, especially in terms of making it very simple to work with docker-compose files and services, and docker in general.
 
+<details><summary>&nbsp;&nbsp; <strong>Importing Compose Services:</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+* **Tool containers can be 'imported' as a group of related make-targets.**
+  * Interact with them using the [Make/compose bridge](#makecompose-bridge)
+  * [Use container-dispatch syntax](#container-dispatch) to run existing make-targets **inside** tool containers
+  * Use the containers effectively from "outside", or drop into debugging shell "inside"
+* <ins>Tool containers can be anything, defined anywhere:</ins>
+    * No explicit dependency for k8s-tools.yml
+    * [Multiple compose-files are supported](#multiple-compose-files)
+</details>
+
+Besides adding docker-compose support, there are [many other features](#composemk) that might be interesting.
+
+-------
+
+<ins>**[k8s.mk](#k8smk)** inherits all the *compose.mk* features, then adds implicit integration with *k8s-tools.yml*.</ins>  Both *compose.mk* and *k8s-tools.yml* files are a soft-dependency for *k8s.mk*, because the emphasis is on seamless usage of those containers.  All the simple targets described by the [Make/Compose Bridge](#makecompose-bridge) are available for k8s-tools.yml services.  (See [the full API here](/docs/api#api-k8smk))
+
+`k8s.mk` also provides some primitives for common tasks (*like waiting for all pods to be ready*), context management (*like setting the active namespace*), and the usual patterns (*like idempotent usage of `helm`*).  It can help to smooth over lots of other typical difficulties in places where things like `kubefwd` or `ansible` are difficult to use.  `k8s.mk` also inherits and extends the [TUI support from compose.mk](#embedded-tui), including the ability to automate the TUI itself (*like sending specific targets to specific panes*).
+
+<details><summary>&nbsp;&nbsp; <strong>k8s.mk Features</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 * **Main features:**
   * Useful as a library, especially if you're building cluster lifecycle automation
   * Useful as an interactive debugging/inspection/development tool.
@@ -221,13 +167,13 @@ After you've made your whole tool chain portable in one swipe, you might also be
     * Plus more specific interfaces to [k3d](/docs/api#api-k3d), [kubefwd](/docs/api#api-kubefwd), etc. [See the full API here.](#k8smk-api)
   * 🚀 *Executable file:*
     * `./k8s.mk ...  <==> make -f k8s.mk ...`
-
+</details>  
 
 --------------------------------
 
 ## Quick Start
 
-### Clone/Build/Test This Repo
+<details><summary>&nbsp;&nbsp; <h3>Clone/Build/Test This Repo</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 ```bash
 # for ssh
@@ -239,16 +185,16 @@ $ git clone https://github.com/elo-enterprises/k8s-tools
 # build the tool containers & check them
 $ make clean build test
 ```
+</details>
 
-----------------------------------------------------
-
-### Tools via Compose CLI
+<details><summary>&nbsp;&nbsp; <h3>Tools via Compose CLI</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 ```bash
 $ docker compose run -f k8s-tools.yml ansible ...
 $ docker compose run -f k8s-tools.yml argo ...
 $ docker compose run -f k8s-tools.yml awscli ...
 $ docker compose run -f k8s-tools.yml aws-iam-authenticator ...
+$ docker compose run -f k8s-tools.yml cdk ...
 $ docker compose run -f k8s-tools.yml dind ...
 $ docker compose run -f k8s-tools.yml eksctl ...
 $ docker compose run -f k8s-tools.yml fission ...
@@ -279,10 +225,9 @@ $ docker compose run -f k8s-tools.yml tui ...
 $ docker compose run -f k8s-tools.yml vals ...
 $ docker compose run -f k8s-tools.yml yq ...
 ```
+</details>
 
-----------------------------------------------------
-
-### Tools via Make 
+<details><summary>&nbsp;&nbsp; <h3>Tools via Make</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 Commands like this will work at the repository root to interact with the tool containers in k8s-tools.yml:
 
@@ -326,27 +271,27 @@ For the full documentation of those targets, see [k8s.mk API](/docs/api/#api-k8s
 This repository includes lots of examples for make/compose integration in general, and in particular how you can accomplish lifecycle scripting with k8s.mk.
 
 * For advanced usage that builds automation APIs by running targets *inside* tool containers, see [the dispatch-demo](#container-dispatch).
-* For a more involved tutorial [see the cluster-lifecycle demo](#demo-cluster-automation).
+* For a more involved tutorial [see the cluster-lifecycle demo](/docs/demos#demo-cluster-automation).
 * For examples, you can also the [integration tests](tests/Makefile.itest.mk) and [end-to-end tests](tests/Makefile.e2e.mk).  
 * For a complete, external project that uses this approach for cluster automation, see [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas)
 
-----------------------------------------------------
+</details>
+
+--------------------------------
 
 ## Integration With Your Project
 
 You can embed the k8s-tools suite in your project in two ways, either with some kind of global compose file and global aliases, or with a more project-based approach using Makefiles.
 
-----------------------------------------------------
-
-### Compatibility Notes
+<details><summary>&nbsp;&nbsp; <h3>Compatibility Notes</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 Platforms used in development include modern docker (say `25+`), make (`3.8+`), and bash `(~5`) on both Linux and MacOS, but testing in github-actions only uses Linux and won't try every possible combination of versions.  
 
 In general, the goal *is* to support most things you'll encounter in the wild, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to OSX default `sed` / `ps` / `xargs`, etc.  Please report issues!
 
-----------------------------------------------------
+</details>
 
-### Embedding Tools With Aliases
+<details><summary>&nbsp;&nbsp; <h3>Embedding Tools With Aliases</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 To use this pattern with your existing projects, you might want to maintain separated compose files and setup aliases.
 
@@ -365,9 +310,9 @@ Aliases are convenient but rather fragile (obviously this will break if you move
 
 See the next section for something that is a more durable and flexible.
 
-----------------------------------------------------
+</details>
 
-### Embedding Tools With Makefiles
+<details><summary>&nbsp;&nbsp; <h3>Embedding Tools With Makefiles</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 You'll probably want to read over the [compose.mk](#composemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.
 
@@ -430,19 +375,21 @@ self.test:
 ```
 
 
-----------------------------------------------------
+</details>
 
-### Stand-Alone Tools
+<details><summary>&nbsp;&nbsp; <h3>Stand-Alone Tools</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 If you're not interested in custom automation that requires project-Makefile integration, some features of `compose.mk` and `k8s.mk` can be used without that.  See the [Loading Compose Files](#loading-compose-files) docs, plus the [full CLI docs](/api) for more details.
 
-----------------------------------
+</details>
+
+--------------------------------
 
 ## compose.mk
 
-A tool / library / automation framework for working with containers.
+A tool / library / automation framework for working with containers.  
 
-  * Library-mode extends `make`, adding native support for working with container definitions
+  * Library-mode extends `make`, adding native support for working with containers
   * Stand-alone mode also available, i.e. a tool that requires no external Makefile / compose file.
   * A small-but-powerful built-in TUI framework with no host dependencies. (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
   * **Zero host-dependencies,** as long as you have docker + make.  Even the [TUI backend](#embedded-tui) is dockerized.
@@ -451,12 +398,29 @@ A tool / library / automation framework for working with containers.
 
 **In library Mode,** `compose.mk` is used as an `include` from your project Makefile.  With that as a starting place, you can **[build a bridge between docker-compose services and make-targets](#makecompose-bridge)** and use [**minimum viable patterns for container-dispatch.**](#container-dispatch).  The main macro is called *`compose.import`*, which can be used/included from any Makefile, used with any compose file, and [used with *multiple* compose files](#multiple-compose-files).  
 
+Besides support for compose-files, `compose.mk` has many other features that extend the core capabilities of make, plus a *[curated collection of reusable utility targets](#composemk-api).  Here's an overview:
 
-If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](#demo-cluster-automation) or to a [tui demo](#demo-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
 
-----------------------------------------------------
 
-### But Why?
+* 🚀 **Executable file:** `./compose.mk ...  <==> make -f compose.mk ...`
+* Built-in supervisor process, [improving support for signal handling](#).
+* [**`flux.*` targets:**](/docs/api#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides composable concurrency & staging operators, where the primitives are usually make-target names.  
+* [**`tux.*` targets:**](#embedded-tui) Control-surface for a tmux-backed console geometry manager.
+  * **No host dependencies.** This uses the `compose.mk:tux` tool container to dockerize tmux itself.
+  * **Supports docker-in-docker style host-socket sharing with zero configuration,** so your TUI can generally do all the same container orchestration tasks as the docker host.
+  * Open split-screen displays, shelling into 1 or more of the tool containers in k8s-tools.yml (or any other compose file).
+  * Combines well with `flux.*` targets to quickly create dashboards / custom development environments.
+* [**`stream.*`:**](/docs/api#api-stream) Support for working with streams, including newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It's not what you'd call "typed", but it reduces error-prone parsing and moves a little bit closer to structured data.
+* [**`io.*`:**](/docs/api#api-io) Misc. utilities for printing, formatting, timers, etc.
+* [**`docker.*`:**](/docs/api#api-docker) An interface for working with docker.
+* [**`mk.*`:**](/docs/api#api-docker) Meta-tooling for 'make' itself. This enables help functions, signals and supervisors, some utilities for reflection, etc.
+* [**`compose.*`:**](/docs/api#api-docker) An interface for working with compose.  
+
+**In Stand-alone Mode,** you can still use most of the features above but skip [the usual project integration](#embedding-tools-with-makefiles). *This works because with `make`, the programmatic API basically <ins>is</ins> the CLI.* Highlighting just a few random items, you can: [load compose files into TUIs](#loading-compose-files), [syntax-highlight files](#), [build JSON with jb](/docs/api#jb), [parse JSON with jq](/docs/api#jb), and lots more, all using docker if necessary and falling back to local tools if they are available.
+
+If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/docs/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
+
+<details><summary>&nbsp;&nbsp; <h3>But Why?</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 There's many reasons why you might want these capabilities if you're working with tool-containers, builds, deploys, and complex task orchestration.  People tend to have strong opions about this topic, and it's kind of a long story.  
 
@@ -465,14 +429,10 @@ Make & Compose are already a strong combination for this reason, and by adding s
 
 If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
-----------------------------------------------------
+</details>
 
 
-<details>
-
-<summary><h3>
-Make/Compose Bridge
-</h3></summary>
+<details><summary>&nbsp;&nbsp; <h3>Make/Compose Bridge</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 *`compose.mk`* provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.  
 
@@ -500,7 +460,8 @@ The arguments *`(▰, TRUE)`* above allow for control of namespacing and syntax.
 That's it for the Make/Compose boilerplate, but we already have lots of interoperability.  
 </details>
 
-### Dynamic API
+<details><summary>&nbsp;&nbsp; <h3>Dynamic API</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
 
 In general, the autogenerated targets created by [the bridge described above](#make-compose-bridge) fall into these categories:
 
@@ -623,9 +584,9 @@ Using the `<compose_stem>.services` target, it's easy to map a command onto ever
 $ make docker-compose.services | xargs -n1 -I% sh -x -c "echo uname -n |make docker-compose/%/shell/pipe"
 ```
 
-----------------------------------------------------
+</details>
 
-### Make/Compose Bridge with k8s-tools.yml
+<details><summary>&nbsp;&nbsp; <h3>Make/Compose Bridge with k8s-tools.yml</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 This repo's [Makefile](Makefile) uses compose.mk macros to load services from [k8s-tools.yml](k8s-tools.yml), so that [the targets available at the project root](#tools-via-make) are similar to the ones above, but will use names like *`k8s, kubectl, k3d`* instead of *`debian, alpine`*, and will use *`k8s-tools/`* prefixes instead of *`docker-compose/`* prefixes.
 
@@ -636,6 +597,7 @@ ansible
 argo
 awscli
 aws-iam-authenticator
+cdk
 dind
 eksctl
 fission
@@ -669,7 +631,7 @@ yq
 
 ```bash 
 $ echo k3d --version | make k8s-tools/k3d/shell/pipe 
-k3d version v5.6.3
+k3d version v5.6.2
 k3s version v1.28.8-k3s1 (default)
 ```
 
@@ -683,10 +645,9 @@ k8s-base:/workspace$
 
 See also the [TUI docs](#embedded-tui) for examples of opening up multiple container-shells inside a split-screen display.
 
-----------------------------------------------------
+</details>
 
-
-### Container Dispatch
+<details><summary>&nbsp;&nbsp; <h3>Container Dispatch</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 Let's look at a more complicated example where we want to use make to dispatch commands *into* the compose-service containers.  For this we'll have to change the boilerplate somewhat as we add more functionality.
 
@@ -805,9 +766,9 @@ services:
 
 The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
 
-----------------------------------------------------
+</details>
 
-### Macro Arguments
+<details><summary>&nbsp;&nbsp; <h3>Macro Arguments</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 Make isn't big on named-arguments, so let's unpack the typical `compose.import` macro invocation.
 
@@ -822,10 +783,9 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 **The last argument for `compose.import` is the compose-file to load services from.**  It will be tempting to quote this and the other arguments, but that won't work, so resist the urge!
 
+</details>
 
-----------------------------------------------------
-
-### Container Dispatch Syntax/Semantics
+<details><summary>&nbsp;&nbsp; <h3>Container Dispatch Syntax/Semantics</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  
 
@@ -849,10 +809,10 @@ But what about the semantics?  In this example, the user-facing `demo` target de
 Look, no `docker run ..` clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
 
 Under the hood, dispatch is implemented by building on the [default targets that are provided by the bridge](#makecompose-bridge).
+</details>
 
-----------------------------------------------------
+<details><summary>&nbsp;&nbsp; <h3>Multiple Compose Files</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
-### Multiple Compose Files
 
 This can be easily adapted for working with *multiple* compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:
 
@@ -878,10 +838,9 @@ There's lots of ways to use this.  And if your service names across 2 files do n
 
 Confused about what targets are available after using `compose.import`?  See the [`<compose_stem>.services`](#target-compose_stemcmd) for list services, and check out the `make help` output.
 
-----------------------------------------------------
+</details>
 
-
-### Loading Compose Files
+<details><summary>&nbsp;&nbsp; <h3>Loading Compose Files</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 For the simplest use-cases where you have a compose-file, and want some of the compose.mk features, but don't have a project makefile, it's possible to skip some of the steps in the [usual integration](#embedding-tools-with-makefiles) by letting `loadf` generate integration for you just in time.
 
@@ -899,13 +858,60 @@ Actually any type of instructions you pass will get the compose-file context, so
 
 Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the [Embedded TUI](#embedded-tui) docs for other examples that are using `loadf`.
 
-----------------------------------------------------
+</details>
 
-### Signals and Supervisors
+<details><summary>&nbsp;&nbsp; <h3>Embedded TUI</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+<table align=center width=95%>
+    <tr>
+        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-4.gif"><img width="200px" src="img/tui-4.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-6.gif"><img width="200px" src="img/tui-6.gif"></a></p></td>
+    </tr>
+    <tr>
+        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-3.gif"><img width="200px" src="img/tui-3.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-5.gif"><img width="200px" src="img/tui-5.gif"></a></p></td>
+    </tr>
+</table>
+
+The basic components of the TUI are things like [tmux](https://github.com/tmux/tmux) for core drawing and geometry, [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and basic [tmux themes](https://github.com/jimeh/tmux-themepack/) / [plugins](https://github.com/tmux-plugins/tpm) / etc that are baked in.  These elements (plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/)) are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
+
+<img src=img/tui-5.gif>
+
+How does this work?  The behaviour above relies on a few things.  First, the `compose.mk:tux` container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  
+
+Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the [`loadf` target,](#loading-compose-files) you can leverage existing compose files but skip [the usual integration with a project Makefile](#embedding-tools-with-makefiles).
+
+
+<img src=img/tui-1.gif>
+
+One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.
+
+<img src=img/tui-2.gif>
+
+</details>
 
 
 
- You can think of `compose.mk` as a long list of egregious hacks that can only be redeemed by a *'but look what you can do with this!'* moment.  On that list, **signals and supervisors** is perhaps the most absurd thing of all. 
+
+ 
+* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
+* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
+* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
+* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
+* [mk.interrupt](docs/api#mk.interrupt) 
+* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
+* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
+
+
+
+
+<details><summary>&nbsp;&nbsp; <h3>Signals and Supervisors</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+
+
+ 
  
  #### Motivation 
  
@@ -926,98 +932,72 @@ The [wrapper for jb](docs/api/#jb) is another example of an invocation that requ
 
 #### Implementation
 
-**The way this works is ridiculous,** An example for the mad-scientists out there?  A guy could probably hijack this for control flow! 👀
- This is a crazy thing to do, but for some use-cases this might be too useful to ignore.  Consider it um, [experimental](tests/Makefile.mad-science.mk).
-
-<hr style="80%;border-bottom: 5px dashed black;background: #efefef;">
-
-----------------------------------------------------
-
-### Supervisor and Signals
-
-Placeholder 
-
-#### Motivation
-
-Placeholder 
-
-<hr style="80%;border-bottom: 5px dashed black;background: #efefef;">
-
-#### Implementation
 
 
 
 
- 
-* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
-* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
-* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
-* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
-* [mk.interrupt](docs/api#mk.interrupt) 
-* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
-* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
+</details>
 
-
-
-
-----------------------------------
+--------------------------------
 
 
 ## k8s.mk
 
-`k8s.mk` exists to create an automation API over the tool-containers described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  
+`k8s.mk` exists to create a automation APIs over the tool-containers described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with [compose.mk](#composemk) and [k8s-tools.yml](#features), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  
 
-It works best in combination with [compose.mk](#composemk) and [k8s-tools.yml](#), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  
+The focus is on simplifying a few categories of frequent challenges:
 
-### Automation APIs over Tool Containers 
+1. **Reusable implementations for common cluster automation tasks,** like [waiting for pods to get ready](/docs/api#k8s.wait)
+1. **Context-management tasks,** (like [setting the currently active namespace](/docs/api#k8snamespacearg))
+1. **Interactive debugging tasks,** (like [shelling into a new or existing pod inside some namespace](/docs/api#k8sshellarg))
 
-As an example of what that means, let's consider the [`k8s.get` target](#), which you might use like this:
+The full API is [here](/docs/api/#api-k8smk), and the [Cluster Lifecycle Demo](//docs/demos#demo-cluster-automation) includes a walk-through of using it from your own project automation.  
+
+By combining these tools with compose.mk's [`flux.*` API](/docs/api#api-flux) you can describe workflows, and using the [`tux.*` API](/docs/api#api-tux) you can send tasks, or groups of tasks, into panes on a TUI.
+
+
+<details><summary>&nbsp;&nbsp; <h3>Automation APIs over Tool Containers</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+What *is* an automation API over a tool container anyway?  As an example, let's consider the [`k8s.get` target](/docs/api/#k8sget), which you might use like this:
 
 ```bash
-# using k8s.get/<namespace>/<kind>/<name>/<filter>
-$ ./k8s.mk k8s.get/argo-events/svc/webhook-eventsource-svc/.spec.clusterIP
+# Usage: k8s.get/<namespace>/<kind>/<name>/<filter>
+$ KUBECONFIG=.. ./k8s.mk k8s.get/argo-events/svc/webhook-eventsource-svc/.spec.clusterIP
 
 # roughly equivalent to:
 $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}"
 ```
 
-The first command has no host requirements for kubectl or jq, but uses both via docker.  Similarly, the [`helm.install` target](/docs/api/#helm.install) works as you'd expect but does not require `helm`, plus it's a little more idempotent than using `helm` directly.  Meanwhile `k8s.mk k9s/<namespace>` works like `k9s --namespace` does, but doesn't require k9s, etc.
+The first command has no host requirements for `kubectl` or `jq`, but uses both via docker.  Similarly, the [`helm.install` target](/docs/api#helm.install) works as you'd expect but does not require `helm` ( and plus it's a little more idempotent than using `helm` directly).  Meanwhile `k8s.mk k9s/<namespace>` works like `k9s --namespace` does, but doesn't require k9s.
 
-Many of these targets are fairly simple wrappers, but just declaring them accomplishes several things at once.  A k8s.mk make-target is:
+Many of these targets are fairly simple wrappers, but just declaring them accomplishes several things at once.
+
+The typical `k8s.mk` entrypoint is:
 
 1. CLI friendly, for interactive contexts, as above
-1. API friendly, for more programmatic use, as part of prereqs or body for other project automation
-1. Workflow friendly, either as part of make's native DAG processing, or via [flux](docs/api/#flux).
-1. Potentially a TUI element, via the [embedded TUI](#embedded-tui) and [tux](docs/api/#tux).
+1. API friendly, for more programmatic use, as part of the prereqs or the body for other project automation
+1. Workflow friendly, either as part of `make`'s native DAG processing, or via [flux](/docs/api#api-flux).
+1. Potentially a TUI element, via the [embedded TUI](/#embedded-tui) and [tux](/docs/api#tux).
 1. Context-agnostic, generally using tools directly if available or falling back to docker when necessary.
 
-Some targets like [`k8s.shell`](/docs/api/#k8sshell) or [`kubefwd.[start|stop|restart]`](/docs/api/#kubefwd) are more composite than simple wrappers.  
+Some targets like [`k8s.shell`](/docs/api/#k8sshell) or [`kubefwd.[start|stop|restart]`](/docs/api/#kubefwd) are more composite than simple wrappers, and achieve more complex behaviour by orchestrating 1 or more commands across 1 or more containers.  See also the [ansible wrapper](/docs/api#api-ansible), which exposes a subset of `ansible` without all the overhead of inventories & config.
 
-If you want, you can always to stream arbitrary commands or scripts into these containers more directly, via [the Make/Compose bridge](#makecompose-bridge).  But the point of k8s.mk is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, launches a pod, and shells into it:
+If you want you can always to stream arbitrary commands or scripts into these containers more directly, via [the Make/Compose bridge](#makecompose-bridge), or write your own targets that run inside those containers.  But the point of `k8s.mk` is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, adds a label to it, launches a pod there, and shells into it:
 
 ```bash 
 $ pod=`uuidgen` \
+&& namespace=testing \
 && ./k8s.mk \
-    k8s.kubens.create/testing \
-    k8s.test_harness/testing/${pod} \
-    k8s.namespace.wait/testing \
-    k8s.shell/testing/${pod}
+    k8s.kubens.create/${namespace} \ \
+    k8s.namespace.label/$${namespace}/mylabel/value
+    k8s.test_harness/${namespace}/${pod} \
+    k8s.namespace.wait/${namespace} \
+    k8s.shell/${namespace}/${pod}
 ```
 
-The focus is on simplifying a few categories of frequent challenges:
+</details>
 
-1. **Reusable implementations for common cluster automation tasks,** like [waiting for pods to get ready](#)
-1. **Context-management tasks,** (like [setting the currently active namespace](#))
-1. **Interactive debugging tasks,** (like [shelling into a new or existing pod inside some namespace](#))
-
-The full API is [here](#), and the [Cluster Lifecycle Demo](#) includes a walk-through of using it from your own project automation.  
-
-By combining these tools with compose.mk's [`flux.*` API](#) you can describe workflows, and using the [`tux.*` API](#) you can send tasks, or groups of tasks, into panes on a TUI.
-
-
-----------------------------------------------------
-
-### But Why?
+<details><summary>&nbsp;&nbsp; <h3>But Why?</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 There's many reasons why you might want these capabilities if you're working with cluster-lifecycle automation.  People tend to have strong opions about this topic, and it's kind of a long story.  The short version is this: 
 
@@ -1026,349 +1006,17 @@ There's many reasons why you might want these capabilities if you're working wit
 * Project-local clusters are much-neglected, but also increasingly important aspects of project testing and overall developer-experience.  
 * Ansible/Terraform are great, but they have a lot of baggage, aren't necessarily a great fit for this type of problem, and they also have to be versioned.  
 
-k8s.mk, especially combined with k8s-tools.yml and compose.mk, is aimed at fixing this stuff.  Less fighting with tools, more building things.
+`k8s.mk`, especially combined with `k8s-tools.yml` and `compose.mk`, is aimed at fixing this stuff.  
 
 If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
-Documentation per-target is included in the next section, but these tools aren't that interesting in isolation.  See the [Cluster Automation Demo](#demo-cluster-automation) for an example of how you can put all this stuff together.
 
-----------------------------------------------------
 
-----------------------------------
+</details>
 
-## Demos 
+--------------------------------
 
-### Demo: Cluster Automation
-
-
-
-
-This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
-
-----------------------------------------------
-
-#### Boilerplate, Overrides, Clean & Init 
-
-```Makefile 
-# tests/Makefile.e2e.mk
-
-SHELL := bash
-MAKEFLAGS=-sS --warn-undefined-variables
-.SHELLFLAGS := -euo pipefail -c
-.DEFAULT_GOAL=help
-.SUFFIXES:
-export K3D_VERSION:=v5.6.3
-export KREW_PLUGINS:=graph
-export CLUSTER_NAME:=k8s-tools-e2e
-export KUBECONFIG:=./fake.profile.yaml
-export _:=$(shell umask 066;touch ${KUBECONFIG})
-export HELM_REPO:=https://helm.github.io/examples
-export HELM_CHART:=examples/hello-world
-export POD_NAME?=test-harness
-export POD_NAMESPACE?=default
-include k8s.mk
-include compose.mk
-$(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
-all: build cluster.clean cluster.create deploy test
-
-```
-
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/docs/env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
-
-The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
-
-Note that when overrides like these are changed, [k8s-tools.yml](k8s-tools.yml) needs to be rebuilt.  (You can do that with `make k8s-tools.build` or `docker compose -f k8s-tools.yml build k8s`)
-
-Next we organize some targets for cluster-operations.  Below you can see there are two public targets declared for direct access, and two private targets that run inside the `k3d` tool container.
-
-```Makefile 
-# tests/Makefile.e2e.mk
-
-clean cluster.clean: flux.stage/ClusterClean ▰/k3d/self.cluster.clean
-cluster cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
-cluster.wait: k8s.cluster.wait
-cluster.teardown:
-	make jb wait=yes state=absent kind=Pod namespace=default name=test-harness | make ansible.k8s
-	make jb release_namespace=default name=ahoy state=absent wait=true | make ansible.helm 
-self.cluster.create:
-	( k3d cluster list | grep $${CLUSTER_NAME} \
-	  || k3d cluster create $${CLUSTER_NAME} \
-			--servers 3 --agents 3 \
-			--api-port 6551 --port '8080:80@loadbalancer' \
-			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait )
-self.cluster.clean:
-	set -x && k3d cluster delete $${CLUSTER_NAME}
-
-```
-
-Running `make clean` looks like this when it's tearing down the cluster:
-
-<img src="img/e2e-clean.gif">
-
---------------------------------------------------
-
-The `list` part makes the create target idempotent in the way you'd expect.  Here we're using CLI arguments for most of the cluster spec, but depending on your version, k3d supports most of this in external config yaml.
-
-Running `make init` looks like this when it's setting up the cluster:
-
-<p align="center"><a href="img/e2e-init.gif"><img width="90%" src="img/e2e-init.gif"></a></p>
-
-----------------------------------------------
-
-#### Deployment
-
-The next section of the Makefile covers cluster provisioning.  Here we just want to install a helm chart, and to add a special "test-harness" pod to the default namespace.  
-
-But we also want operations to be idempotent, and blocking operations where that makes sense, and we want to provide several entrypoints for the convenience of the user.
-
-```Makefile 
-# tests/Makefile.e2e.mk
-
-deploy cluster.deploy: flux.stage/DeployApps deploy.helm deploy.test_harness
-	set -x && trace=1 key=manager val=k8s.mk make k8s.namespace.label/${POD_NAMESPACE}
-deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
-deploy.test_harness: ▰/k8s/self.test_harness.deploy
-self.cluster.deploy_helm_example: 
-	@# Idempotent version of a helm install.
-	@# Commands are inlined directly below for clarity, 
-	@# but see also 'helm.repo.add', 'helm.chart.install', 
-	@# and 'ansible.helm' for more advanced built-in helpers.
-	set -x \
-	&& (helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO} ) \
-	&& (helm list | grep hello-world || helm install ahoy ${HELM_CHART})
-self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${POD_NAMESPACE}/${POD_NAME} 
-	kubectl apply -f nginx.svc.yml
-
-```
-
-Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/docs/api/#api-k8smk)) do all of the heavy lifting.  
-
-Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.
-
-<p align="center"><a href="img/e2e-provision-helm.gif"><img width="90%" src="img/e2e-provision-helm.gif"></a></p>
-
-
-Helm is just an example.  Volumes for file-sharing with the container are also already setup, so you can `kustomize` or `kubectl apply` referencing the file system directly.
-
-The other part of our provisioning is bootstrapping the test-harness pod.  This pod is nothing very special, but we can use it later to inspect the cluster.  Setting it up looks like this:
-
-<p align="center"><a href="img/e2e-provision-test-harness.gif"><img width="90%" src="img/e2e-provision-test-harness.gif"></a></p>
-
-----------------------------------------------
-
-#### Testing
-
-With the test-harness in place, there's a block of target definitions for a miniature test-suite that checks properties of the cluster.
-
-```Makefile 
-# tests/Makefile.e2e.mk
-
-test: test.cluster test.contexts 
-test.cluster cluster.test: flux.stage/test ▰/k8s/k8s.cluster.wait
-	label="Showing kubernetes status" make charm.gum.style 
-	make k8s/dispatch/k8s.stat 
-	label="Previewing topology for default namespace" make charm.gum.style 
-	size=40x make k8s.graph.tui/default/pod
-	label="Previewing topology for kube-system namespace" make charm.gum.style 
-	make k8s.graph.tui/kube-system/pod
-test.contexts: 
-	@# Helpers for displaying platform info 
-	label="Demo pod connectivity" make charm.gum.style 
-	make get.compose.ctx get.pod.ctx 
-get.compose.ctx:
-	@# Runs on the container defined by compose service
-	echo uname -n | make k8s-tools/k8s/shell/pipe
-get.pod.ctx:
-	@# Runs inside the kubernetes cluster
-	echo uname -n | make k8s.shell/default/test-harness/pipe
-
-```
-
-Amongst other things, the section above is using a streaming version of the `k8s.shell/<namespace>/<pod>/pipe` (we'll get to an interative version in later sections).
-
-You can use this to assert things about the application pods you've deployed (basically a smoke test).  It's also useful for quick and easy checks that cover aspects of cluster internal networking, dns, etc.
-
-Running `make test` looks like this:
-
-<p align="center"><a href="img/e2e-test.gif"><img width="90%" src="img/e2e-test.gif"></a></p>
-
-----------------------------------------------
-
-#### Debugging
-
-The tests are not a bad start for exercising the cluster, and instead of displaying platform info you can imagine tests that check service availability.  Since we blocked on pods or whole-namespaces being ready, we also know that nothing is stuck in crash loop or container-pull.  And we know that there were not errors with the helm charts, and that we can communicate with the test-harness pod.  
-
-What if you want to inspect or interact with things though?  The next block of target definitions provides a few aliases to help with this.
-
-```Makefile 
-# tests/Makefile.e2e.mk
-
-cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
-cluster.show: k3d.commander
-
-```
-
-Again, no target bodies because `k8s.*` targets for stuff like this already exist, and we just need to pass in the parameters for our setup.  
-
-Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if k8s.mk is included, but now there's an even-easier alias that makes our project more self-documenting.  
-
-<p align="center"><a href="img/e2e-interactive-shell.gif"><img width="90%" src="img/e2e-interactive-shell.gif"></a></p>
-
-The `*k8s.shell/<namespace>/<pod_name>*` target used above is interactive, but there's also a streaming version that we used earlier in the cluster testing (`*k8s.shell/<namespace>/<pod_name>/pipe*`).
-
-Since k3d is using docker for nodes, debugging problems sometimes involves inspecting host stats at the same time as a view of the cluster context.  Here's a side-by-side view of the kubernetes namespace (visualized with `ktop`), and the local docker containers (via `lazydocker`):
-
-<p align="center"><a href="img/e2e-interactive-tui.gif"><img width="90%" src="img/e2e-interactive-tui.gif"></a></p>
-
-----------------------------------------------
-
-#### Development 
-
-For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
-
-The [**`kubefwd.start/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
-
-<p align="center"><a href="img/e2e-kubefwd.gif"><img width="90%" src="img/e2e-kubefwd.gif"></a></p>
-
-Note the weird DNS in the test above, where `nginx-service` resolves as expected, even from the host.  The `kubefwd` tool makes this work smoothly because [k8s-tools.yml](k8s-tools.yml) mounts `/etc/hosts` as a volume.
-
-----------------------------------------------
-
-#### Alternate Deployment
-
-Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for `KUBECONFIG`.
-
-For example, if you're using rancher desktop, you might do something like this:
-
-```bash 
-$ rdctl shell sudo k3s kubectl config view --raw > rancher-desktop.yml
-
-$ KUBECONFIG=rancher-desktop.yml make deploy test
-```
-
-----------------------------------------------
-
-#### Next Steps
-
-From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.
-
-1. **Experimenting with a different k8s distro than k3d should be easy,** since both `kind` and `eksctl` are already part of k8s-tools.yml.  Once you add a new setup/teardown/auth process for another backend, the rest of your automation stays the same.  
-1. **Experimenting with extra cluster platforming probably begins with mirroring manifests or helm-charts.**  Container volumes are already setup to accomodate local files transparently.
-1. **Experimenting with an application layer might mean more helm, and/or adding build/push/pull processes for application containers.**  Application work can be organized externally, or since **everything so far is still small enough to live in an application repository,** there's no pressing need to split code / infracode / automation into lots of repositories yet.  This is a good way to begin if you want to be local-dev friendly and have basic E2E testing for your application from the start.  For local application developement, you'll probably also want use `kubefwd` to start sharing cluster service ports, making them available on the host.
-1. **For the architecture & microservices enthusiast,** a slight variation of this project boilerplate might involve adding another application-specific compose file that turns several of your first-party libraries into proper images using the using the [`dockerfile_inline:` trick](https://docs.docker.com/compose/compose-file/build/#dockerfile_inline) to run a little bit of `pip` or `npm`, then turning those versioned libraries into versioned APIs.  (If you already have external repositories with Dockerfiles wrapping your services, then compose `build:` also support URLs.)  If your needs are simple, then using [kompose](https://kompose.io/) can help multi-purpose that compose build-manifest, treating it as a deployment-manifest at the same time.  This is probably not where you want to stay, but an excellent place to start for things like PoCs and rapid-prototyping.
-1. **Experimenting with private registries** might start with [compose-managed tags](https://docs.docker.com/reference/cli/docker/compose/push/) and a [local caching docker registry](https://docs.docker.com/docker-hub/mirror/)**, or you can push to a [k3d registry](https://k3d.io/v5.2.0/usage/registries/).  To use private, locally built images without a registry, see [`k3d image import`](https://k3d.io/v5.3.0/usage/commands/k3d_image_import/), or the equivalent [kind load](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
-1. **Extending the make/compose technique to completely different automation tasks is straightforward,** as long as you stick to the layout.  For example substituing `k8s-tools.yml` for a new `iac-tools.yml` compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then `compose.mk` and `compose.import` generate targets as usual.  If necessary a new file `Makefile.iac.mk` can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  
-
- ----------------------------------------------
-
-#### Conclusion
-
-So that's how less than 100 lines of mostly-aliases-and-documentation Makefile is enough to describe a simple cluster lifecycle, and can give access to ~20 versioned platforming tools, all with no host dependencies except docker + make.  It's simple, structured, portable, and lightweight.  If you don't care about partial excutions and exposing step-wise entrypoints to the CLI, then you can cut this line-count roughly in half.  Good automation will be self-documenting, but even if you're code-golfing with this approach, the result will probably *still* be organized/maintainable/durable than the equivalent shell-script or ansible.
-
-No container orchestration logic was harmed during the creation of this demo, nor confined inside a Jenkinsfile or github action, and yet [it all works from github actions](https://github.com/elo-enterprises/k8s-tools/actions).  
-
-Happy platforming =D
-
-### Demo: Platform Setup
-
-Consider this hypothetical snippet:
-
-``` Makefile
-# Project Makefile
-#
-# Implementing a fake setup for platform bootstrap:
-#   1. infrastructure is configured by the terraform container, 
-#   2. application is configured by the ansible container,
-#   3. we assume both emit json events (simulating terraform state output, etc)
-
-platform1.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
-self.infra.setup:
-    echo '{"event":"doing things in terraform container", "log":"infra setup done", "metric":123}'
-self.app.setup:
-    echo '{"event":"doing things in ansible container", "log":"app setup done", "metric":123}'
-```
-
-It's powerful, concise, expressive, and already orchestrating tasks across two containers defined in some external compose-file.  The syntax is configurable, and it's even starting to look object-oriented.  Typically app-setup and infra-setup might further split into stages, but you get the idea.  The infrastructure/app split always comes up, but it might look different.. for example your setup might replace `terraform` with `eksctl`, and `ansible` with `helm`.
-
-Let's consider an extension of this.  Suppose output from `platform.setup` needs to be used separately by the next bootstrap processes.  For example, sending the platform output to different backends for `logging`, `metrics`, and `events`, respectively.  
-
-For this kind of thing it's most natural to think in terms of process algebra, and you can express it like this:
-
-```Makefile
-
-# Fake some handlers for logging, metrics, events.
-#   1. logging uses the `elk` container,
-#   2. metrics uses the `prometheus` container,
-#   3. events uses the `datadog` container.
-
-logging: ▰/elk/self.logging
-self.logging:
-    # pretending to push data somewhere with curl
-    cat /dev/stdin | jq .log
-
-metrics: ▰/prometheus/self.metrics
-self.metrics:
-    # pretending to do stuff with the promtool CLI
-    cat /dev/stdin | jq .metric
-
-events: ▰/datadog/self.events
-self.events:
-    echo 'pretending to do stuff with the datadog CLI'
-    cat /dev/stdin | jq .event
-
-bootstrap:
-    # pipes all the platform.setup output into a handler-target for each LME backend
-    make platform1.setup | make flux.dmux/logging,metrics,events
-```
-
-Above, the builtin [flux.dmux target](#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar fora 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
-
-This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
-
-<p align="center"><a href="docs/example-platform-1.png"><img width="90%" src="docs/example-platform-1.png"></a></p>
-
-Whew.  We know what happens next is probably *more* platforms, more tools/containers, and more data flows.  Not to belabor the point but let's watch how it blows up with just one more platform:
-
-<p align="center"><a href="docs/example-platform-2.png"><img width="90%" src="docs/example-platform-2.png"></a></p>
-
-The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weights in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
-
-```Makefile 
-include compose.mk
-$(eval $(call compose.import, ▰, TRUE, my-containers.yml))
-
-all: bootstrap 
-bootstrap:
-    make platform1.setup | make flux.dmux/logging,metrics,events
-platform1.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
-logging: ▰/elk/self.logging
-metrics: ▰/prometheus/self.metrics
-events: ▰/datadog/self.events
-self.infra.setup:
-    echo '{"event":"doing things in terraform container", "log":"infra setup done", "metric":123}'
-self.app.setup:
-    echo '{"event":"doing things in ansible container", "log":"app setup done", "metric":123}'
-self.logging:
-    cat /dev/stdin | jq .log
-self.metrics:
-    cat /dev/stdin | jq .metric
-self.events:
-    cat /dev/stdin | jq .event
-```
-
-There are many other `flux.*` targets ([see the API docs](/docs/api#api-flux)), and while it's not recommended to go crazy with this stuff, when you need it you need it.
-
-This tight expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF users.  *But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless!*  It neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔
-
-It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but of course it's not *really* made for ETLs.  Flux is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
-
-This example mostly runs as written, but properly escaping the JSON is awkward.  (Actually [`stream.json.object.append`](#streamjsonobjectappend) can help with that, but still obfuscates the example.)  But if you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).
-
-For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and app phases.
-
-----------------------------------
-
-# Known Limitations and Issues
+<details><summary>&nbsp;&nbsp; <h1>Known Limitations and Issues</h1> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 #### KUBECONFIG should already be set 
 
@@ -1423,4 +1071,7 @@ If you want better parity with docker in Linux, you might like to checkout Colim
 
 Working with streaming pipes generates temporary files with `mktemp`, removing them when the process exits with `trap`.  Pure streams would be better.  Also in many cases tmp files need to be in the working directory, otherwise they can't be shared by docker volumes.  Moving to a temp-dir based approach would be better.   
 
-----------------------------------
+</details>
+
+--------------------------------
+

@@ -1,8 +1,8 @@
 ## compose.mk
 
-A tool / library / automation framework for working with containers.
+A tool / library / automation framework for working with containers.  {# Also the biggest, baddest, highly-powered mutant Makefile you're ever likely to see, although that part is generally safe to ignore ;) #}
 
-  * Library-mode extends `make`, adding native support for working with container definitions
+  * Library-mode extends `make`, adding native support for working with containers
   * Stand-alone mode also available, i.e. a tool that requires no external Makefile / compose file.
   * A small-but-powerful built-in TUI framework with no host dependencies. (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
   * **Zero host-dependencies,** as long as you have docker + make.  Even the [TUI backend](#embedded-tui) is dockerized.
@@ -11,12 +11,29 @@ A tool / library / automation framework for working with containers.
 
 **In library Mode,** `compose.mk` is used as an `include` from your project Makefile.  With that as a starting place, you can **[build a bridge between docker-compose services and make-targets](#makecompose-bridge)** and use [**minimum viable patterns for container-dispatch.**](#container-dispatch).  The main macro is called *`compose.import`*, which can be used/included from any Makefile, used with any compose file, and [used with *multiple* compose files](#multiple-compose-files).  
 
+Besides support for compose-files, `compose.mk` has many other features that extend the core capabilities of make, plus a *[curated collection of reusable utility targets](#composemk-api).  Here's an overview:
 
-If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](#demo-cluster-automation) or to a [tui demo](#demo-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
+{#which can be used as a library with the rest of this automation framework or can be used from the CLI, to complement or simplify existing bash script, etc.  These targets are arranged into a few namespaces#}
 
-----------------------------------------------------
+* 🚀 **Executable file:** `./compose.mk ...  <==> make -f compose.mk ...`
+* Built-in supervisor process, [improving support for signal handling](#).
+* [**`flux.*` targets:**](/docs/api#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides composable concurrency & staging operators, where the primitives are usually make-target names.  
+* [**`tux.*` targets:**](#embedded-tui) Control-surface for a tmux-backed console geometry manager.
+  * **No host dependencies.** This uses the `compose.mk:tux` tool container to dockerize tmux itself.
+  * **Supports docker-in-docker style host-socket sharing with zero configuration,** so your TUI can generally do all the same container orchestration tasks as the docker host.
+  * Open split-screen displays, shelling into 1 or more of the tool containers in k8s-tools.yml (or any other compose file).
+  * Combines well with `flux.*` targets to quickly create dashboards / custom development environments.
+* [**`stream.*`:**](/docs/api#api-stream) Support for working with streams, including newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It's not what you'd call "typed", but it reduces error-prone parsing and moves a little bit closer to structured data.
+* [**`io.*`:**](/docs/api#api-io) Misc. utilities for printing, formatting, timers, etc.
+* [**`docker.*`:**](/docs/api#api-docker) An interface for working with docker.
+* [**`mk.*`:**](/docs/api#api-docker) Meta-tooling for 'make' itself. This enables help functions, signals and supervisors, some utilities for reflection, etc.
+* [**`compose.*`:**](/docs/api#api-docker) An interface for working with compose.  
 
-### But Why?
+**In Stand-alone Mode,** you can still use most of the features above but skip [the usual project integration](#embedding-tools-with-makefiles). *This works because with `make`, the programmatic API basically <ins>is</ins> the CLI.* Highlighting just a few random items, you can: [load compose files into TUIs](#loading-compose-files), [syntax-highlight files](#), [build JSON with jb](/docs/api#jb), [parse JSON with jq](/docs/api#jb), and lots more, all using docker if necessary and falling back to local tools if they are available.
+
+If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/docs/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
+
+{{macros.collapsed_details('But Why?', level='h3')}}
 
 There's many reasons why you might want these capabilities if you're working with tool-containers, builds, deploys, and complex task orchestration.  People tend to have strong opions about this topic, and it's kind of a long story.  
 
@@ -25,34 +42,20 @@ Make & Compose are already a strong combination for this reason, and by adding s
 
 If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
-----------------------------------------------------
+</details>
 
 {% include "bridge.md" %}
 
-----------------------------------------------------
-
 {% include "container-dispatch.md" %}
-
-----------------------------------------------------
 
 {% include "macro-arguments.md" %}
 
-----------------------------------------------------
-
 {% include "dispatch-syntax.md" %}
-
-----------------------------------------------------
 
 {% include "multiple-compose-files.md" %}
 
-----------------------------------------------------
-
 {% include "loadf.md" %}
 
-----------------------------------------------------
-
 {% include "embedded-tui.md" %}
-
-----------------------------------------------------
 
 {% include "signals.md" %}

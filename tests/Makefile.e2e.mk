@@ -70,7 +70,7 @@ self.cluster.clean:
 # These run private subtargets inside the named  tool containers (i.e. `helm`, and `k8s`).
 deploy cluster.deploy: flux.stage/DeployApps deploy.helm deploy.test_harness
 	# add a label to the default namespace
-	set -x && trace=1 key=manager val=k8s.mk make k8s.namespace.label/${POD_NAMESPACE}
+	key=manager val=k8s.mk make k8s.namespace.label/${POD_NAMESPACE}
 
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy

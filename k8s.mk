@@ -377,7 +377,7 @@ k3d.commander/%:
 	# WARNING: can't use .tux.pane/... here, not sure why 
 	${make} .tux.widget.lazydocker/2/k3d
 
-k3d.help: mk.namespace.filter/k3d.
+k3d.help:; ${make} mk.namespace.filter/k3d.
 	@# Shows targets for just the 'k3d' namespace.
 
 k3d.panic:
@@ -515,7 +515,7 @@ k8s.graph.tui/%:
 			--center=on $${clear:-} /tmp/png.png
 .k8s.graph.tui.clear/%:; clear="--clear" make .k8s.graph.tui/${*}
 
-k8s.help: mk.namespace.filter/k8s.
+k8s.help:; ${make} mk.namespace.filter/k8s.
 	@# Shows targets for just the 'k8s' namespace.
 
 k8s.kubens/%: 
@@ -563,10 +563,15 @@ k8s.namespace.label/%:
 	@#
 	@# USAGE: 
 	@#   key=<key> val=<val> ./k8s.mk k8s.namespace.label/<namespace>
+	@#   ./k8s.mk k8s.namespace.label/<namespace>/<key>/<val>
 	@#
-	( printf '{ "state": "patched", "kind": "Namespace", "name": "' \
-	; printf "${*}"; printf '", "definition": {"metadata": {"labels": {' \
-	; printf "\"$${key:-key}\": \"$${val:-val}\"}}}}") | ${jq.run} . \
+	true \
+	&& ns=`echo ${*} | cut -d/ -f1` \
+	&& key=$${key:-`echo ${*}|cut -s -d/ -f2`} \
+	&& val=$${val:-`echo ${*}|cut -s -d/ -f3`} \
+	&& ( printf '{ "state": "patched", "kind": "Namespace", "name": "' \
+	; printf "$${ns}"; printf '", "definition": {"metadata": {"labels": {' \
+	; printf "\"$${key}\": \"$${val}\"}}}}") | ${jq.run} . \
 	| ${make} k8s.ansible
 
 k8s.namespace.list:
@@ -758,7 +763,7 @@ k8s.shell/%:
 				&& (${log.target.rerouting}; cat $${tmpf} \
 					| CMK_SUPERVISOR=0 pipe=yes cmd="$${cmd}" entrypoint=kubectl ${make} k8s-tools/k8s ) \
 				|| ( \
-					$(call log, ${GLYPH_K8S} k8s.shell${no_ansi_dim} // ${no_ansi}${green}$${namespace}${no_ansi_dim} // ${no_ansi}${green}${underline}$${pod_name}${no_ansi_dim} \n${cyan}[${no_ansi}${bold}kubectl${no_ansi_dim}${cyan}]${no_ansi} ${no_ansi_dim}${ital}${cmd}${no_ansi}\n${cyan_flow_left} ${dim_ital}`cat $${tmpf}|make io.fmt.strip`) \
+					$(call log, ${GLYPH_K8S} k8s.shell${no_ansi_dim} // ${no_ansi}${green}$${namespace}${no_ansi_dim} // ${no_ansi}${green}${underline}$${pod_name}${no_ansi_dim} \n${cyan}[${no_ansi}${bold}kubectl${no_ansi_dim}${cyan}]${no_ansi} ${no_ansi_dim}${ital}${cmd}${no_ansi}\n${cyan_flow_left} ${dim_ital}`cat $${tmpf}|make stream.strip`) \
 					&& cat $${tmpf} | kubectl $${cmd} \
 				  ) \
 			); ;; \
@@ -866,7 +871,7 @@ kubefwd.ps:
 	cname=kubefwd.`basename ${PWD}`.$${namespace}.$${svc_name:-all} \
 	&& printf $${cname}
 
-kubefwd.help: mk.namespace.filter/kubefwd.
+kubefwd.help:; ${make} mk.namespace.filter/kubefwd.
 	@# Shows targets for just the 'kubefwd' namespace.
 
 kubefwd.stop/%:

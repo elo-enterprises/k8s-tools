@@ -1,5 +1,4 @@
-
-### Container Dispatch
+{{macros.collapsed_details('Container Dispatch', level='h3')}}
 
 Let's look at a more complicated example where we want to use make to dispatch commands *into* the compose-service containers.  For this we'll have to change the boilerplate somewhat as we add more functionality.
 
@@ -85,3 +84,5 @@ Container-dispatch with `compose.mk` can also autodetect what shell to use with 
 ```
 
 The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
+
+</details>

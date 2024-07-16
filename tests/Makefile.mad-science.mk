@@ -1,5 +1,6 @@
 ##
 # Exercising 'mk.def.dispatch' and friends for bad ideas.  
+#
 # Have you ever wondered if you could implement make targets in other languages?  
 # The answer is yes.
 #
@@ -11,76 +12,168 @@ SHELL := bash
 MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -eu -c
 
+include k8s.mk
 include compose.mk
+$(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 
 .DEFAULT_GOAL := all 
-all: demo.dockerfile demo.python demo.python.pipes demo.ansible
+all: demo.elixir demo.dockerfile demo.python demo.python.pipes
 
+###############################################################################
 
-# Minimal boilerplate to couple the 'Dockerfile.demo.dockerfile' block with 
-# the 'demo.dockerfile' target, running the self.demo.dockerfile target 
-# in the resulting container.
-demo.dockerfile:; ${make} docker.from.def/${@} .docker.run/${@}/self.${@}
-define Dockerfile.demo.dockerfile 
+# Minimal boilerplate for working with elixir-lang.  
+# This picks an image for the language kernel 
+# allowing overrides from the environment, 
+# then runs a script with it.
+
+export IMG_ELIXIR?=elixir:otp-27-alpine
+
+demo.elixir:
+	img=$${IMG_ELIXIR} \
+	entrypoint=elixir \
+	def=Elixir.hello_world \
+	make docker.run.def
+
+define Elixir.hello_world 
+import IO, only: [puts: 1]
+puts("elixir World!")
+System.halt(0)
+endef 
+
+###############################################################################
+
+## Inlined Docker Files
+
+# Minimal inlined dockerfile.  
+# You can install anything or nothing here, 
+# but let's have the minimal stuff required for target dispatch.
+define Dockerfile.demo_dockerfile
 FROM alpine
 RUN echo building container spec from inlined dockerfile
 RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng
 endef
+
+
+# Wrapper target that's using the container.
+# This basically sets the container-build as a pre-req,
+# so that within the body we can assume the base image exists.
+demo.dockerfile: docker.from.def/demo_dockerfile
+	# Working with the image directly, note the 'compose.mk' prefix.
+	docker image inspect compose.mk:demo_dockerfile > /dev/null
+	docker run -it --entrypoint sh compose.mk:demo_dockerfile -x -c "true" > /dev/null
+	
+	# Working with compose.mk builtins omits prefix, 
+	# and can do dispatch targets to run inside the new image
+	img=demo_dockerfile make mk.docker.run/self.demo.dockerfile
+	
+	# Add the prefix explicitly, and you can use `docker.run` instead of private `.docker.run`
+	img=compose.mk:demo_dockerfile make docker.run/self.demo.dockerfile
+	entrypoint=sh cmd='-c "ls"' img=compose.mk:demo_dockerfile make docker.run.sh 
+	# Subsequent runs will use the cached image.  
+	# Pass 'force' to work around this.
+	force=1 make docker.from.def/demo_dockerfile
+
 self.demo.dockerfile:
-	echo "testing target from inside inlined-container"
+	echo "Testing target from inside the inlined-container"
 	uname -a
 
-# Minimal boilerplate to couple the '_demo.python' def-block with 
-# a specific interpretter (python3), plus a specific target ('demo.python').
-# The business with the '@' below is referring to "this target name",
-# and prepends it with _ so that the symbols for target and the 
-# corresponding def-block remain unique
-demo.python:; make mk.def.dispatch/python3/Python.${@}
-define Python.demo.python
-# python script
-import sys
-print('hello world')
+###############################################################################
+
+## Extending Inlined Docker Files
+# Minimal inlined dockerfile.  
+# You can install anything or nothing here, 
+# but let's have the minimal stuff required for target dispatch.
+define Dockerfile.demo_dockerfile2
+FROM compose.mk:demo_dockerfile
+RUN echo hello-docker
 endef
 
-# Similar to the above, but this example uses pipes
-demo.python.pipes:;  echo '{"hello":"bash"}' | make mk.def.dispatch/python3/Python.${@}
+
+# Wrapper target that's using the container.
+# This basically sets the container-build as a pre-req,
+# so that within the body we can assume the base image exists.
+demo.dockerfile2: docker.from.def/demo_dockerfile2
+	# # Working with the image directly, note the 'compose.mk' prefix.
+	docker image inspect compose.mk:demo_dockerfile2 > /dev/null
+	docker run -it --entrypoint sh compose.mk:demo_dockerfile2 -x -c "true" > /dev/null
+	
+	# Working with compose.mk builtins omits prefix, 
+	# and can dispatch targets to run inside the new image
+	img=demo_dockerfile2 make mk.docker.run/self.demo.dockerfile2
+	
+	# Add the prefix explicitly, and you can use `docker.run` instead of private `.docker.run`
+	img=compose.mk:demo_dockerfile2 make docker.run/self.demo.dockerfile2
+	
+	# Subsequent runs will use the cached image.  
+	# Pass 'force' to work around this.
+	force=1 make docker.from.def/demo_dockerfile2
+
+self.demo.dockerfile2:
+	echo "Testing target from inside the inlined-container"
+	uname -a
+
+###############################################################################
+
+## Local Interpretters, Without a Container
+
+# Look, here's a simple python script 
+define Python.demo
+import sys
+print('python world')
+print('dollarsigns are safe: $')
+endef
+
+# Minimal boilerplate to run the script,
+# using a specific interpretter (python3).
+# No container here, so this requires that 
+# the interpretter is actually available.
+demo.python:
+	make mk.def.dispatch/python3/Python.demo
+
+
+###############################################################################
+
+## Exotic Targets & Pipes
+
+# A more complex python script, 
+# testing comments, indention, & using pipes
 define Python.demo.python.pipes
 # python script
 import sys, json
-input=json.loads(sys.stdin.read())
-input.update(hello="python")
-output=input
+input = json.loads(sys.stdin.read())
+input.update(hello_python=sys.platform)
+output = input
 print(json.dumps(output))
-for x in [1,2,3]:
-	print(f"{x} testing loops, indention, and string interpolation", file=sys.stderr)
+for x in [1, 2, 3]:
+  msg=f"{x} testing loops, indents, string interpolation"
+  print(msg, file=sys.stderr)
 endef
 
-# Minimal boilerplate to expose a container-internal API to make. 
-# This example builds a minimal ansible container from an inlined dockerfile,
-# then wraps ansible-adhoc[1] commands as make-targets.
-# [1]: https://docs.ansible.com/ansible/latest/command_guide/intro_adhoc.html
-# [2]: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/debug_module.html
-# [3]: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ping_module.html
-demo.ansible:
-	make ansible.adhoc/ping
-	args="msg='testing'" make ansible.adhoc/ansible.builtin.debug
-	make ansible.adhoc/ansible.builtin.setup | jq .
+# Runs the script, passing data into the pipe
+demo.python.pipes:
+	echo '{"hello":"bash"}' \
+	| make mk.def.dispatch/python3/Python.${@}
 
-ansible.adhoc/%:; module=${*} env="args,module" ${make} docker.from.def/ansible .docker.run/ansible/self.ansible.adhoc
-self.ansible.adhoc:
-	@# Make target dispatched
-	$(trace_maybe) \
-	&& module=$${module:-ping} \
-	&& args="$${args:-}" \
-	&& printf "${GLYPH_DOCKER} ${@} ${sep}${dim} ${dim_cyan}$${module}${no_ansi_dim} ${sep}${no_ansi_dim} args=${green}$${args} ${no_ansi}\n" > ${stderr} \
-	&& ANSIBLE_LOAD_CALLBACK_PLUGINS=1 \
-	ANSIBLE_STDOUT_CALLBACK=$${ANSIBLE_STDOUT_CALLBACK:-ansible.posix.json} \
-	ansible all -i localhost, \
-		--connection local \
-		--module-name $${module} \
-		--args "$${args:-}" | jq .plays[0].tasks[0].task
-define Dockerfile.ansible
-# building container spec from inlined dockerfile
-FROM python:3.11-slim-bookworm
-RUN apt-get update && apt-get install -y ansible make procps jq
+###############################################################################
+
+### Passing Data Structures to Externally Managed Containers
+
+# Look, it's a simple ansible playbook 
+define Ansible.example_playbook
+- name: Example Playbook with Debug Task
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Print a debug message
+      debug:
+        msg: "Hello, this is a debug message!"
 endef
+
+# Writes the playbook to a temp file,
+# then runs it from inside the 'ansible' container
+demo.ansible.playbook: 
+	$(call io.mktemp) \
+	&& make mk.def.to.file/Ansible.example_playbook/$${tmpf} \
+	&& entrypoint=ansible-playbook \
+		cmd="-i localhost, $${tmpf}" \
+			make k8s-tools/ansible

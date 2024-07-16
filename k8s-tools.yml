@@ -154,7 +154,20 @@ services:
     <<: *base
     entrypoint: awscli
     hostname: k8s:awscli
-
+  
+  # https://docs.aws.amazon.com/cdk
+  # FIXME: needs a python stack for many use-cases
+  cdk:
+    <<: *base
+    hostname: k8s:cdk 
+    entrypoint: cdk 
+    build: 
+      tags: ['k8s:cdk']
+      context: . 
+      dockerfile_inline: |
+        FROM node:lts-iron
+        RUN npm i -g aws-cdk@${CDK_CLI_VERSION:-2.149.0}
+    
   # https://github.com/bitnami-labs/sealed-secrets
   kubeseal:
     <<: *base
@@ -178,7 +191,6 @@ services:
     <<: *base
     entrypoint: kubeconform
     hostname: k8s:kubeconform
-
   # https://knative.dev/docs/client/install-kn/
   kn: &knative
     <<: *base

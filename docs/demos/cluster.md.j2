@@ -1,20 +1,27 @@
 {% import 'macros.j2' as macros -%}
 
-### Demo: Cluster Automation
+{% set is_top=is_top|default(true)%}
+{%if is_top %}
+% set subtitle = "Demo --  Cluster" %}
+{% include "header.md" %}
+{%raw%}{{markdown_toc(__template__, level=4)}}{%endraw%}
+{%endif%}
+
+<details><summary>:arrow_up_down:<h2>
+Demo: Cluster Automation
+</h3></summary>
 
 {% set div="\n###############################################################################\n" %}
 {% set sections = open('tests/Makefile.e2e.mk','r').read().split(div) %}
 
 This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
 
-----------------------------------------------
-
-#### Boilerplate, Overrides, Clean & Init 
+<details>:arrow_up_down:<summary><h3> Boilerplate, Overrides, Clean & Init</h3></summary>
 
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-{% for line in sections[0].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
+{% for line in sections[0].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('##')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
 Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/docs/env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
@@ -28,14 +35,12 @@ Next we organize some targets for cluster-operations.  Below you can see there a
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-{% for line in sections[1].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
+{% for line in sections[1].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('##')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
 Running `make clean` looks like this when it's tearing down the cluster:
 
 <img src="img/e2e-clean.gif">
-
---------------------------------------------------
 
 The `list` part makes the create target idempotent in the way you'd expect.  Here we're using CLI arguments for most of the cluster spec, but depending on your version, k3d supports most of this in external config yaml.
 
@@ -43,9 +48,9 @@ Running `make init` looks like this when it's setting up the cluster:
 
 {{macros.img_link("img/e2e-init.gif","90%")}}
 
-----------------------------------------------
+</details>
 
-#### Deployment
+{{macros.collapsed_details('Deployment', level='h4')}}
 
 The next section of the Makefile covers cluster provisioning.  Here we just want to install a helm chart, and to add a special "test-harness" pod to the default namespace.  
 
@@ -54,7 +59,7 @@ But we also want operations to be idempotent, and blocking operations where that
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-{% for line in sections[2].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
+{% for line in sections[2].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('##')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
 Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/docs/api/#api-k8smk)) do all of the heavy lifting.  
@@ -70,16 +75,16 @@ The other part of our provisioning is bootstrapping the test-harness pod.  This 
 
 {{macros.img_link("img/e2e-provision-test-harness.gif","90%")}}
 
-----------------------------------------------
+</details>
 
-#### Testing
+{{macros.collapsed_details('Testing', level='h3')}}
 
 With the test-harness in place, there's a block of target definitions for a miniature test-suite that checks properties of the cluster.
 
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-{% for line in sections[3].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
+{% for line in sections[3].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('##')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
 Amongst other things, the section above is using a streaming version of the `k8s.shell/<namespace>/<pod>/pipe` (we'll get to an interative version in later sections).
@@ -90,9 +95,9 @@ Running `make test` looks like this:
 
 {{macros.img_link("img/e2e-test.gif","90%")}}
 
-----------------------------------------------
+</details>
 
-#### Debugging
+{{macros.collapsed_details('Debugging', level='h3')}}
 
 The tests are not a bad start for exercising the cluster, and instead of displaying platform info you can imagine tests that check service availability.  Since we blocked on pods or whole-namespaces being ready, we also know that nothing is stuck in crash loop or container-pull.  And we know that there were not errors with the helm charts, and that we can communicate with the test-harness pod.  
 
@@ -101,7 +106,7 @@ What if you want to inspect or interact with things though?  The next block of t
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-{% for line in sections[4].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('#')%}{{line+'\n'}}{% endif %}{% endfor %}
+{% for line in sections[4].strip().split('\n') %}{%if line.strip() and not line.lstrip().startswith('##')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
 Again, no target bodies because `k8s.*` targets for stuff like this already exist, and we just need to pass in the parameters for our setup.  
@@ -116,9 +121,9 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 {{macros.img_link("img/e2e-interactive-tui.gif", "90%")}}
 
-----------------------------------------------
+</details>
 
-#### Development 
+<details><summary><h3>Development </h3></summary>
 
 For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
@@ -128,9 +133,9 @@ The [**`kubefwd.start/<namespace>`** target](#target-kubefwdnamespacearg) makes 
 
 Note the weird DNS in the test above, where `nginx-service` resolves as expected, even from the host.  The `kubefwd` tool makes this work smoothly because [k8s-tools.yml](k8s-tools.yml) mounts `/etc/hosts` as a volume.
 
-----------------------------------------------
+</details>
 
-#### Alternate Deployment
+{{macros.collapsed_details('Alternate Deployment', level='h3')}}
 
 Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for `KUBECONFIG`.
 
@@ -141,10 +146,9 @@ $ rdctl shell sudo k3s kubectl config view --raw > rancher-desktop.yml
 
 $ KUBECONFIG=rancher-desktop.yml make deploy test
 ```
+</details>
 
-----------------------------------------------
-
-#### Next Steps
+{{macros.collapsed_details('Next Steps', level='h3')}}
 
 From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.
 
@@ -154,13 +158,15 @@ From here you'll probably want to get something real done.  Most likely you are 
 1. **For the architecture & microservices enthusiast,** a slight variation of this project boilerplate might involve adding another application-specific compose file that turns several of your first-party libraries into proper images using the using the [`dockerfile_inline:` trick](https://docs.docker.com/compose/compose-file/build/#dockerfile_inline) to run a little bit of `pip` or `npm`, then turning those versioned libraries into versioned APIs.  (If you already have external repositories with Dockerfiles wrapping your services, then compose `build:` also support URLs.)  If your needs are simple, then using [kompose](https://kompose.io/) can help multi-purpose that compose build-manifest, treating it as a deployment-manifest at the same time.  This is probably not where you want to stay, but an excellent place to start for things like PoCs and rapid-prototyping.
 1. **Experimenting with private registries** might start with [compose-managed tags](https://docs.docker.com/reference/cli/docker/compose/push/) and a [local caching docker registry](https://docs.docker.com/docker-hub/mirror/)**, or you can push to a [k3d registry](https://k3d.io/v5.2.0/usage/registries/).  To use private, locally built images without a registry, see [`k3d image import`](https://k3d.io/v5.3.0/usage/commands/k3d_image_import/), or the equivalent [kind load](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
 1. **Extending the make/compose technique to completely different automation tasks is straightforward,** as long as you stick to the layout.  For example substituing `k8s-tools.yml` for a new `iac-tools.yml` compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then `compose.mk` and `compose.import` generate targets as usual.  If necessary a new file `Makefile.iac.mk` can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  
+</details>
 
- ----------------------------------------------
-
-#### Conclusion
+{{macros.collapsed_details('Conclusion', level='h3')}}
 
 So that's how less than 100 lines of mostly-aliases-and-documentation Makefile is enough to describe a simple cluster lifecycle, and can give access to ~20 versioned platforming tools, all with no host dependencies except docker + make.  It's simple, structured, portable, and lightweight.  If you don't care about partial excutions and exposing step-wise entrypoints to the CLI, then you can cut this line-count roughly in half.  Good automation will be self-documenting, but even if you're code-golfing with this approach, the result will probably *still* be organized/maintainable/durable than the equivalent shell-script or ansible.
 
 No container orchestration logic was harmed during the creation of this demo, nor confined inside a Jenkinsfile or github action, and yet [it all works from github actions](https://github.com/elo-enterprises/k8s-tools/actions).  
 
 Happy platforming =D
+</details>
+
+</details>

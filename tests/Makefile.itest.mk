@@ -58,8 +58,10 @@ test.flux.if.then:
 	./compose.mk flux.do.when/flux.ok,flux.ok
 
 test.stage:
-	@# declare a stage, 
-	./compose.mk flux.stage/${@} flux.stage.push/${@} flux.stage.pull
+	# declare a stage
+	./compose.mk flux.stage/${@} 
+	${jb.run} foo=bar | ./compose.mk flux.stage.push/${@} 
+	./compose.mk flux.stage.pop/${@}
 
 test.signals: flux.stage/test-signals
 	# successful because this uses the signal handler 
@@ -191,13 +193,15 @@ test.flux.mux:
 
 test.docker.run:
 	img=python:3.11-bookworm make docker.run/flux.ok
-	echo hello-python-docker1 | make .test.docker.run.script
+	echo hello-python-docker1 | make .test.docker.run.def
 	echo hello-python-docker2 | entrypoint=cat cmd=/dev/stdin img=python:3.11-slim-bookworm make docker.run.sh
 	entrypoint=python cmd='--version' img=python:3.11-slim-bookworm make docker.run.sh
 	echo {} | cmd=. img=ghcr.io/jqlang/jq:1.7.1 make docker.start
 
-.test.docker.run.script:; entrypoint=python make docker.run.script/${@}/python:3.11-slim-bookworm
-define script.demo.docker.run.script 
+.test.docker.run.def:
+	entrypoint=python def=script.demo.docker.run.def \
+	img=python:3.11-slim-bookworm make docker.run.def
+define script.demo.docker.run.def 
 # python script 
 import sys
 print(['input',sys.stdin.read().strip()])

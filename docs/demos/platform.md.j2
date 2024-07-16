@@ -1,6 +1,14 @@
 {% import 'macros.j2' as macros -%}
+{% set is_top=is_top|default(true)%}
+{%if is_top %}
+% set subtitle = "Demo --  Platform" %}
+{% include "header.md" %}
+{%raw%}{{markdown_toc(__template__, level=4)}}{%endraw%}
+{%endif%}
 
-### Demo: Platform Setup
+{{macros.collapsed_details('Demo: Platform Setup', level='h2')}}
+
+### Basic Platforming 
 
 Consider this hypothetical snippet:
 
@@ -19,7 +27,11 @@ self.app.setup:
     echo '{"event":"doing things in ansible container", "log":"app setup done", "metric":123}'
 ```
 
-It's powerful, concise, expressive, and already orchestrating tasks across two containers defined in some external compose-file.  The syntax is configurable, and it's even starting to look object-oriented.  Typically app-setup and infra-setup might further split into stages, but you get the idea.  The infrastructure/app split always comes up, but it might look different.. for example your setup might replace `terraform` with `eksctl`, and `ansible` with `helm`.
+It's powerful, concise, expressive, and already orchestrating tasks across two containers defined in some external compose-file.  The syntax is configurable, and it's even starting to look object-oriented.  
+
+Typically app-setup and infra-setup might further split into stages, but you get the idea.  And the infrastructure/app split always comes up, but it might look different.. for example your setup might replace `terraform` with `eksctl`, and `ansible` with `helm`.
+
+### Extension with LME
 
 Let's consider an extension of this.  Suppose output from `platform.setup` needs to be used separately by the next bootstrap processes.  For example, sending the platform output to different backends for `logging`, `metrics`, and `events`, respectively.  
 
@@ -52,17 +64,17 @@ bootstrap:
     make platform1.setup | make flux.dmux/logging,metrics,events
 ```
 
-Above, the builtin [flux.dmux target](#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar fora 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
+Above, the builtin [flux.dmux target](/docs/api#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
 
 This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
 
-{{macros.img_link("docs/example-platform-1.png","90%")}}
+{{macros.img_link("/docs/example-platform-1.png", "90%")}}
 
 Whew.  We know what happens next is probably *more* platforms, more tools/containers, and more data flows.  Not to belabor the point but let's watch how it blows up with just one more platform:
 
-{{macros.img_link("docs/example-platform-2.png","90%")}}
+{{macros.img_link("/docs/example-platform-2.png","90%")}}
 
-The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weights in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
+The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weighs in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
 
 ```Makefile 
 include compose.mk
@@ -93,6 +105,8 @@ This tight expression of complex flow will already be familiar to lots of people
 
 It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but of course it's not *really* made for ETLs.  Flux is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
 
-This example mostly runs as written, but properly escaping the JSON is awkward.  (Actually [`stream.json.object.append`](#streamjsonobjectappend) can help with that, but still obfuscates the example.)  But if you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).
+This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](/docs/api#jb) or [`stream.json.object.append`](/docs/api#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/docs/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).
 
 For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and app phases.
+
+</details>

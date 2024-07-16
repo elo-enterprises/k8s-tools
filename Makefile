@@ -100,11 +100,11 @@ test-suite/%:
 	&& extra="$${target:$${targets:-}}" \
 	&& env -i PATH=$${PATH} HOME=$${HOME} bash ${dash_x_maybe} -c "make ${MAKE_FLAGS} -f Makefile $${extra}" 
 
-mtest test-suite/mad: test-suite/mad-science
-
 ttest tui-test: test-suite/tui/all
 	@# TUI test-suite, exercising the embedded 'compose.mk:tux'
 	@# container and various ways to automate tmux.
+	
+zonk: test-suite/smoke-test-k8s/test.ansible
 
 ttest/%:; make test-suite/tui/${*}
 stest smoke-test: test-suite/smoke-test-k8s/all test-suite/smoke-test-k8s-tools/all
@@ -125,8 +125,8 @@ etest e2e-test: test-suite/e2e/all
 lme-test: test-suite/lme
 	@# Logging/Metrics/Events demo.  FIXME
 
-mad: test-suite/mad-science
-mad/%:; set -x && make test-suite/mad-science -- ${*}
+mad: mad/all 
+mad/%:; set -x && make test-suite/mad-science/${*}
 	@# Polyglot tests, mad-science, and other bad ideas that
 	@# allow make-targets to be written in real programming languages,
 	@# embedding docker-containers in make-defines, and quickly mapping 
@@ -149,7 +149,7 @@ docs.jinja/%:
 	&& $(call log, skipping 2nd render) \
 	|| ($(call log, rendering 2nd time to pickup toc) \
 		; (pynchon jinja render $${tmpf} -o $${tmpf} || printf "${red}2nd render failed,${no_ansi} TOC for "${*}" file may not be available.. \n") \
-	)); echo pynchon markdown preview $${tmpf} \
+	)); pynchon markdown preview $${tmpf} \
 	&& [ "${*}" == "README.md.j2" ] && mv $${tmpf} README.md || mv $${tmpf} docs/`dirname ${*}`/`basename -s .j2 ${*}`
 	
 docs.mermaid:; pynchon mermaid apply

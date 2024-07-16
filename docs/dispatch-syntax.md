@@ -1,4 +1,4 @@
-### Container Dispatch Syntax/Semantics
+{{macros.collapsed_details('Container Dispatch Syntax/Semantics', level='h3')}}
 
 Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  
 
@@ -22,3 +22,4 @@ But what about the semantics?  In this example, the user-facing `demo` target de
 Look, no `docker run ..` clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
 
 Under the hood, dispatch is implemented by building on the [default targets that are provided by the bridge](#makecompose-bridge).
+</details>

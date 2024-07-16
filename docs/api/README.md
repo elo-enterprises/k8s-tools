@@ -12,9 +12,9 @@
   <tr>
     <td align=center width=10%>
       <center>
-        <img src=../img//docker.png style="width:75px"><br/>
-        <img src=../img//kubernetes.png style="width:75px"><br/>
-        <img src=../img//make.png style="width:75px"><br/>
+        <img src=../../img//docker.png style="width:75px"><br/>
+        <img src=../../img//kubernetes.png style="width:75px"><br/>
+        <img src=../../img//make.png style="width:75px"><br/>
       </center>
     </td>
     <td width=90%>
@@ -27,13 +27,12 @@
 <td align=center width="13%"><a href=/docs/api/>API</a></td>
 <td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
       </table>
-      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="cdk:2.149.0" src="https://img.shields.io/badge/cdk%3A2.149.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
     </td>
   </tr>
 </table><center><span align=center>
-  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.<br/>
-  Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
-</span></center><hr style="border-bottom:1px solid black;">
+  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+</span></center>
 
 
 -----------------------------------------------------------------------
@@ -132,13 +131,19 @@ Things are organized into a few namespaces, which hopefully avoids collisions wi
 
 
 
-----------------------------------------------------------------------------
+e *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  This works by sending commands to a (dockerized) version of tmux.  See also the public/private sections of the tux API[1], the general docs for the TUI[2], or the spec for the 'compose.mk:tux' container for more details.
 
 
 
-DOCS:
+--------------------------------------------------------------------------
 
-* `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
+
+
+CS:
+
+`[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
+
+`[2]`: https://github.com/elo-enterprises/k8s-tools/#embedded-tui
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -149,7 +154,7 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Acompose.mk
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`tux.commander`**
@@ -157,7 +162,7 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Acompose.mk
 
 ```bash 
 Starts a tmux layout defaulting to 4 panes, using the "commander" layout callback.
- See .tux.commander.layout for more details.
+ See `.tux.commander.layout` for more details.
 
  USAGE:
   ./compose.mk tux.commander
@@ -169,7 +174,7 @@ Starts a tmux layout defaulting to 4 panes, using the "commander" layout callbac
 
 ```bash 
 A 4-pane session using the commander layout, and proxying the given targets into the main pane.
- See .tux.commander.layout for more details.
+ See `.tux.commander.layout` for more details.
 
  EXAMPLE: (Runs 'io.env' target in the primary pane)
    ./compose.mk tux.commander/io.env
@@ -180,9 +185,9 @@ A 4-pane session using the commander layout, and proxying the given targets into
 
 
 ```bash 
-Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1] 
-
- [1]:
+Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1].
+ REFS:
+   * `[1]`: https://github.com/ChrisBuilds/terminaltexteffects
 ```
 
  
@@ -190,7 +195,7 @@ Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1]
 
 
 ```bash 
-Runs the given <cmd> into the embedded TUI container.
+Runs the given <cmd> inside the embedded TUI container.
 
  USAGE:
    cmd=... ./compose.mk tux.dispatch.sh
@@ -318,11 +323,6 @@ Require the embedded-TUI stack to finish bootstrap.  This is time-consuming,
 
  This tries to take advantage of caching, but each service 
  in `TUI_SVC_BUILD_ORDER` needs to be visited, and even that is slow.
- 
-
- Possible optimization: this command is *usually* but not 
- always called from  `MAKELEVEL<3` and above that it is 
- probably cached already?
 ```
 
  
@@ -360,7 +360,7 @@ Bridge compatability.
 
 
 
-----------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -370,7 +370,7 @@ The *`io.*`* targets cover various I/O helpers, text-formatters, and other utili
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`io.bash`**
@@ -485,14 +485,6 @@ Syntax highlighting for the given file.
 ```
 
  
-##### **`io.fmt.strip`**
-
-
-```bash 
-Pipe-friendly helper for stripping whitespace.
-```
-
- 
 ##### **`io.help`**
 
 
@@ -505,9 +497,8 @@ Lists only the targets available under the 'io' namespace.
 
 
 ```bash 
-Prints a divider on stdout, defaulting to the full terminal width,
- with optional label.  This automatically detects console width, but
- it requires 'tput' (usually part of a 'ncurses' package).
+Prints a divider on stdout, defaulting to the full terminal width, with optional label.  
+ This automatically detects console width, but it requires 'tput' (usually part of a 'ncurses' package).
 
  USAGE:
   ./compose.mk io.print.div label=".." filler=".." width="..."
@@ -522,14 +513,6 @@ Prints a divider with a width of `term_width / <arg>`
 
  USAGE: (half-width labelled divider)
   label.. ./compose.mk io.print.div/<int>
-```
-
- 
-##### **`io.print.indent`**
-
-
-```bash 
-Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
 ```
 
  
@@ -552,6 +535,41 @@ Runs the given target, surpressing stderr output, except in case of error.
 
  USAGE:
   ./compose.mk io.quiet/<target_name>
+```
+
+ 
+##### **`io.stack.pop/<arg>`**
+
+
+```bash 
+Pops first item off the given stack file
+
+ USAGE:
+  ./compose.mk io.stack/<fname>
+  {.. data ..}
+```
+
+ 
+##### **`io.stack.push/<arg>`**
+
+
+```bash 
+Returns all the data in the named stack-file 
+
+ USAGE:
+   echo '<json>' | ./compose.mk io.stack.push/<fname>
+```
+
+ 
+##### **`io.stack/<arg>`**
+
+
+```bash 
+Returns all the data in the named stack-file 
+
+ USAGE:
+  ./compose.mk io.stack/<fname>
+  [ {.. data ..}, .. ]
 ```
 
  
@@ -618,17 +636,17 @@ Pauses for 1 second.
 
 
 
-The docker.* targets cover a few helpers for working with docker.
+e docker.* targets cover a few helpers for working with docker.
 
 
 
-This interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
+is interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
 
 
 
-DOCS:
+CS:
 
-* `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
+`[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -636,7 +654,13 @@ DOCS:
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
+
+ 
+##### **`docker.build.def/<arg>`**
+
+ 
+* *Alias for [`docker.from.def/<arg>`](#dockerfromdefarg)*
 
  
 ##### **`docker.build.maybe/<arg>`**
@@ -657,7 +681,18 @@ Builds quietly, iff and only if the named image is not cached.
 Builds the given dockerfile quietly, tagging it with 'tag.'
 
  USAGE:
-  tag=<my_tag> ./compose.mk docker.build.quiet/<fname>
+  tag=<tag_to_use> ./compose.mk docker.build.quiet/<fname>
+```
+
+ 
+##### **`docker.build/<arg>`**
+
+
+```bash 
+Standard noisy docker build.
+
+ USAGE:
+   tag=<tag_to_use> ./compose.mk docker.build/<fname>
 ```
 
  
@@ -736,6 +771,30 @@ Builds a container from the given file.  The 'tag' variable is required.
 
  USAGE:
   tag=<tag_name> ./compose.mk docker.from.file/<fname>
+```
+
+ 
+##### **`docker.from.github/<arg>`**
+
+
+```bash 
+Creates the container from the given info.
+ The given repository-name should end in '.git'
+
+ USAGE:
+  ./compose.mk docker.from.github/<org>/<repo_name>/<hash>
+```
+
+ 
+##### **`docker.from.repo`**
+
+
+```bash 
+Create a container from the given repository/hash.
+ The repo-url needs to be fully qualified, starting with https:// and ending in .git.
+ 
+ USAGE:
+  hash=<..> repo_url=<..> ./compose.mk docker.from.repo
 ```
 
  
@@ -839,7 +898,7 @@ Like 'docker ps', but always returns JSON.
 ```
 
  
-##### **`docker.run.script/<arg>`**
+##### **`docker.run.def`**
 
 
 ```bash 
@@ -847,7 +906,32 @@ Treats the named 'define' as a script, then runs it inside the given container.
  This automatically detects whether input should be treated as a pipe.
 
  USAGE:
-  ./compose.mk docker.run.script/<def_name>/<image>
+  entrypoint=<entry> def=<def_name> img=<image> ./compose.mk docker.run.def
+```
+
+ 
+##### **`docker.run.def/<arg>`**
+
+
+```bash 
+Like 'docker.run.def', but unpacks arguments from target invocation.
+
+ USAGE:
+  ./compose.mk docker.run.def/<def_name>/<image>
+```
+
+ 
+##### **`docker.run.image/<arg>`**
+
+
+```bash 
+Runs the given commands in the given image.
+
+ USAGE:
+  entrypoint=<entry> cmd=<args_to_entrypoint> ./compose.mk docker.run.image/<img>
+
+ EXAMPLE:
+  entrypoint=make cmd=flux.ok ./compose.mk docker.run.image/debian/buildd:bookworm
 ```
 
  
@@ -872,11 +956,14 @@ Runs the given command inside the named container.
 
 ```bash 
 Runs the named target inside the named docker container.
- This works for any image as given; See instead '.docker.run' for
+ This works for any image as given; See instead 'mk.docker.run' for
  a version that implicitly uses internally generated containers.
 
  USAGE:
-  img=... ./compose.mk docker.run/<target>
+  img=<img> make docker.run/<target>
+
+ EXAMPLE:
+  img=debian/buildd:bookworm ./compose.mk docker.run/flux.ok
 ```
 
  
@@ -894,7 +981,8 @@ Returns the docker socket in use for the current docker context.
 
 ```bash 
 Like 'docker.run', but uses the default entrypoint.
- USAGE: ./compose.mk docker.run/<img>
+ USAGE: 
+   ./compose.mk docker.start/<img>
 ```
 
  
@@ -903,7 +991,8 @@ Like 'docker.run', but uses the default entrypoint.
 
 ```bash 
 Starts the named docker image with the default entrypoint
- USAGE: ./compose.mk docker.start/<img>
+ USAGE: 
+   ./compose.mk docker.start/<img>
 ```
 
  
@@ -984,29 +1073,29 @@ Runs 'docker volume prune' for the entire system.
 
 
 
-The flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
+e flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
 
 
 
-What `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
+at `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
 
 
 
-In most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
+most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
 
 
 
-For parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+r parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
 
 
 
-----------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 
 
-DOCS:
+CS:
 
-* `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
+`[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -1016,7 +1105,7 @@ See especially the [Platform Setup Example](/docs/demos.md#demo-platform-setup) 
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`flux.always/<arg>`**
@@ -1229,8 +1318,8 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
  platforms with JSON of practical size? And crucially, 'jq .' handles object input,
  empty input, and streamed objects with no wrapper (like '{}<newline>{}').
 
- USAGE: (runs 3 commands in parallel)
-   ./compose.mk flux.mux targets="io.time.wait/3,io.time.wait/1,io.time.wait/2" | jq .
+ EXAMPLE: (runs 2 commands in parallel)
+   targets="io.time.wait/1,io.time.wait/3" ./compose.mk flux.mux | jq .
 ```
 
  
@@ -1324,8 +1413,8 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
  platforms with JSON of practical size? And crucially, 'jq .' handles object input,
  empty input, and streamed objects with no wrapper (like '{}<newline>{}').
 
- USAGE: (runs 3 commands in parallel)
-   ./compose.mk flux.mux targets="io.time.wait/3,io.time.wait/1,io.time.wait/2" | jq .
+ EXAMPLE: (runs 2 commands in parallel)
+   targets="io.time.wait/1,io.time.wait/3" ./compose.mk flux.mux | jq .
 ```
 
  
@@ -1348,12 +1437,25 @@ Negates the status for the given target.
 ```
 
  
+##### **`flux.noop`**
+
+
+```bash 
+NO-OP mostly used for testing.  
+ Similar to 'flux.ok', but this doesn't include logging.
+
+ USAGE:	
+  ./compose.mk flux.noop
+```
+
+ 
 ##### **`flux.ok`**
 
 
 ```bash 
 Alias for 'exit 0', which is success.
  This is mostly for used for testing other pipelines.  
+
  See also `flux.fail`
 ```
 
@@ -1428,7 +1530,7 @@ Alias for flux.split, but accepts arguments directly
 
 
 ```bash 
-Returns the name of the current stage.
+Returns the name of the current stage. No Arguments.
 ```
 
  
@@ -1464,11 +1566,20 @@ Returns the name of the current stage file.
 
 
 ```bash 
-Pops the stack for the named stage
+Pops the stack for the named stage.  
+ Caller should handle empty value, this won't throw an error.
 
  USAGE:
-   ./compose.mk flux.stage.push/<stage_name>
+   ./compose.mk flux.stage.pop/<stage_name>
    {"key":"val"}
+```
+
+ 
+##### **`flux.stage.push`**
+
+
+```bash 
+
 ```
 
  
@@ -1483,18 +1594,7 @@ Push the JSON data on stdin into the stack for the named stage.
 ```
 
  
-##### **`flux.stage.require/<arg>`**
-
-
-```bash 
-Asserts that the given stage should have been already entered.
-
- USAGE:
-  ./compose.mk flux.stage.
-```
-
- 
-##### **`flux.stage.stack/<arg>`**
+##### **`flux.stage.stack`**
 
 
 ```bash 
@@ -1600,7 +1700,7 @@ Wraps all of the given targets as if it were a single target.
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
 
 
@@ -1613,51 +1713,51 @@ Wraps all of the given targets as if it were a single target.
 
 
 
-The `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+e `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
 
 
 
-**General purpose tools:**
+General purpose tools:**
 
 
 
-* For conversion, see `stream.nl.to.comma`, `stream.comma.to.nl`, etc.
+For conversion, see `stream.nl.to.comma`, `stream.comma.to.nl`, etc.
 
-* For generation json, see `stream.jb`[2] and `stream.json.append.*`.
+For generation json, see `stream.jb`[2] and `stream.json.append.*`.
 
-* For formatting and printing, see `stream.dim.*`, etc.
-
-
-
-----------------------------------------------------------------------------
+For formatting and printing, see `stream.dim.*`, etc.
 
 
 
-**Macro Equivalents:**
+--------------------------------------------------------------------------
 
 
 
-Most targets here are also available as macros, which can be used programmatically as an optimization since it saves a process.
+Macro Equivalents:**
 
 
 
-```bash
-
-# For example, from a makefile, these are equivalent commands:
-
-echo "one,two,three" | ${stream.comma.to.nl}
-
-echo "one,two,three" | make stream.comma.to.nl
-
-```
-
-----------------------------------------------------------------------------
-
-DOCS:
+st targets here are also available as macros, which can be used programmatically as an optimization since it saves a process.
 
 
 
-* `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-stream
+`bash
+
+For example, from a makefile, these are equivalent commands:
+
+ho "one,two,three" | ${stream.comma.to.nl}
+
+ho "one,two,three" | make stream.comma.to.nl
+
+`
+
+--------------------------------------------------------------------------
+
+CS:
+
+
+
+`[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-stream
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -1665,7 +1765,7 @@ DOCS:
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`stream.comma.to.json`**
@@ -1945,6 +2045,14 @@ Enumerates the space-delimited input list, zipping indexes with values in newlin
 ```
 
  
+##### **`stream.strip`**
+
+
+```bash 
+Pipe-friendly helper for stripping whitespace.
+```
+
+ 
 ##### **`stream.to.stderr`**
 
 
@@ -1970,7 +2078,7 @@ See the [API docs](/docs/api#tui-private-api)
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`.tux.attach`**
@@ -2399,24 +2507,15 @@ The autogenerated section of the API (i.e. what's created by `compose.import` ru
 
 ### k8s.mk: (Static Targets)
 
-This is the complete list of namespaces & public targets available from `compose.mk`, along with their documentation.  Most documentation is pulled automatically from [the latest source](/compose.mk).  Some important notes about how these targets work:
+This is the complete list of namespaces & public targets available from `k8s.mk`, along with their documentation.  Most documentation is pulled automatically from [the latest source](/k8s.mk). First, some important notes about how these targets work:
 
-This is the complete list of namespaces & public targets available from `k8s.mk`, along with their documentation.  Most documentation is pulled automatically from [the latest source](/compose.mk). First, some important notes about how these targets work:
-
-* **Targets are usable interactively from your shell** as `make <target>` or `./compose.mk <target>`
 * **Targets are usable as an API,** either as prereq-targets or as part of the body in your project automation.
-* **Most targets are pure shell, and have no exotic dependencies.** That means that they generally run fine on host or as dispatched targets inside containers.  *(Exceptions: targets in `stream.json.*` require `jq` and targets in `docker.*` require docker.)*
-* **Target names are reserved names after declaration.**
+* **Targets are usable interactively from your shell** as `./k8s.mk <target>` or `make <target>` if you've include'd the library file.
+* **You'll need to have setup KUBECONFIG before running most of these**
 
-The best way to use these targets is in combination with `compose.mk` and `k8s-tools.yml`, following the [integration docs](/#embedding-tools-with-makefiles).  See also the docs for the [Make/Compose Bridge](/#makecompose-bridge) and [Container Dispatch](/#container-dispatch).
-
-Still, many of these targets can run "natively" if your host already has the relevant tools, and some targets like `k8s.shell` can default to using containers if present, then fall-back to using kubectl directly.
+The best way to use these targets is in combination with `compose.mk` and `k8s-tools.yml`, following the [integration docs](/#embedding-tools-with-makefiles).  See also the docs for the [Make/Compose Bridge](/#makecompose-bridge) and [Container Dispatch](/#container-dispatch).  Still, many of these targets can run "natively" if your host already has the relevant tools, and some targets can default to using tools if present, falling back to using tool-containers.
 
 Target names are reserved names after declaration, but collisions aren't likely because things are organized into a few namespaces:
-
-1. You'll need to have setup KUBECONFIG before running most of these
-1. Targets are usable interactively from your shell as `make <target>` or `k8s.mk <target>`
-1. Targets are usable as an API, either as target prereqs or as part of the body in your targets
 
 * **Most targets depend on compose.mk.** When used in stand-alone mode, k8s.mk will attempt to import compose.mk from the same directory.
 * **Most targets have a soft-requirement k8s-tools.yml.** This isn't always a hard-requirement if you have tools like `kubectl` available already on the docker-host.
@@ -2449,7 +2548,7 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 
 
 
-*This documentation is pulled automatically from [source](k8s.mk).*
+*This documentation is pulled automatically from [source](/k8s.mk).*
 
  
 ##### **`k8s.ansible`**
@@ -2661,6 +2760,7 @@ Appends the given label to the given namespace.
 
  USAGE: 
    key=<key> val=<val> ./k8s.mk k8s.namespace.label/<namespace>
+   ./k8s.mk k8s.namespace.label/<namespace>/<key>/<val>
 ```
 
  
@@ -2887,14 +2987,14 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 
 
 
-*This documentation is pulled automatically from [source](k8s.mk).*
+*This documentation is pulled automatically from [source](/k8s.mk).*
 
  
 ##### **`ansible`**
 
 
 ```bash 
-Shorthand for ▰/ansible
+Target wrapping the 'ansible' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3079,7 +3179,7 @@ Shorthand for k8s-tools/ansible/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/ansible
+Pipe into the default shell for the 'ansible' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3087,7 +3187,7 @@ Pipe into the default shell for k8s-tools/ansible
 
 
 ```bash 
-Shorthand for k8s-tools/ansible/shell
+Shortcut for k8s-tools/ansible/shell
 ```
 
  
@@ -3109,17 +3209,17 @@ Shorthand for k8s-tools/ansible/shell/pipe
 
 
 
-The *`k3d.*`* targets describe a small interface for working with `k3d`[2].
+e *`k3d.*`* targets describe a small interface for working with `k3d`[2].
 
 
 
-Most targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host.
+st targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host.
 
-Most targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d
+st targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d
 
 
 
-DOCS:
+CS:
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -3130,14 +3230,14 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 
 
 
-*This documentation is pulled automatically from [source](k8s.mk).*
+*This documentation is pulled automatically from [source](/k8s.mk).*
 
  
 ##### **`k3d`**
 
 
 ```bash 
-Shorthand for ▰/k3d
+Target wrapping the 'k3d' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3273,7 +3373,7 @@ Shorthand for k8s-tools/k3d/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/k3d
+Pipe into the default shell for the 'k3d' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3281,7 +3381,7 @@ Pipe into the default shell for k8s-tools/k3d
 
 
 ```bash 
-Shorthand for k8s-tools/k3d/shell
+Shortcut for k8s-tools/k3d/shell
 ```
 
  
@@ -3306,13 +3406,13 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 
 
 
-The *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.
+e *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.
 
 
 
 
 
-Forwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
+rwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
 
 
 
@@ -3322,14 +3422,14 @@ Forwarding is not just for ports but for DNS as well. **This takes effect everyw
 
 
 
-*This documentation is pulled automatically from [source](k8s.mk).*
+*This documentation is pulled automatically from [source](/k8s.mk).*
 
  
 ##### **`kubefwd`**
 
 
 ```bash 
-Shorthand for ▰/kubefwd
+Target wrapping the 'kubefwd' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3445,7 +3545,7 @@ Shorthand for k8s-tools/kubefwd/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/kubefwd
+Pipe into the default shell for the 'kubefwd' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3453,7 +3553,7 @@ Pipe into the default shell for k8s-tools/kubefwd
 
 
 ```bash 
-Shorthand for k8s-tools/kubefwd/shell
+Shortcut for k8s-tools/kubefwd/shell
 ```
 
  
@@ -3485,14 +3585,14 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 
 
 
-*This documentation is pulled automatically from [source](k8s.mk).*
+*This documentation is pulled automatically from [source](/k8s.mk).*
 
  
 ##### **`helm`**
 
 
 ```bash 
-Shorthand for ▰/helm
+Target wrapping the 'helm' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3500,7 +3600,7 @@ Shorthand for ▰/helm
 
 
 ```bash 
-Shorthand for ▰/helm-diff
+Target wrapping the 'helm-diff' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3542,7 +3642,7 @@ Shorthand for k8s-tools/helm-diff/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/helm-diff
+Pipe into the default shell for the 'helm-diff' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3550,7 +3650,7 @@ Pipe into the default shell for k8s-tools/helm-diff
 
 
 ```bash 
-Shorthand for k8s-tools/helm-diff/shell
+Shortcut for k8s-tools/helm-diff/shell
 ```
 
  
@@ -3566,7 +3666,7 @@ Shorthand for k8s-tools/helm-diff/shell/pipe
 
 
 ```bash 
-Shorthand for ▰/helm-push
+Target wrapping the 'helm-push' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3608,7 +3708,7 @@ Shorthand for k8s-tools/helm-push/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/helm-push
+Pipe into the default shell for the 'helm-push' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3616,7 +3716,7 @@ Pipe into the default shell for k8s-tools/helm-push
 
 
 ```bash 
-Shorthand for k8s-tools/helm-push/shell
+Shortcut for k8s-tools/helm-push/shell
 ```
 
  
@@ -3632,7 +3732,7 @@ Shorthand for k8s-tools/helm-push/shell/pipe
 
 
 ```bash 
-Shorthand for ▰/helm-unittest
+Target wrapping the 'helm-unittest' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3674,7 +3774,7 @@ Shorthand for k8s-tools/helm-unittest/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/helm-unittest
+Pipe into the default shell for the 'helm-unittest' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3682,7 +3782,7 @@ Pipe into the default shell for k8s-tools/helm-unittest
 
 
 ```bash 
-Shorthand for k8s-tools/helm-unittest/shell
+Shortcut for k8s-tools/helm-unittest/shell
 ```
 
  
@@ -3754,7 +3854,7 @@ Shorthand for k8s-tools/helm/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/helm
+Pipe into the default shell for the 'helm' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3762,7 +3862,7 @@ Pipe into the default shell for k8s-tools/helm
 
 
 ```bash 
-Shorthand for k8s-tools/helm/shell
+Shortcut for k8s-tools/helm/shell
 ```
 
  
@@ -3778,7 +3878,7 @@ Shorthand for k8s-tools/helm/shell/pipe
 
 
 ```bash 
-Shorthand for ▰/helmify
+Target wrapping the 'helmify' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3820,7 +3920,7 @@ Shorthand for k8s-tools/helmify/get_shell
 
 
 ```bash 
-Pipe into the default shell for k8s-tools/helmify
+Pipe into the default shell for the 'helmify' container (via compose file @ ./k8s-tools.yml)
 ```
 
  
@@ -3828,7 +3928,7 @@ Pipe into the default shell for k8s-tools/helmify
 
 
 ```bash 
-Shorthand for k8s-tools/helmify/shell
+Shortcut for k8s-tools/helmify/shell
 ```
 
  

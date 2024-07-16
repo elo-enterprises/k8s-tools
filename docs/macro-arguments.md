@@ -1,4 +1,4 @@
-### Macro Arguments
+{{macros.collapsed_details('Macro Arguments', level='h3')}}
 
 Make isn't big on named-arguments, so let's unpack the typical `compose.import` macro invocation.
 
@@ -13,3 +13,4 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 **The last argument for `compose.import` is the compose-file to load services from.**  It will be tempting to quote this and the other arguments, but that won't work, so resist the urge!
 
+</details>

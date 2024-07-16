@@ -59,13 +59,19 @@ Things are organized into a few namespaces, which hopefully avoids collisions wi
 
 
 
-----------------------------------------------------------------------------
+e *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  This works by sending commands to a (dockerized) version of tmux.  See also the public/private sections of the tux API[1], the general docs for the TUI[2], or the spec for the 'compose.mk:tux' container for more details.
 
 
 
-DOCS:
+--------------------------------------------------------------------------
 
-* `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
+
+
+CS:
+
+`[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
+
+`[2]`: https://github.com/elo-enterprises/k8s-tools/#embedded-tui
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -76,7 +82,7 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Acompose.mk
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`tux.commander`**
@@ -84,7 +90,7 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Acompose.mk
 
 ```bash 
 Starts a tmux layout defaulting to 4 panes, using the "commander" layout callback.
- See .tux.commander.layout for more details.
+ See `.tux.commander.layout` for more details.
 
  USAGE:
   ./compose.mk tux.commander
@@ -96,7 +102,7 @@ Starts a tmux layout defaulting to 4 panes, using the "commander" layout callbac
 
 ```bash 
 A 4-pane session using the commander layout, and proxying the given targets into the main pane.
- See .tux.commander.layout for more details.
+ See `.tux.commander.layout` for more details.
 
  EXAMPLE: (Runs 'io.env' target in the primary pane)
    ./compose.mk tux.commander/io.env
@@ -107,9 +113,9 @@ A 4-pane session using the commander layout, and proxying the given targets into
 
 
 ```bash 
-Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1] 
-
- [1]:
+Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1].
+ REFS:
+   * `[1]`: https://github.com/ChrisBuilds/terminaltexteffects
 ```
 
  
@@ -117,7 +123,7 @@ Demonstrates the TUI.  This opens a 4-pane layout and blasts them with tte[1]
 
 
 ```bash 
-Runs the given <cmd> into the embedded TUI container.
+Runs the given <cmd> inside the embedded TUI container.
 
  USAGE:
    cmd=... ./compose.mk tux.dispatch.sh
@@ -245,11 +251,6 @@ Require the embedded-TUI stack to finish bootstrap.  This is time-consuming,
 
  This tries to take advantage of caching, but each service 
  in `TUI_SVC_BUILD_ORDER` needs to be visited, and even that is slow.
- 
-
- Possible optimization: this command is *usually* but not 
- always called from  `MAKELEVEL<3` and above that it is 
- probably cached already?
 ```
 
  
@@ -287,7 +288,7 @@ Bridge compatability.
 
 
 
-----------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -297,7 +298,7 @@ The *`io.*`* targets cover various I/O helpers, text-formatters, and other utili
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`io.bash`**
@@ -412,14 +413,6 @@ Syntax highlighting for the given file.
 ```
 
  
-##### **`io.fmt.strip`**
-
-
-```bash 
-Pipe-friendly helper for stripping whitespace.
-```
-
- 
 ##### **`io.help`**
 
 
@@ -432,9 +425,8 @@ Lists only the targets available under the 'io' namespace.
 
 
 ```bash 
-Prints a divider on stdout, defaulting to the full terminal width,
- with optional label.  This automatically detects console width, but
- it requires 'tput' (usually part of a 'ncurses' package).
+Prints a divider on stdout, defaulting to the full terminal width, with optional label.  
+ This automatically detects console width, but it requires 'tput' (usually part of a 'ncurses' package).
 
  USAGE:
   ./compose.mk io.print.div label=".." filler=".." width="..."
@@ -449,14 +441,6 @@ Prints a divider with a width of `term_width / <arg>`
 
  USAGE: (half-width labelled divider)
   label.. ./compose.mk io.print.div/<int>
-```
-
- 
-##### **`io.print.indent`**
-
-
-```bash 
-Pipe-friendly helper for indention; reads from stdin and returns indented result on stdout
 ```
 
  
@@ -479,6 +463,41 @@ Runs the given target, surpressing stderr output, except in case of error.
 
  USAGE:
   ./compose.mk io.quiet/<target_name>
+```
+
+ 
+##### **`io.stack.pop/<arg>`**
+
+
+```bash 
+Pops first item off the given stack file
+
+ USAGE:
+  ./compose.mk io.stack/<fname>
+  {.. data ..}
+```
+
+ 
+##### **`io.stack.push/<arg>`**
+
+
+```bash 
+Returns all the data in the named stack-file 
+
+ USAGE:
+   echo '<json>' | ./compose.mk io.stack.push/<fname>
+```
+
+ 
+##### **`io.stack/<arg>`**
+
+
+```bash 
+Returns all the data in the named stack-file 
+
+ USAGE:
+  ./compose.mk io.stack/<fname>
+  [ {.. data ..}, .. ]
 ```
 
  
@@ -545,17 +564,17 @@ Pauses for 1 second.
 
 
 
-The docker.* targets cover a few helpers for working with docker.
+e docker.* targets cover a few helpers for working with docker.
 
 
 
-This interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
+is interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
 
 
 
-DOCS:
+CS:
 
-* `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
+`[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -563,7 +582,13 @@ DOCS:
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
+
+ 
+##### **`docker.build.def/<arg>`**
+
+ 
+* *Alias for [`docker.from.def/<arg>`](#dockerfromdefarg)*
 
  
 ##### **`docker.build.maybe/<arg>`**
@@ -584,7 +609,18 @@ Builds quietly, iff and only if the named image is not cached.
 Builds the given dockerfile quietly, tagging it with 'tag.'
 
  USAGE:
-  tag=<my_tag> ./compose.mk docker.build.quiet/<fname>
+  tag=<tag_to_use> ./compose.mk docker.build.quiet/<fname>
+```
+
+ 
+##### **`docker.build/<arg>`**
+
+
+```bash 
+Standard noisy docker build.
+
+ USAGE:
+   tag=<tag_to_use> ./compose.mk docker.build/<fname>
 ```
 
  
@@ -663,6 +699,30 @@ Builds a container from the given file.  The 'tag' variable is required.
 
  USAGE:
   tag=<tag_name> ./compose.mk docker.from.file/<fname>
+```
+
+ 
+##### **`docker.from.github/<arg>`**
+
+
+```bash 
+Creates the container from the given info.
+ The given repository-name should end in '.git'
+
+ USAGE:
+  ./compose.mk docker.from.github/<org>/<repo_name>/<hash>
+```
+
+ 
+##### **`docker.from.repo`**
+
+
+```bash 
+Create a container from the given repository/hash.
+ The repo-url needs to be fully qualified, starting with https:// and ending in .git.
+ 
+ USAGE:
+  hash=<..> repo_url=<..> ./compose.mk docker.from.repo
 ```
 
  
@@ -766,7 +826,7 @@ Like 'docker ps', but always returns JSON.
 ```
 
  
-##### **`docker.run.script/<arg>`**
+##### **`docker.run.def`**
 
 
 ```bash 
@@ -774,7 +834,32 @@ Treats the named 'define' as a script, then runs it inside the given container.
  This automatically detects whether input should be treated as a pipe.
 
  USAGE:
-  ./compose.mk docker.run.script/<def_name>/<image>
+  entrypoint=<entry> def=<def_name> img=<image> ./compose.mk docker.run.def
+```
+
+ 
+##### **`docker.run.def/<arg>`**
+
+
+```bash 
+Like 'docker.run.def', but unpacks arguments from target invocation.
+
+ USAGE:
+  ./compose.mk docker.run.def/<def_name>/<image>
+```
+
+ 
+##### **`docker.run.image/<arg>`**
+
+
+```bash 
+Runs the given commands in the given image.
+
+ USAGE:
+  entrypoint=<entry> cmd=<args_to_entrypoint> ./compose.mk docker.run.image/<img>
+
+ EXAMPLE:
+  entrypoint=make cmd=flux.ok ./compose.mk docker.run.image/debian/buildd:bookworm
 ```
 
  
@@ -799,11 +884,14 @@ Runs the given command inside the named container.
 
 ```bash 
 Runs the named target inside the named docker container.
- This works for any image as given; See instead '.docker.run' for
+ This works for any image as given; See instead 'mk.docker.run' for
  a version that implicitly uses internally generated containers.
 
  USAGE:
-  img=... ./compose.mk docker.run/<target>
+  img=<img> make docker.run/<target>
+
+ EXAMPLE:
+  img=debian/buildd:bookworm ./compose.mk docker.run/flux.ok
 ```
 
  
@@ -821,7 +909,8 @@ Returns the docker socket in use for the current docker context.
 
 ```bash 
 Like 'docker.run', but uses the default entrypoint.
- USAGE: ./compose.mk docker.run/<img>
+ USAGE: 
+   ./compose.mk docker.start/<img>
 ```
 
  
@@ -830,7 +919,8 @@ Like 'docker.run', but uses the default entrypoint.
 
 ```bash 
 Starts the named docker image with the default entrypoint
- USAGE: ./compose.mk docker.start/<img>
+ USAGE: 
+   ./compose.mk docker.start/<img>
 ```
 
  
@@ -911,29 +1001,29 @@ Runs 'docker volume prune' for the entire system.
 
 
 
-The flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
+e flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
 
 
 
-What `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
+at `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
 
 
 
-In most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
+most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
 
 
 
-For parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+r parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
 
 
 
-----------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 
 
-DOCS:
+CS:
 
-* `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
+`[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -943,7 +1033,7 @@ See especially the [Platform Setup Example](/docs/demos.md#demo-platform-setup) 
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`flux.always/<arg>`**
@@ -1156,8 +1246,8 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
  platforms with JSON of practical size? And crucially, 'jq .' handles object input,
  empty input, and streamed objects with no wrapper (like '{}<newline>{}').
 
- USAGE: (runs 3 commands in parallel)
-   ./compose.mk flux.mux targets="io.time.wait/3,io.time.wait/1,io.time.wait/2" | jq .
+ EXAMPLE: (runs 2 commands in parallel)
+   targets="io.time.wait/1,io.time.wait/3" ./compose.mk flux.mux | jq .
 ```
 
  
@@ -1251,8 +1341,8 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
  platforms with JSON of practical size? And crucially, 'jq .' handles object input,
  empty input, and streamed objects with no wrapper (like '{}<newline>{}').
 
- USAGE: (runs 3 commands in parallel)
-   ./compose.mk flux.mux targets="io.time.wait/3,io.time.wait/1,io.time.wait/2" | jq .
+ EXAMPLE: (runs 2 commands in parallel)
+   targets="io.time.wait/1,io.time.wait/3" ./compose.mk flux.mux | jq .
 ```
 
  
@@ -1275,12 +1365,25 @@ Negates the status for the given target.
 ```
 
  
+##### **`flux.noop`**
+
+
+```bash 
+NO-OP mostly used for testing.  
+ Similar to 'flux.ok', but this doesn't include logging.
+
+ USAGE:	
+  ./compose.mk flux.noop
+```
+
+ 
 ##### **`flux.ok`**
 
 
 ```bash 
 Alias for 'exit 0', which is success.
  This is mostly for used for testing other pipelines.  
+
  See also `flux.fail`
 ```
 
@@ -1355,7 +1458,7 @@ Alias for flux.split, but accepts arguments directly
 
 
 ```bash 
-Returns the name of the current stage.
+Returns the name of the current stage. No Arguments.
 ```
 
  
@@ -1391,11 +1494,20 @@ Returns the name of the current stage file.
 
 
 ```bash 
-Pops the stack for the named stage
+Pops the stack for the named stage.  
+ Caller should handle empty value, this won't throw an error.
 
  USAGE:
-   ./compose.mk flux.stage.push/<stage_name>
+   ./compose.mk flux.stage.pop/<stage_name>
    {"key":"val"}
+```
+
+ 
+##### **`flux.stage.push`**
+
+
+```bash 
+
 ```
 
  
@@ -1410,18 +1522,7 @@ Push the JSON data on stdin into the stack for the named stage.
 ```
 
  
-##### **`flux.stage.require/<arg>`**
-
-
-```bash 
-Asserts that the given stage should have been already entered.
-
- USAGE:
-  ./compose.mk flux.stage.
-```
-
- 
-##### **`flux.stage.stack/<arg>`**
+##### **`flux.stage.stack`**
 
 
 ```bash 
@@ -1527,7 +1628,7 @@ Wraps all of the given targets as if it were a single target.
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
 
 
@@ -1540,51 +1641,51 @@ Wraps all of the given targets as if it were a single target.
 
 
 
-The `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+e `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
 
 
 
-**General purpose tools:**
+General purpose tools:**
 
 
 
-* For conversion, see `stream.nl.to.comma`, `stream.comma.to.nl`, etc.
+For conversion, see `stream.nl.to.comma`, `stream.comma.to.nl`, etc.
 
-* For generation json, see `stream.jb`[2] and `stream.json.append.*`.
+For generation json, see `stream.jb`[2] and `stream.json.append.*`.
 
-* For formatting and printing, see `stream.dim.*`, etc.
-
-
-
-----------------------------------------------------------------------------
+For formatting and printing, see `stream.dim.*`, etc.
 
 
 
-**Macro Equivalents:**
+--------------------------------------------------------------------------
 
 
 
-Most targets here are also available as macros, which can be used programmatically as an optimization since it saves a process.
+Macro Equivalents:**
 
 
 
-```bash
-
-# For example, from a makefile, these are equivalent commands:
-
-echo "one,two,three" | ${stream.comma.to.nl}
-
-echo "one,two,three" | make stream.comma.to.nl
-
-```
-
-----------------------------------------------------------------------------
-
-DOCS:
+st targets here are also available as macros, which can be used programmatically as an optimization since it saves a process.
 
 
 
-* `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-stream
+`bash
+
+For example, from a makefile, these are equivalent commands:
+
+ho "one,two,three" | ${stream.comma.to.nl}
+
+ho "one,two,three" | make stream.comma.to.nl
+
+`
+
+--------------------------------------------------------------------------
+
+CS:
+
+
+
+`[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-stream
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -1592,7 +1693,7 @@ DOCS:
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`stream.comma.to.json`**
@@ -1872,6 +1973,14 @@ Enumerates the space-delimited input list, zipping indexes with values in newlin
 ```
 
  
+##### **`stream.strip`**
+
+
+```bash 
+Pipe-friendly helper for stripping whitespace.
+```
+
+ 
 ##### **`stream.to.stderr`**
 
 
@@ -1897,7 +2006,7 @@ See the [API docs](/docs/api#tui-private-api)
 
 
 
-*This documentation is pulled automatically from [source](compose.mk).*
+*This documentation is pulled automatically from [source](/compose.mk).*
 
  
 ##### **`.tux.attach`**

@@ -1,30 +1,34 @@
 {% import 'macros.j2' as macros -%}
-### Signals and Supervisors
 
-{#{macros.img_link("img/e2e-k3d.commander.gif","50%")}#}
 
- You can think of `compose.mk` as a long list of egregious hacks that can only be redeemed by a *'but look what you can do with this!'* moment.  On that list, **signals and supervisors** is perhaps the most absurd thing of all. 
- 
- #### Motivation 
- 
- Without [forking make](https://remake.readthedocs.io/en/latest/), there's no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people [it's about cleanup](https://www.gnu.org/software/make/manual/html_node/Interrupts.html), but `compose.mk` doesn't exactly look like traditional use-cases.
- 
-The main reason to care is that short-circuiting make's default CLI option parsing is *really useful*.  Especially since `compose.mk` allows us to "wrap" lots of containerized tools, we want to be able to proxy arguments over to those tools without `make` being greedy about parsing everything.
+{{macros.collapsed_details('Embedded TUI', level='h3')}}
 
-The [`loadf` command](#loading-compose-file) is a typical example: the 2nd argument, a filename, must not be parsed as a Makefile target:
+<table align=center width=95%>
+    <tr>
+        <td>{{macros.img_link("img/tui-1.gif", "200px")}}</td>
+        <td>{{macros.img_link("img/tui-4.gif", "200px")}}</td>
+        <td>{{macros.img_link("img/tui-6.gif", "200px")}}</td>
+    </tr>
+    <tr>
+        <td>{{macros.img_link("img/tui-1.gif", "200px")}}</td>
+        <td>{{macros.img_link("img/tui-3.gif", "200px")}}</td>
+        <td>{{macros.img_link("img/tui-5.gif", "200px")}}</td>
+    </tr>
+</table>
 
-```bash
-# Opens all shells for each service in the given file inside the TUI
-./compose.mk loadf tests/docker-compose.yml
-```
- 
-Sometimes we want individual targets to essentially be able to consume the rest of the command line.  In this case, the filename is best understood as an argument to the first target, and not a target itself.
- 
-The [wrapper for jb](docs/api/#jb) is another example of an invocation that requires reading the whole command-line.  And for targets created with [`compose.import`](#makecompose-bridge), the [special form with '--'] (#special-form) also requires this kind of short-circuiting.
+The basic components of the TUI are things like [tmux](https://github.com/tmux/tmux) for core drawing and geometry, [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and basic [tmux themes](https://github.com/jimeh/tmux-themepack/) / [plugins](https://github.com/tmux-plugins/tpm) / etc that are baked in.  These elements (plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/)) are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
 
-#### Implementation
+<img src=img/tui-5.gif>
 
-**The way this works is ridiculous,** An example for the mad-scientists out there?  A guy could probably hijack this for control flow! 👀
- This is a crazy thing to do, but for some use-cases this might be too useful to ignore.  Consider it um, [experimental](tests/Makefile.mad-science.mk).
+How does this work?  The behaviour above relies on a few things.  First, the `compose.mk:tux` container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  
 
-{{macros.hr2()}}
+Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the [`loadf` target,](#loading-compose-files) you can leverage existing compose files but skip [the usual integration with a project Makefile](#embedding-tools-with-makefiles).
+
+
+<img src=img/tui-1.gif>
+
+One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.
+
+<img src=img/tui-2.gif>
+
+</details>

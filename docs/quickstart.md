@@ -1,6 +1,6 @@
 ## Quick Start
 
-### Clone/Build/Test This Repo
+{{macros.collapsed_details('Clone/Build/Test This Repo', level='h3')}}
 
 ```bash
 # for ssh
@@ -12,19 +12,17 @@ $ git clone {{github.repo_url}}
 # build the tool containers & check them
 $ make clean build test
 ```
+</details>
 
-----------------------------------------------------
-
-### Tools via Compose CLI
+{{macros.collapsed_details('Tools via Compose CLI', level='h3')}}
 
 ```bash
 {%- for svc in bash("make -s k8s-tools.services|sort").split() %}
 $ docker compose run -f k8s-tools.yml {{svc}} ...{% endfor %}
 ```
+</details>
 
-----------------------------------------------------
-
-### Tools via Make 
+{{macros.collapsed_details('Tools via Make', level='h3')}}
 
 Commands like this will work at the repository root to interact with the tool containers in k8s-tools.yml:
 
@@ -68,6 +66,8 @@ For the full documentation of those targets, see [k8s.mk API](/docs/api/#api-k8s
 This repository includes lots of examples for make/compose integration in general, and in particular how you can accomplish lifecycle scripting with k8s.mk.
 
 * For advanced usage that builds automation APIs by running targets *inside* tool containers, see [the dispatch-demo](#container-dispatch).
-* For a more involved tutorial [see the cluster-lifecycle demo](#demo-cluster-automation).
+* For a more involved tutorial [see the cluster-lifecycle demo](/docs/demos#demo-cluster-automation).
 * For examples, you can also the [integration tests](tests/Makefile.itest.mk) and [end-to-end tests](tests/Makefile.e2e.mk).  
 * For a complete, external project that uses this approach for cluster automation, see [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas)
+
+</details>

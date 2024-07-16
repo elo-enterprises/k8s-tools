@@ -1,5 +1,4 @@
-
-### Loading Compose Files
+{{macros.collapsed_details('Loading Compose Files', level='h3')}}
 
 For the simplest use-cases where you have a compose-file, and want some of the compose.mk features, but don't have a project makefile, it's possible to skip some of the steps in the [usual integration](#embedding-tools-with-makefiles) by letting `loadf` generate integration for you just in time.
 
@@ -16,3 +15,5 @@ Actually any type of instructions you pass will get the compose-file context, so
 <a href=img/tui-4.gif><img src=img/tui-4.gif></a>
 
 Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the [Embedded TUI](#embedded-tui) docs for other examples that are using `loadf`.
+
+</details>

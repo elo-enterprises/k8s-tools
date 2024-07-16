@@ -19,7 +19,6 @@ include compose.mk
 $(eval $(call compose.import, ▰, FALSE, k8s-tools.yml))
 .DEFAULT_GOAL=help
 
-## Smoke-test suite covers basics stuff about k8s-tools.yml directly, ignoring Makefile libs
 all: clean build smoke-test 
 build: #tux.require
 clean: #compose.clean/k8s-tools.yml 
@@ -30,18 +29,36 @@ test.help:
 	./k8s.mk help.namespaces|grep ansible 
 	./k8s.mk help helm
 	
+test.jb:
+	echo foo=bar | make jb | jq .
+	make jb foo=bar | jq .
+test.stack:
+	echo '"key=val"'./compose.mk jb |./compose.mk flux.stage.clean flux.stage.push/testing flux.stage.pop/testing | jq .foo
+
 test.ansible:
 	# call the block-in-file module 
-	./compose.mk jb path=.gitignore block=".flux.stage.*" | ./k8s.mk ansible.blockinfile
+	echo path=.gitignore block=".flux.stage.*" | ./compose.mk jb.pipe | ./k8s.mk ansible.adhoc/blockinfile
 	# failure should fail 
-	! make jb msg="failing as requested" | make ansible.adhoc/ansible.builtin.fail
-	make jb msg="hello-world" | make ansible.adhoc/ansible.builtin.debug
+	# echo "'msg=failing as requested'" \
+	# | ./compose.mk jb.pipe \
+	# | ./compose.mk stream.peek  \
+	# | make ansible.adhoc/ansible.builtin.fail) \
+	# ; st=$$?; case $${st} in 0) exit 1; ;; esac 
+	echo "'msg=hello world'" | ./compose.mk jb | ./k8s.mk ansible.adhoc/ansible.builtin.debug
 
 test.pygmentize:
 	./compose.mk stream.pygmentize/k8s-tools.yml
 	cat k8s-tools.yml | ./compose.mk stream.pygmentize
 
-smoke-test: test.pygmentize test.ansible
+smoke-test: test.pygmentize test.ansible test.stack test.jb test.special.form test.standalone.jq 
+
+test.standalone.jq:
+	echo 'testing without stdin '
+	./compose.mk jq '{}' .
+	echo 'testing with stdin'
+	echo {} |./compose.mk jq .
+
+test.special.form:
 	set -x && ./k8s.mk tux.require \
 		&& ./k8s.mk fission -- --help \
 		&& ./k8s.mk helmify -- --version \

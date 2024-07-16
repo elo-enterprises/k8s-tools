@@ -1,4 +1,4 @@
-# Known Limitations and Issues
+{{macros.collapsed_details('Known Limitations and Issues', level='h1')}}
 
 #### KUBECONFIG should already be set 
 
@@ -52,3 +52,5 @@ If you want better parity with docker in Linux, you might like to checkout Colim
 #### Pipes & Temp Files 
 
 Working with streaming pipes generates temporary files with `mktemp`, removing them when the process exits with `trap`.  Pure streams would be better.  Also in many cases tmp files need to be in the working directory, otherwise they can't be shared by docker volumes.  Moving to a temp-dir based approach would be better.   
+
+</details>

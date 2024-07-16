@@ -1,4 +1,5 @@
-### Multiple Compose Files
+{{macros.collapsed_details('Multiple Compose Files', level='h3')}}
+
 
 This can be easily adapted for working with *multiple* compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:
 
@@ -23,3 +24,5 @@ build.code:
 There's lots of ways to use this.  And if your service names across 2 files do not collide, you are free to put everything under exactly the same namespace.  It's only syntax, but if you choose the conventions wisely then it will probably help you to think and to read whatever you're writing.
 
 Confused about what targets are available after using `compose.import`?  See the [`<compose_stem>.services`](#target-compose_stemcmd) for list services, and check out the `make help` output.
+
+</details>

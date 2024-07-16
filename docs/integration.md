@@ -2,17 +2,15 @@
 
 You can embed the k8s-tools suite in your project in two ways, either with some kind of global compose file and global aliases, or with a more project-based approach using Makefiles.
 
-----------------------------------------------------
-
-### Compatibility Notes
+{{macros.collapsed_details('Compatibility Notes', level='h3')}}
 
 Platforms used in development include modern docker (say `25+`), make (`3.8+`), and bash `(~5`) on both Linux and MacOS, but testing in github-actions only uses Linux and won't try every possible combination of versions.  
 
 In general, the goal *is* to support most things you'll encounter in the wild, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to OSX default `sed` / `ps` / `xargs`, etc.  Please report issues!
 
-----------------------------------------------------
+</details>
 
-### Embedding Tools With Aliases
+{{macros.collapsed_details('Embedding Tools With Aliases', level='h3')}}
 
 To use this pattern with your existing projects, you might want to maintain separated compose files and setup aliases.
 
@@ -31,9 +29,9 @@ Aliases are convenient but rather fragile (obviously this will break if you move
 
 See the next section for something that is a more durable and flexible.
 
-----------------------------------------------------
+</details>
 
-### Embedding Tools With Makefiles
+{{macros.collapsed_details('Embedding Tools With Makefiles', level='h3')}}
 
 You'll probably want to read over the [compose.mk](#composemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.
 
@@ -96,8 +94,10 @@ self.test:
 {% endset %}
 {{integration_block}}
 
-----------------------------------------------------
+</details>
 
-### Stand-Alone Tools
+{{macros.collapsed_details('Stand-Alone Tools', level='h3')}}
 
 If you're not interested in custom automation that requires project-Makefile integration, some features of `compose.mk` and `k8s.mk` can be used without that.  See the [Loading Compose Files](#loading-compose-files) docs, plus the [full CLI docs](/api) for more details.
+
+</details>
