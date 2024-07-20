@@ -17,7 +17,7 @@ permissions:
   contents: read
 jobs:
   test:
-    name: Integration/Smoke/E2E Testing
+    name: Build / Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,13 +26,13 @@ jobs:
       - name: Build
         run: make build
       - name: Integration Tests
-        # GitHub Actions run without a TTY device. This is a workaround to get one,
+        # GitHub Actions runs without a TTY device. This is a workaround to get one,
         # based on https://github.com/actions/runner/issues/241#issuecomment-842566950.
         # This is required for some of the integration tests that are using gum
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'
         run: make integration-test
       # - name: TUI Tests
-      #   # GitHub Actions run without a TTY device. This is a workaround to get one,
+      #   # GitHub Actions runs without a TTY device. This is a workaround to get one,
       #   # based on https://github.com/actions/runner/issues/241#issuecomment-842566950.
       #   # This is required for some of the integration tests that are using gum
       #   shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'

@@ -59,7 +59,9 @@ Things are organized into a few namespaces, which hopefully avoids collisions wi
 
 
 
-e *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  This works by sending commands to a (dockerized) version of tmux.  See also the public/private sections of the tux API[1], the general docs for the TUI[2], or the spec for the 'compose.mk:tux' container for more details.
+he *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  This works by sending commands to a (dockerized) version of tmux.  See also the public/private sections of the tux API[1], the general docs for the TUI[2], or the spec for the 'compose.mk:tux' container for more details.
+
+
 
 
 
@@ -67,11 +69,35 @@ e *`tux.*`* targets allow for creation, configuration and automation of an embed
 
 
 
-CS:
+OCS:
 
 `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
 
 `[2]`: https://github.com/elo-enterprises/k8s-tools/#embedded-tui
+
+
+
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+GIN: TUI Environment Variables
+
+
+
+Variable             | Purpose                                                                       |
+
+-------------------- | ----------------------------------------------------------------------------- |
+
+TUI_BOOTSTRAP        | *Target-name that's used to bootstrap the TUI.  *                             |
+
+TUX_BOOTSTRAPPED     | *Contexts for which the TUI has already been bootstrapped.*                   |
+
+TUI_SVC_NAME         | *The name of the primary TUI svc.*                                            |
+
+TUI_THEME_NAME       | *The name of the theme.*                                                      |
+
+TUI_TMUX_SOCKET      | *The path to the tmux socket.*                                                |
+
+TUI_THEME_HOOK_PRE   | *Target called when init is in progress but the core layout is finished*      |
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -287,8 +313,6 @@ Bridge compatability.
 
 
 
-
---------------------------------------------------------------------------
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -564,15 +588,15 @@ Pauses for 1 second.
 
 
 
-e docker.* targets cover a few helpers for working with docker.
+he docker.* targets cover a few helpers for working with docker.
 
 
 
-is interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
+his interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
 
 
 
-CS:
+OCS:
 
 `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
 
@@ -1001,19 +1025,21 @@ Runs 'docker volume prune' for the entire system.
 
 
 
-e flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
+he flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
 
 
 
-at `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
+hat `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
 
 
 
-most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
+n most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
 
 
 
-r parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+or parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+
+
 
 
 
@@ -1021,7 +1047,7 @@ r parts that are more specific to shell code, see `flux.*.sh`, and for working w
 
 
 
-CS:
+OCS:
 
 `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
 
@@ -1251,6 +1277,28 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
 ```
 
  
+##### **`flux.loop.until/<arg>`**
+
+
+```bash 
+Loop the given target until it succeeds.
+
+ By default to reduce logging noise, this sends stderr to null, but preserves stdout.
+ This makes debugging hard, so only use this with well tested/understood sub-targets,
+ or set "verbose=1" to allow stderr.  When "quiet=1" is set, even more logging is trimmed.
+
+ USAGE:
+```
+
+ 
+##### **`flux.loop.watch/<arg>`**
+
+
+```bash 
+Loops the given target forever, using 'watch' instead of the while-loop default
+```
+
+ 
 ##### **`flux.loop/<arg>`**
 
 
@@ -1287,28 +1335,6 @@ Loops the given target forever.
 
 ```bash 
 Like flux.loopf, but even more quiet.
-```
-
- 
-##### **`flux.loopu/<arg>`**
-
-
-```bash 
-Loop the given target until it succeeds.
-
- By default to reduce logging noise, this sends stderr to null, but preserves stdout.
- This makes debugging hard, so only use this with well tested/understood sub-targets,
- or set "verbose=1" to allow stderr.  When "quiet=1" is set, even more logging is trimmed.
-
- USAGE:
-```
-
- 
-##### **`flux.loopw/<arg>`**
-
-
-```bash 
-Loops the given target forever, using 'watch' instead of the while-loop default
 ```
 
  
@@ -1526,7 +1552,7 @@ Push the JSON data on stdin into the stack for the named stage.
 
 
 ```bash 
-
+Retrieves all the data on the current stack-file.  No arguments.
 ```
 
  
@@ -1535,16 +1561,14 @@ Push the JSON data on stdin into the stack for the named stage.
 
 ```bash 
 Declares entry for the given stage.
-
  Stage names are generally target names or similar, no spaces allowed.
- This announces the stage using pretty gum-dividers, 
- then creates a stage-file which other processes may check for.
- Stage files are JSON, containing at least the parent pid for 
- this 'make' process, plus any extra data added by 'flux.stage.push'.
- File is (usually) cleaned when the process exits.  This additionally
- sets the FLUX_STAGE variable.  Note that variables / tmpfile 
- availability depends on the process itself, not the parent process,
- so behaviour can be surprising with recursive make.
+
+ This is generally used to just to print a pretty divider that makes output 
+ easier to parse, but stages also add an idea of persistence to otherwise 
+ stateless workflows, via a file-backed JSON stack object that cooperating 
+ tasks can push to / pop from.
+
+ Stack files contain at least the parent pid for this 'make' process.
 
  USAGE:
   ./compose.mk flux.stage/<stage_name>
@@ -1556,6 +1580,7 @@ Declares entry for the given stage.
 
 ```bash 
 Runs the given command for the given amount of seconds, then stops it with TERM.
+ Exit status is ignored
 
  USAGE: (tails docker logs for up to 10s, then stops)
    ./compose.mk flux.timeout.sh cmd='docker logs -f xxxx' timeout=10
@@ -1641,7 +1666,9 @@ Wraps all of the given targets as if it were a single target.
 
 
 
-e `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+he `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+
+
 
 
 
@@ -1836,7 +1863,7 @@ Appends the given key/val to the input object.
  This is usually used to build JSON objects from scratch.
 
  EXAMPLE:
-	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
    {"foo":"bar"}
 ```
 
@@ -1861,7 +1888,7 @@ Appends the given key/val to the input object.
  This is usually used to build JSON objects from scratch.
 
  EXAMPLE:
-	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
    {"foo":"bar"}
 ```
 

@@ -7,16 +7,14 @@
 {%raw%}{{markdown_toc(__template__, level=4)}}{%endraw%}
 {%endif%}
 
-<details><summary>:arrow_up_down:<h2>
-Demo: Cluster Automation
-</h3></summary>
+{{macros.collapsed_details('Demo: Cluster Automation', level='h3')}}
 
 {% set div="\n###############################################################################\n" %}
 {% set sections = open('tests/Makefile.e2e.mk','r').read().split(div) %}
 
 This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
 
-<details>:arrow_up_down:<summary><h3> Boilerplate, Overrides, Clean & Init</h3></summary>
+{{macros.collapsed_details('Boilerplate, Overrides, Clean & Init', level='h4')}}
 
 ```Makefile 
 # tests/Makefile.e2e.mk

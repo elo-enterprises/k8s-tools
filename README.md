@@ -42,11 +42,16 @@
 <div class="toc">
 <ul>
 <li><a href="#overview">Overview</a></li>
-<li><a href="#features">Features</a></li>
+<li><a href="#features">Features</a><ul>
+<li><a href="#versioned-toolchain">Versioned Toolchain</a></li>
+<li><a href="#toolchain-automation">Toolchain Automation</a></li>
+</ul>
+</li>
 <li><a href="#quick-start">Quick Start</a></li>
 <li><a href="#integration-with-your-project">Integration With Your Project</a></li>
 <li><a href="#composemk">compose.mk</a></li>
 <li><a href="#k8smk">k8s.mk</a></li>
+<li><a href="#contributing">Contributing</a></li>
 </ul>
 </div>
 
@@ -57,11 +62,15 @@
 
 **This repository aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file as [k8s-tools.yml](k8s-tools.yml).**  It's useful for CI/CD pipelines or general development, and can be [embedded alongside your existing project](#integration-with-your-project), which helps to fix the problem of different project developers using different local versions of things like `helm`, `kubectl`, etc.
 
-Containers defined here aren't built from scratch, and official sources are used where possible.  Low-level tools (*like `kubectl`, `helm`, etc*) mostly come from [alpine/k8s](https://hub.docker.com/r/alpine/k8s) but [many other tools](#features) (*like `argo`, `knative`, `kind`, `k9s`, `k3d`, etc) are also included.  However, *this isn't an attempt to build an omnibus "do-everything" container..* it's more a response to the fact that there are a lot of diverse tools that really can't be unified, so it's better to just learn how to work with that.  Tools containers are versioned independently, and pulled only when they are used.
+Containers defined here aren't built from scratch, and official sources are used where possible.  Low-level tools (*like `kubectl`, `helm`, etc*) mostly come from [alpine/k8s](https://hub.docker.com/r/alpine/k8s) but [many other tools](#features) (*like `argo`, `knative`, `cdk`, `k9s`, `k3d`, etc) are also included.  However, *this isn't an attempt to build an omnibus "do-everything" container..* it's more a response to the fact that there are a lot of diverse tools that really can't be unified, so it's better to just learn how to work with that.  Tools containers are versioned independently, and pulled only when they are used.
 
-**Besides bundling some tooling, this repository is a reference implementation** for a pattern that [bridges compose services and Makefile targets](#makecompose-bridge), creating a "minimum viable automation framework" for things like [orchestrating tasks across tool containers](#container-dispatch).  It's expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It's incredibly useful for lots of things, and whether it is a tool, a library, or a framework  depends on how you decide to use it.  
+------------------------
 
-Besides k8s-tools.yml, there are two other pieces involved: the first one is [compose.mk](#composemk), which defines the core support for docker, and [k8s.mk](#k8smk), which uses it.  This reference focuses on a few use-cases in particular:
+**Besides bundling some tooling, this repository is a reference implementation** for a pattern that [bridges compose services and Makefile targets](#makecompose-bridge), creating a "minimum viable automation framework" for things like [orchestrating tasks across tool containers](#container-dispatch).  It's expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It's incredibly useful for lots of things, and whether it is a tool, a library, or a framework  depends on how you decide to use it.  There's 3 pieces to this, and the full triple of *k8s.mk*, *compose.mk*, and *k8s-tools.yml* is sometimes called **the k8s-tools suite.** 
+
+
+
+This reference focuses on a few use-cases in particular:
 
 1. Cluster lifecycle / development / debugging workflows in general.
 1. Decoupling project automation from the choice of CI/CD backend.
@@ -79,11 +88,9 @@ Beyond addressing the issues above, these tools add new capabilities to `make` i
 
 <p align="center"><a href="img/tui-6.gif"><img width="90%" src="img/tui-6.gif"></a></p>
 
-With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Oh yeah, and help even works:
+With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Help not only *works,* it also goes beyond mere target-listing to actually include namespace and per-target documentation, rendered via a dockerized version of [charmbracelete/glow](https://github.com/charmbracelet/glow).
 
 <p align="center"><a href="img/tui-7.gif"><img width="90%" src="img/tui-7.gif"></a></p>
-
-
 
 
 --------------------------------
@@ -91,7 +98,7 @@ With or without the TUI, all output is carefully curated and logged to appropria
 
 ## Features
 
-
+### Versioned Toolchain
 
 **[k8s-tools.yml](k8s-tools.yml)** is a compose file with 20+ container specifications covering popular platforming tools and other utilities for working with Kubernetes.  This file makes use of the [dockerfile_inline directive](https://docs.docker.com/compose/compose-file/build/#dockerfile_inline), plus the fact that tool-containers  *tend to involve layering really small customizations*.  Now you can version these tools explicitly, customize them if you need to, and still avoid having N Dockerfiles cluttering up your whole repository.  Here's a quick overview of the manifest and some details about versioning:
 
@@ -119,55 +126,62 @@ With or without the TUI, all output is carefully curated and logged to appropria
 
 
 
-**Tool containers are just-in-time & on-demand,** so that having these declared in case of eventual use won't saddle you with an enormous bootstrap process.  As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.  
+**All tool containers are just-in-time & on-demand,** so that having these declared in case of eventual use won't saddle you with an enormous bootstrap process.  As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.  
 
 **Sane defaults for volumes & environments are included for each tool-container,** meaning that sharing the working directory, docker socket, and kubeconfigs is done automatically.  For host vs. container file permissions, `k8s-tools.yml` also attempts to provide *smoother operations with root-user containers* (*[more details here](#docker-and-file-permissions)*.  
 
-For advanced usage of the tool containers defined in `k8s-tools.yml` it's best to pair with `k8s.mk`, but the compose file also works in stand-alone mode.  The file is even executable: 🚀 *./k8s-tools.yml ...*  <==> *docker compose -f k8s-tools.yml ...*
+For advanced usage of the tool containers defined in `k8s-tools.yml` it's best to pair it with the rest of the automation here, but the compose file also works in stand-alone mode.  The file is even executable, and  *./k8s-tools.yml ...*  is equivalent to *docker compose -f k8s-tools.yml ...*.
 
 
 
-**The focus for k8s-tools.yml is to stand alone with no host dependencies, not even Dockerfiles, yet provide boilerplate that's parametric enough to work pretty well across different projects, without changing the compose file.**  If the default tool versions don't work for your use-cases, [k8s-tools.yml probably has an environment variable you can override](docs/environment-variables).
+**The focus for k8s-tools.yml is to stand alone with no host dependencies, not even Dockerfiles, yet provide boilerplate that's parametric enough to work pretty well across different projects  without changing the compose file.**  If the default tool versions don't work for your use-cases, [k8s-tools.yml probably has an environment variable you can override](docs/environment-variables).
 
 -------
 
-After you've made your whole tool chain portable in one swipe, you might want to focus on *driving* those tools with something that offers more structure than a shell script, and something that also *won't add to your host dependencies*.  If that sounds interesting, you might like to meet `compose.mk` and `k8s.mk`.
+### Toolchain Automation
 
-<ins>**[compose.mk](#composemk)** is simultaneously a Makefile automation library and a stand-alone CLI tool.</ins>  It defines targets and macros that can extend Make's core functionality in a variety of ways, especially in terms of making it very simple to work with docker-compose files and services, and docker in general.
+After you've made your whole kit portable in one swipe, you might want to focus on *driving* those tools with something that offers more structure than a shell script, and something that also *won't add to your host dependencies*.  If that sounds interesting, you might like to meet `compose.mk` and `k8s.mk`. 
+
+<ins>**[compose.mk](#composemk)** is simultaneously a stand-alone CLI tool and an automation library for working with `make` + containers.</ins>  It defines targets and macros that can extend Make's core functionality in a variety of ways actually, but the main feature is ensuring that it's simple to work with docker-compose files and services, and docker in general.
 
 <details><summary>&nbsp;&nbsp; <strong>Importing Compose Services:</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
-* **Tool containers can be 'imported' as a group of related make-targets.**
-  * Interact with them using the [Make/compose bridge](#makecompose-bridge)
-  * [Use container-dispatch syntax](#container-dispatch) to run existing make-targets **inside** tool containers
-  * Use the containers effectively from "outside", or drop into debugging shell "inside"
-* <ins>Tool containers can be anything, defined anywhere:</ins>
-    * No explicit dependency for k8s-tools.yml
+
+* **Tool containers can be "imported" as a group of related make-targets.**
+  * This creates wrapper-targets that use the containers.
+  * You can interact with them using the [Make/compose bridge](#makecompose-bridge).
+  * You can [use container-dispatch syntax](#container-dispatch) to run existing make-targets **inside** tool containers.
+  * You can use the containers effectively from "outside", or drop into debugging shell "inside".
+* **Tool containers can be anything, defined anywhere:**
+    * No explicit dependency for *k8s-tools.yml*.
     * [Multiple compose-files are supported](#multiple-compose-files)
+    * Bring your own compose file and build automation APIs on those instead *(cm-tools.yml? docs-tools.yml? whatever)*
 </details>
 
-Besides adding docker-compose support, there are [many other features](#composemk) that might be interesting.
+<ins>The best way to think of compose.mk is to consider it an extension of `make` that's written in `make`.</ins>  As a single file with no external dependencies, it can in principle work as a global-install, but the emphasis is on embedding it into existing projects.  Since it doesn't depend explicitly on either `k8s-tools.yml` or `k8s.mk`, it slots comfortably into many kinds of projects that have nothing to do with kubernetes.  Beyond the docker support, there are [many other features](#composemk).
 
 -------
 
-<ins>**[k8s.mk](#k8smk)** inherits all the *compose.mk* features, then adds implicit integration with *k8s-tools.yml*.</ins>  Both *compose.mk* and *k8s-tools.yml* files are a soft-dependency for *k8s.mk*, because the emphasis is on seamless usage of those containers.  All the simple targets described by the [Make/Compose Bridge](#makecompose-bridge) are available for k8s-tools.yml services.  (See [the full API here](/docs/api#api-k8smk))
+<ins>**[k8s.mk](#k8smk)** inherits all the *compose.mk* features, then integrates with *k8s-tools.yml*.</ins>  Both *compose.mk* and *k8s-tools.yml* files are a soft-dependency for *k8s.mk*, because the emphasis is on seamless usage of those containers.  
 
-`k8s.mk` also provides some primitives for common tasks (*like waiting for all pods to be ready*), context management (*like setting the active namespace*), and the usual patterns (*like idempotent usage of `helm`*).  It can help to smooth over lots of other typical difficulties in places where things like `kubefwd` or `ansible` are difficult to use.  `k8s.mk` also inherits and extends the [TUI support from compose.mk](#embedded-tui), including the ability to automate the TUI itself (*like sending specific targets to specific panes*).
+In terms of wrappers, all of the autogenerated targets for low-level container access described by [the Make/Compose Bridge](#makecompose-bridge) are available for the *k8s-tools.yml* services, plus more composite functionality.  
+
+For example, `k8s.mk` provides some primitives for common tasks (*like waiting for all pods to be ready*), context management (*like setting the active namespace*), and the usual patterns (*like idempotent usage of `helm`*).  Besides helping to version tools, it can make it simpler to interact with them or make it simpler to script actions that involve multiple tools. Additionally, `k8s.mk` also inherits and extends the [TUI support from compose.mk](#embedded-tui), including the ability to automate the TUI itself. 
 
 <details><summary>&nbsp;&nbsp; <strong>k8s.mk Features</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 * **Main features:**
   * Useful as a library, especially if you're building cluster lifecycle automation
   * Useful as an interactive debugging/inspection/development tool.
-  * Helps to do the common tasks quickly, and can do this interactively or from other automation
-    * Launch a pod in a namespace, or a shell in a pod, without lots of kubectling
+  * Helps to do the common tasks quickly, either interactively or from other automation
+    * Launch a pod in a namespace, or a shell in a pod, without lots of kubectl'ing
     * Stream and pipe commands to/from pods, or between pods
-* **Other Features:** 
+  * Assemble custom interactive dashboards with new or existing TUI elements
   * **[Curated collection of automation interfaces](#k8smk-api)**, arranged into a few namespaces:
-    * [**`k8s.*` targets:**](/docs/api#api-k8s) Default namespace with debugging tools, cluster life-cycle primitives, etc.
-    * [**`ansible.*` targets:**](/docs/api#api-ansible) A direct interface to containerized versions of things like [kubernetes.core.k8s](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html) or [kubernetes.core.helm](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html), no playbooks required.
-    * Plus more specific interfaces to [k3d](/docs/api#api-k3d), [kubefwd](/docs/api#api-kubefwd), etc. [See the full API here.](#k8smk-api)
-  * 🚀 *Executable file:*
-    * `./k8s.mk ...  <==> make -f k8s.mk ...`
+      * [**`k8s.*` targets:**](/docs/api#api-k8s) Default namespace with debugging tools, cluster life-cycle primitives, etc.
+      * [**`ansible.*` targets:**](/docs/api#api-ansible) A direct interface to containerized versions of things like [kubernetes.core.k8s](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html) or [kubernetes.core.helm](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html), no playbooks and no inventories required.
+      * **Many more specific interfaces** to things like [k3d](/docs/api#api-k3d), [kubefwd](/docs/api#api-kubefwd), etc. [See the full API here.](#k8smk-api)
 </details>  
+
+Whereas `compose.mk` is useful in general, `k8s.mk` is of course more focused on projects working with kubernetes, and is the best example of how to go about extending `compose.mk`.
 
 --------------------------------
 
@@ -229,41 +243,49 @@ $ docker compose run -f k8s-tools.yml yq ...
 
 <details><summary>&nbsp;&nbsp; <h3>Tools via Make</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
-Commands like this will work at the repository root to interact with the tool containers in k8s-tools.yml:
+Using the special form './k8s.mk <container_name> -- ... ` you can pass commands directly to tool containers in *k8s-tools.yml*.  This works with the container's default entrypoint, and has the usual features available (like making the working directory accessible as a volume). For example, commands like this will work at the repository root:
 
 ```bash
-# run kubectl, which can be used directly or with pipes 
-$ cmd='apply -f my-manifest.yml' make kubectl
-$ cat my-manifest.yml | make kubectl/pipe cmd='apply -f -'
-
-# run helmify (which expects stdin)
-$ cat my-manifest.yml | make helmify/pipe
-
-# drop to a shell to work with helm container (interactive; plus '.' is already volume-shared)
-$ make helm/shell
-
-# get cluster info from k3d
-$ make k3d cmd='cluster list -o json'
-
-# equivalently 
-$ echo k3d cluster list -o json | make k3d/shell/pipe
+./k8s.mk kubectl -- version --client
 ```
 
-For more details about targets that are **autogenerated for tool containers in the compose-spec**, how this works in general, and what else you can do with it.. check out the docs for [the Make/Compose bridge](#makecompose-bridge).  There are various static-targets available too, [see the API docs for compose.mk](#static-targets-for-composemk).
+You can see many more examples included as part of [the smoke tests](tests/Makefile.smoke-test-k8s.mk).  
 
-Building on the capabilities of those tool-containers, here's some random examples of using k8s.mk.  
+This way of interacting with containers is sometimes convenient for interactive one-offs, but it's also missing the full flexibility of overriding the default container entrypoint, streaming more than one command into the container, etc.  When developing automation, it's often more convenient to use lower-level access that's more explicit and more flexible:
+
+```bash
+# runs kubectl, which can be used directly or with pipes 
+$ cmd='apply -f my-manifest.yml' ./k8s.mk kubectl
+$ cat my-manifest.yml | ./k8s.mk kubectl/pipe cmd='apply -f -'
+
+# run helmify (which expects stdin)
+$ cat my-manifest.yml | ./k8s.mk helmify/pipe
+
+# drop to a shell to work with helm container (interactive; plus '.' is already volume-shared)
+$ ./k8s.mk helm/shell
+
+# get cluster info from k3d
+$ ./k8s.mk k3d cmd='cluster list -o json'
+
+# equivalently 
+$ echo k3d cluster list -o json | ./k8s.mk k3d/shell/pipe
+```
+
+For more details about targets that are **autogenerated for tool containers in the compose-spec**, how this works in general, and what else you can do with it.. check out the docs for [the Make/Compose bridge](#makecompose-bridge).  There are various static-targets available too, [see the full API docs](/docs/api).
+
+Building on the capabilities of those tool-containers, here's some random examples of more advabced features of *k8s.mk*.  
 
 ```bash
 # KUBECONFIG should already be set!
 # wait for all pods in all namespaces
-$ make k8s.wait
+$ ./k8s.mk k8s.wait
 
 # start a debugging shell in the 'default' namespace and attach to it (interactive)
-$ make k8s.test_harness/default/my-test-harness 
-$ make k8s.shell/default/my-test-harness
+$ ./k8s.mk k8s.test_harness/default/my-test-harness 
+$ ./k8s.mk k8s.shell/default/my-test-harness
 
-# run k9s TUI for the given namespace (intreractive)
-$ make k9s/my-namespace
+# run k9s TUI for the given namespace (interactive)
+$ ./k8s.mk k9s/my-namespace
 ```
 
 For the full documentation of those targets, see [k8s.mk API](/docs/api/#api-k8smk).
@@ -281,19 +303,19 @@ This repository includes lots of examples for make/compose integration in genera
 
 ## Integration With Your Project
 
-You can embed the k8s-tools suite in your project in two ways, either with some kind of global compose file and global aliases, or with a more project-based approach using Makefiles.
+The k8s-tools suite can be integrated with your project in a few ways, either with some kind of global compose file and global aliases (*not recommended*), or with a more project-based approach.  But first, you might like to check out the compatibility notes.
 
 <details><summary>&nbsp;&nbsp; <h3>Compatibility Notes</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 Platforms used in development include modern docker (say `25+`), make (`3.8+`), and bash `(~5`) on both Linux and MacOS, but testing in github-actions only uses Linux and won't try every possible combination of versions.  
 
-In general, the goal *is* to support most things you'll encounter in the wild, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to OSX default `sed` / `ps` / `xargs`, etc.  Please report issues!
+In general, *the goal is to support most things you'll encounter in the wild*, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to non-posix OSX default `sed` / `ps` / `xargs`, etc.  Please report issues!
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Embedding Tools With Aliases</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+<details><summary>&nbsp;&nbsp; <h3>Tools Via Simple Aliases</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
-To use this pattern with your existing projects, you might want to maintain separated compose files and setup aliases.
+The simplest and most global way to use k8s-tools.yml is to just download it and setup shell aliases, ignoring `compose.mk` and `k8s.mk`.  Not generally recommended, since this is the least project-based, least portable thing you can do. 
 
 ```bash
 $ cd myproject
@@ -306,9 +328,7 @@ $ alias helm=docker compose -f myproject/k8s-tools.yml run helm
 $ helm ....
 ```
 
-Aliases are convenient but rather fragile (obviously this will break if you move your `myproject` folder around).  
-
-See the next section for something that is a more durable and flexible.
+ Not bad for experiments, but *don't write scripts based on this an expect to ship them to coworkers or build bots!*  Aliases are convenient but rather fragile.  (For example, obviously this will break if you move your `myproject` folder around).  **See the next sections for something that is a more durable and flexible.**
 
 </details>
 
@@ -333,11 +353,11 @@ $ curl -sL \
   https://raw.githubusercontent.com/elo-enterprises/k8s-tools/master/compose.mk \
     > compose.mk
 
-# Optional.  
 # Download the k8s.mk automation lib.
 $ curl -sL \
   https://raw.githubusercontent.com/elo-enterprises/k8s-tools/master/k8s.mk \
     > k8s.mk
+
 ```
 
 These 3 files are usually working together, but in some cases they are useful in a stand-alone mode.  Make them all executable like this:
@@ -355,7 +375,9 @@ $ ./compose.mk ...
 $ ./k8s-tools.yml run ...
 ```
 
-If you're interested in setting up the [Make/Compose bridge](#makecompose-bridge) or preparing for [Container Dispatch](#container-dispatch), here's and example of what your Makefile should look like:
+That's all the setup you'll need just for using tools directly.  See the next section for more information/examples re: stand-alone mode.
+
+If you're interested in tighter integration like setting up the [Make/Compose bridge](#makecompose-bridge) or preparing for [Container Dispatch](#container-dispatch), here's an example of what your project Makefile should look like:
 
 ```Makefile
 # myproject/Makefile (Make sure you have real tabs, not spaces!)
@@ -377,7 +399,7 @@ self.test:
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Stand-Alone Tools</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+<details><summary>&nbsp;&nbsp; <h3>Stand Alone Tools</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 If you're not interested in custom automation that requires project-Makefile integration, some features of `compose.mk` and `k8s.mk` can be used without that.  See the [Loading Compose Files](#loading-compose-files) docs, plus the [full CLI docs](/api) for more details.
 
@@ -387,23 +409,28 @@ If you're not interested in custom automation that requires project-Makefile int
 
 ## compose.mk
 
-A tool / library / automation framework for working with containers.  
+A tool / library / automation framework for working with containers.  Also the biggest, baddest, and most highly-powered mutant Makefile you're ever likely to see, although this aspect is generally safe to ignore unless you're interested ;)
 
-  * Library-mode extends `make`, adding native support for working with containers
-  * Stand-alone mode also available, i.e. a tool that requires no external Makefile / compose file.
-  * A small-but-powerful built-in TUI framework with no host dependencies. (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
+  * **Library-mode** extends `make` in a variety of ways, including support for working with containers (Docs: [[1]](#), [[2]](#), [[3]](#))
+  * **Stand-alone mode also available,** i.e. a tool that requires no external Makefile / compose file. (Docs: [[1]](#))
   * **Zero host-dependencies,** as long as you have docker + make.  Even the [TUI backend](#embedded-tui) is dockerized.
   * **Container-dependencies are minimal too,** so that almost any base can work with [container-dispatch](#container-dispatch).
-  * A minimal, elegant, and dependency-free approach to describing workflow pipelines. (See the [flux.* API](/docs/api#api-flux))
+  * **Built-in TUI framework** that's small but powerful.  (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
+  * **A minimal, elegant, and dependency-free approach to describing workflow pipelines** (See the [flux.* API](/docs/api#api-flux))
+  
+In many ways, `compose.mk` breaks all the rules that you can imagine for how you are *supposed* to use Makefiles, starting with the fact that it weighs in at ~3.5k lines.  But there's method to this madness, and hopefully you'll agree that the juice is worth the squeeze!  
 
-**In library Mode,** `compose.mk` is used as an `include` from your project Makefile.  With that as a starting place, you can **[build a bridge between docker-compose services and make-targets](#makecompose-bridge)** and use [**minimum viable patterns for container-dispatch.**](#container-dispatch).  The main macro is called *`compose.import`*, which can be used/included from any Makefile, used with any compose file, and [used with *multiple* compose files](#multiple-compose-files).  
+Code-to-comment ratios throughout are roughly 1:1, and although it's not practical to measure code-coverage, [the test-suite](tests/) is pretty extensive.  The single-file approach used with `compose.mk` makes it easy to embed, and the API is quickly approaching a "frozen" status.  [Hacking is generally encouraged](#contributing), and users can feel free to rip out any parts of `compose.mk` they don't want or need.  With minor modifications, it's also easy to concatenate `compose.mk` and `k8s.mk` and use that, keeping one more piece of boilerplate out of your project repository.
+
+<details><summary>&nbsp;&nbsp; <strong>Library Mode:</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+In library-mode, `compose.mk` is used as an `include` from your project Makefile.  With that as a starting place, you can **[build a bridge between docker-compose services and make-targets](#makecompose-bridge)** and use [**minimum viable patterns for container-dispatch.**](#container-dispatch).  The main macro is called *`compose.import`*, which can be used/included from any Makefile, used with any compose file, and [used with *multiple* compose files](#multiple-compose-files).  
 
 Besides support for compose-files, `compose.mk` has many other features that extend the core capabilities of make, plus a *[curated collection of reusable utility targets](#composemk-api).  Here's an overview:
 
 
-
 * 🚀 **Executable file:** `./compose.mk ...  <==> make -f compose.mk ...`
-* Built-in supervisor process, [improving support for signal handling](#).
+* Built-in supervisor process, [improving support for signal handling](#signals-and-supervisors).
 * [**`flux.*` targets:**](/docs/api#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides composable concurrency & staging operators, where the primitives are usually make-target names.  
 * [**`tux.*` targets:**](#embedded-tui) Control-surface for a tmux-backed console geometry manager.
   * **No host dependencies.** This uses the `compose.mk:tux` tool container to dockerize tmux itself.
@@ -415,17 +442,40 @@ Besides support for compose-files, `compose.mk` has many other features that ext
 * [**`docker.*`:**](/docs/api#api-docker) An interface for working with docker.
 * [**`mk.*`:**](/docs/api#api-docker) Meta-tooling for 'make' itself. This enables help functions, signals and supervisors, some utilities for reflection, etc.
 * [**`compose.*`:**](/docs/api#api-docker) An interface for working with compose.  
+</details>
 
-**In Stand-alone Mode,** you can still use most of the features above but skip [the usual project integration](#embedding-tools-with-makefiles). *This works because with `make`, the programmatic API basically <ins>is</ins> the CLI.* Highlighting just a few random items, you can: [load compose files into TUIs](#loading-compose-files), [syntax-highlight files](#), [build JSON with jb](/docs/api#jb), [parse JSON with jq](/docs/api#jb), and lots more, all using docker if necessary and falling back to local tools if they are available.
+
+<details><summary>&nbsp;&nbsp; <strong>Stand Alone Mode</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+**In Stand-alone Mode,** you can still use most of the features above but skip [the usual project integration](#embedding-tools-with-makefiles). 
+
+Highlighting just a few random use-cases, you can:
+
+* [Load compose files into TUIs](#loading-compose-files) with 1 shell per service,
+* [Syntax-highlight files](/docs/api/#iofilepreviewarg)
+* [Build JSON with jb](/docs/api#jb)
+* [Parse JSON with jq](/docs/api#jq)
+* [Clean, refactor, or port existing bash script](#) towards something that's easier to read and write.
+
+And lots more, all using local tools if available and falling back to dockerized tool-versions if necessary.
+</details>
 
 If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/docs/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
 
 <details><summary>&nbsp;&nbsp; <h3>But Why?</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
-There's many reasons why you might want these capabilities if you're working with tool-containers, builds, deploys, and complex task orchestration.  People tend to have strong opions about this topic, and it's kind of a long story.  
+There's many reasons why you might want these capabilities if you're working with tool-containers, builds, deploys, and complex task orchestration.  But why `make`?  People tend to have strong opions about this topic, and it's kind of a long story.
 
-The short version is this: Makefiles run practically everywhere and most people can read/write them.  They're also really good at describing DAGs, and lots of automation, but *especially life-cycle automation*, is a natural fit for this paradigm.  The only trouble is that **a)** *make has nothing like native support for tasks in containers*, and **b)** *describing the containers themselves is even further outside of its domain*.  Meanwhile, docker-compose is exactly the opposite.  
-Make & Compose are already a strong combination for this reason, and by adding some syntactic sugar using compose.mk, you can orchestrate make-targets across several containers without cluttering your host.  More than that.. you can also bootstrap surprisingly sophisticated automation-APIs with surprisingly little effort.
+The short version is this:
+
+1. Makefiles run practically everywhere and most people can read/write them.  
+1. They're also really good at describing DAGs, and lots of automation, but *especially life-cycle automation*, is a natural fit for this paradigm.  
+
+The only trouble is that **a)** *make has nothing like native support for tasks in containers*, and **b)** *describing the containers themselves is even further outside of its domain*.  Meanwhile, docker-compose is exactly the opposite.  
+
+Make & Compose are already a strong combination for this reason, and by adding some syntactic sugar using *compose.mk*, you can orchestrate make-targets across several containers without cluttering your host.  More than that.. you can also bootstrap surprisingly sophisticated and flexible automation-APIs with surprisingly little effort.  
+
+One reason this works so well is because with `make`, *the programmatic API basically <ins>is</ins> the CLI interface,* or to put it another way, once you have finished one of these you automatically have the other.
 
 If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
@@ -481,7 +531,7 @@ Assuming `compose.import` was used at all:
 
 See the sections below for more concrete examples.
 
-#### Target: **`<svc_name>`/shell** 
+#### **`<svc_name>`/shell** 
 
 The **`<svc_name>`/shell** target drops to a containter shell for the named service, and is usually interactive.
 
@@ -499,7 +549,7 @@ $ make alpine/shell
 
 ----------------------------------------------------
 
-#### Target: **`<svc_name>`/shell/pipe** 
+#### **`<svc_name>`/shell/pipe** 
 
 The **`<svc_name>`/shell/pipe** target allows streaming data:
 
@@ -518,7 +568,7 @@ echo echo echo hello-world | make alpine/pipe | make debian/pipe
 
 ----------------------------------------------------
 
-#### Target: **`<svc_name>`** 
+#### **`<svc_name>`** 
 
 The top-level **`<svc_name>`** target is more generic and can be used without arguments, or with optional explicit overrides for the compose-service defaults.  Usually this isn't used directly, but it's sometimes useful to call from automation.  Indirectly, most other targets are implemented using this target.
 
@@ -532,7 +582,7 @@ $ echo hello world | pipe=yes entrypoint=cat cmd='/dev/stdin' make alpine
 
 ----------------------------------------------------
 
-#### Target: **`<svc_name>`/`<special>`**
+#### **`<svc_name>`/`<special>`**
 
 Besides targets for working *with* services there are targets for answering questions *about* services.
 
@@ -546,7 +596,7 @@ $ make debian/get_shell
 
 ----------------------------------------------------
 
-#### Target: **`<compose_stem>/<svc>`**
+#### **`<compose_stem>/<svc>`**
 
 Namespaced aliases are also available. Due to the file-stem of the compose file we imported, all of the stuff above will work on targets like you see below.
 
@@ -559,7 +609,7 @@ Note that if `compose.import` uses a file name like `k8s-tools.yml` instead, the
 
 ----------------------------------------------------
 
-#### Target: **`<compose_stem>`.`<cmd>`**
+#### **`<compose_stem>`.`<cmd>`**
 
 Besides targets for working with compose-services, some targets work on the compose file itself.  Assuming your compose file is named `docker-compose.yml`, the special targets work like this:
 
@@ -631,7 +681,7 @@ yq
 
 ```bash 
 $ echo k3d --version | make k8s-tools/k3d/shell/pipe 
-k3d version v5.6.2
+k3d version v5.6.3
 k3s version v1.28.8-k3s1 (default)
 ```
 
@@ -869,13 +919,13 @@ Despite all the output this is pipe-safe, in case the commands involved might re
         <td><p align="center"><a href="img/tui-6.gif"><img width="200px" src="img/tui-6.gif"></a></p></td>
     </tr>
     <tr>
-        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-2.gif"><img width="200px" src="img/tui-2.gif"></a></p></td>
         <td><p align="center"><a href="img/tui-3.gif"><img width="200px" src="img/tui-3.gif"></a></p></td>
         <td><p align="center"><a href="img/tui-5.gif"><img width="200px" src="img/tui-5.gif"></a></p></td>
     </tr>
 </table>
 
-The basic components of the TUI are things like [tmux](https://github.com/tmux/tmux) for core drawing and geometry, [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and basic [tmux themes](https://github.com/jimeh/tmux-themepack/) / [plugins](https://github.com/tmux-plugins/tpm) / etc that are baked in.  These elements (plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/)) are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
+The basic components of the TUI are things like [tmux](https://github.com/tmux/tmux) for core drawing and geometry, [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and overridable defaults for [tmux themes](https://github.com/jimeh/tmux-themepack/), [plugins](https://github.com/tmux-plugins/tpm), [keybindings](#tui-keybindings), etc.  These elements (plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/)) are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
 
 <img src=img/tui-5.gif>
 
@@ -890,19 +940,29 @@ One way to look at the TUI is that it's just a way of mapping make-targets into 
 
 <img src=img/tui-2.gif>
 
+<details><summary>&nbsp;&nbsp; <h4>TUI Keybindings</h4> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+| ---------------- | ------------------------------------------------------ |
+| Escape           | *Exit TUI*                                             |
+| Ctrl b |         | *Split pane vertically*                                |
+| Ctrl b -         | *Split pane horizontally*                              |
+| Alt t            | *Shuffle pane layout*                                  |
+| Alt ^            | *Grow pane up*                                         |
+| Alt v            | *Grow pane down*                                       |
+| Alt <            | *Grow pane left*                                       |
+| Alt >            | *Grow pane right*                                      |
+| Alt <left>       | *Grow pane left*                                       |
+| Alt <right>      | *Grow pane right*                                      |
+| Alt <up>         | *Grow pane up*                                         |
+| Alt <down>       | *Grow pane down*                                       |
+| Alt-1            | *Select pane 1*                                        |
+| Alt-2            | *Select pane 2*                                        |
+| ...              | *...*                                                  |
+
+
 </details>
 
-
-
-
- 
-* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
-* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
-* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
-* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
-* [mk.interrupt](docs/api#mk.interrupt) 
-* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
-* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
+</details>
 
 
 
@@ -935,6 +995,18 @@ The [wrapper for jb](docs/api/#jb) is another example of an invocation that requ
 
 
 
+
+
+
+
+ 
+* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
+* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
+* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
+* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
+* [mk.interrupt](docs/api#mk.interrupt) 
+* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
+* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
 
 </details>
 
@@ -1013,6 +1085,19 @@ If you're interested in the gory details of a longer-format answer, see [the Des
 
 
 </details>
+
+--------------------------------
+
+
+## Contributing
+
+Since this project generally aims at providing extensible boilerplate for use with other projects, we use [the unlicense](https://choosealicense.com/licenses/unlicense/) and hope that accomodates any kind of spin-offs and variations that might be of interest to people.
+
+You're free to copy this code into your repository and start ripping out pieces and adding new ones.  Forking aggressively and not looking back doesn't make sense for many kinds of upstreams, but in this case there is no package manager for `make`, and no one wants a submodule for a few files.  Besides, in some cases removing parts of the API you know you don't need may improve performance (for example with target tab completion).
+
+If you can keep the maiming to a minimum though and make something cool that also feels sufficiently generic, please do consider contributing back to upstream!
+
+As mentioned elsewhere, `k8s.mk` is growing slowly but the goal is to freeze the [compose.mk API](/docs/api#api-composemk) in place fairly soon.  That said.. any interesting feature requests will definitely be considered.  If you're up for it, the best way to spec out a feature-request is always to add a new failing testing with interface you're proposing.
 
 --------------------------------
 

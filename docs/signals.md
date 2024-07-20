@@ -1,18 +1,6 @@
 
 
 
- 
-* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
-* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
-* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
-* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
-* [mk.interrupt](docs/api#mk.interrupt) 
-* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
-* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
-
-
-
-
 <details><summary>&nbsp;&nbsp; <h3>Signals and Supervisors</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 
@@ -41,5 +29,19 @@ The [wrapper for jb](docs/api/#jb) is another example of an invocation that requ
 
 
 
+
+
+
+
+ 
+* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
+* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
+* [mk.supervisor.interrupt](docs/api#mk.supervisor.interrupt) 
+* [mk.supervisor.interrupt/<arg>](docs/api#mk.supervisor.interruptarg) 
+* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
+* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
+* [mk.interrupt](docs/api#mk.interrupt) 
+* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
+* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
 
 </details>

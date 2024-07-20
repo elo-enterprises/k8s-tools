@@ -131,7 +131,9 @@ Things are organized into a few namespaces, which hopefully avoids collisions wi
 
 
 
-e *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  This works by sending commands to a (dockerized) version of tmux.  See also the public/private sections of the tux API[1], the general docs for the TUI[2], or the spec for the 'compose.mk:tux' container for more details.
+he *`tux.*`* targets allow for creation, configuration and automation of an embedded TUI interface.  This works by sending commands to a (dockerized) version of tmux.  See also the public/private sections of the tux API[1], the general docs for the TUI[2], or the spec for the 'compose.mk:tux' container for more details.
+
+
 
 
 
@@ -139,11 +141,35 @@ e *`tux.*`* targets allow for creation, configuration and automation of an embed
 
 
 
-CS:
+OCS:
 
 `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
 
 `[2]`: https://github.com/elo-enterprises/k8s-tools/#embedded-tui
+
+
+
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+GIN: TUI Environment Variables
+
+
+
+Variable             | Purpose                                                                       |
+
+-------------------- | ----------------------------------------------------------------------------- |
+
+TUI_BOOTSTRAP        | *Target-name that's used to bootstrap the TUI.  *                             |
+
+TUX_BOOTSTRAPPED     | *Contexts for which the TUI has already been bootstrapped.*                   |
+
+TUI_SVC_NAME         | *The name of the primary TUI svc.*                                            |
+
+TUI_THEME_NAME       | *The name of the theme.*                                                      |
+
+TUI_TMUX_SOCKET      | *The path to the tmux socket.*                                                |
+
+TUI_THEME_HOOK_PRE   | *Target called when init is in progress but the core layout is finished*      |
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -359,8 +385,6 @@ Bridge compatability.
 
 
 
-
---------------------------------------------------------------------------
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -636,15 +660,15 @@ Pauses for 1 second.
 
 
 
-e docker.* targets cover a few helpers for working with docker.
+he docker.* targets cover a few helpers for working with docker.
 
 
 
-is interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
+his interface is deliberately minimal, focusing on verbs like 'stop' and 'stat' more than verbs like 'build' and 'run'. That's because containers that are managed by docker compose are preferred, but some ability to work with inlined Dockerfiles for simple use-cases is supported. See stream.pygmentize for an example.
 
 
 
-CS:
+OCS:
 
 `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-docker
 
@@ -1073,19 +1097,21 @@ Runs 'docker volume prune' for the entire system.
 
 
 
-e flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
+he flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
 
 
 
-at `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
+hat `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
 
 
 
-most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
+n most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.
 
 
 
-r parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+or parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
+
+
 
 
 
@@ -1093,7 +1119,7 @@ r parts that are more specific to shell code, see `flux.*.sh`, and for working w
 
 
 
-CS:
+OCS:
 
 `[1]:` https://github.com/elo-enterprises/k8s-tools/docs/api#api-flux
 
@@ -1323,6 +1349,28 @@ Runs the given comma-delimited targets in parallel, then waits for all of them t
 ```
 
  
+##### **`flux.loop.until/<arg>`**
+
+
+```bash 
+Loop the given target until it succeeds.
+
+ By default to reduce logging noise, this sends stderr to null, but preserves stdout.
+ This makes debugging hard, so only use this with well tested/understood sub-targets,
+ or set "verbose=1" to allow stderr.  When "quiet=1" is set, even more logging is trimmed.
+
+ USAGE:
+```
+
+ 
+##### **`flux.loop.watch/<arg>`**
+
+
+```bash 
+Loops the given target forever, using 'watch' instead of the while-loop default
+```
+
+ 
 ##### **`flux.loop/<arg>`**
 
 
@@ -1359,28 +1407,6 @@ Loops the given target forever.
 
 ```bash 
 Like flux.loopf, but even more quiet.
-```
-
- 
-##### **`flux.loopu/<arg>`**
-
-
-```bash 
-Loop the given target until it succeeds.
-
- By default to reduce logging noise, this sends stderr to null, but preserves stdout.
- This makes debugging hard, so only use this with well tested/understood sub-targets,
- or set "verbose=1" to allow stderr.  When "quiet=1" is set, even more logging is trimmed.
-
- USAGE:
-```
-
- 
-##### **`flux.loopw/<arg>`**
-
-
-```bash 
-Loops the given target forever, using 'watch' instead of the while-loop default
 ```
 
  
@@ -1598,7 +1624,7 @@ Push the JSON data on stdin into the stack for the named stage.
 
 
 ```bash 
-
+Retrieves all the data on the current stack-file.  No arguments.
 ```
 
  
@@ -1607,16 +1633,14 @@ Push the JSON data on stdin into the stack for the named stage.
 
 ```bash 
 Declares entry for the given stage.
-
  Stage names are generally target names or similar, no spaces allowed.
- This announces the stage using pretty gum-dividers, 
- then creates a stage-file which other processes may check for.
- Stage files are JSON, containing at least the parent pid for 
- this 'make' process, plus any extra data added by 'flux.stage.push'.
- File is (usually) cleaned when the process exits.  This additionally
- sets the FLUX_STAGE variable.  Note that variables / tmpfile 
- availability depends on the process itself, not the parent process,
- so behaviour can be surprising with recursive make.
+
+ This is generally used to just to print a pretty divider that makes output 
+ easier to parse, but stages also add an idea of persistence to otherwise 
+ stateless workflows, via a file-backed JSON stack object that cooperating 
+ tasks can push to / pop from.
+
+ Stack files contain at least the parent pid for this 'make' process.
 
  USAGE:
   ./compose.mk flux.stage/<stage_name>
@@ -1628,6 +1652,7 @@ Declares entry for the given stage.
 
 ```bash 
 Runs the given command for the given amount of seconds, then stops it with TERM.
+ Exit status is ignored
 
  USAGE: (tails docker logs for up to 10s, then stops)
    ./compose.mk flux.timeout.sh cmd='docker logs -f xxxx' timeout=10
@@ -1713,7 +1738,9 @@ Wraps all of the given targets as if it were a single target.
 
 
 
-e `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+he `stream.*` targets support IO streams, including basic stuff with JSON, newline-delimited, and space-delimited formats.
+
+
 
 
 
@@ -1908,7 +1935,7 @@ Appends the given key/val to the input object.
  This is usually used to build JSON objects from scratch.
 
  EXAMPLE:
-	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
    {"foo":"bar"}
 ```
 
@@ -1933,7 +1960,7 @@ Appends the given key/val to the input object.
  This is usually used to build JSON objects from scratch.
 
  EXAMPLE:
-	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
    {"foo":"bar"}
 ```
 
@@ -2499,9 +2526,202 @@ A ticker-style display for the given text, suitable for usage with tmux status b
 
 ### k8s.mk: (Dynamic Targets)
 
-The autogenerated section of the API (i.e. what's created by `compose.import` running k8s-tools.yml) documented below
+The autogenerated section of the API (i.e. what's created by *compose.import*'ing k8s-tools.yml) is documented below.
+
+<details><summary>&nbsp;&nbsp; <strong>File-level Operations:</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 
+* k8s-tools.build 
+* k8s-tools.build.quiet 
+* k8s-tools.clean 
+* k8s-tools.services 
+* k8s-tools.stat 
+* k8s-tools.stop 
+* k8s-tools.up 
+
+</details>
+
+<details><summary>&nbsp;&nbsp; <strong>Top-level container aliases:</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+
+* ansible 
+* argo 
+* awscli 
+* aws-iam-authenticator 
+* cdk 
+* dind 
+* eksctl 
+* fission 
+* graph-easy 
+* gum 
+* helm 
+* helm-diff 
+* helmify 
+* helm-push 
+* helm-unittest 
+* jq 
+* k3d 
+* k8s 
+* k9s 
+* kind 
+* kn 
+* kompose 
+* krew 
+* kubeconform 
+* kubectl 
+* kubefwd 
+* kubeseal 
+* kustomize 
+* lazydocker 
+* promtool 
+* rancher 
+* tui 
+* vals 
+* yq 
+
+</details>
+
+<details><summary>&nbsp;&nbsp; <strong>Complete list:</strong> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+
+
+* k8s-tools/ansible/get_shell 
+* k8s-tools/ansible/pipe 
+* k8s-tools/ansible/shell 
+* k8s-tools/ansible/shell/pipe 
+* k8s-tools/argo/get_shell 
+* k8s-tools/argo/pipe 
+* k8s-tools/argo/shell 
+* k8s-tools/argo/shell/pipe 
+* k8s-tools/awscli/get_shell 
+* k8s-tools/awscli/pipe 
+* k8s-tools/awscli/shell 
+* k8s-tools/awscli/shell/pipe 
+* k8s-tools/aws-iam-authenticator/get_shell 
+* k8s-tools/aws-iam-authenticator/pipe 
+* k8s-tools/aws-iam-authenticator/shell 
+* k8s-tools/aws-iam-authenticator/shell/pipe 
+* k8s-tools/cdk/get_shell 
+* k8s-tools/cdk/pipe 
+* k8s-tools/cdk/shell 
+* k8s-tools/cdk/shell/pipe 
+* k8s-tools/dind/get_shell 
+* k8s-tools/dind/pipe 
+* k8s-tools/dind/shell 
+* k8s-tools/dind/shell/pipe 
+* k8s-tools/eksctl/get_shell 
+* k8s-tools/eksctl/pipe 
+* k8s-tools/eksctl/shell 
+* k8s-tools/eksctl/shell/pipe 
+* k8s-tools/fission/get_shell 
+* k8s-tools/fission/pipe 
+* k8s-tools/fission/shell 
+* k8s-tools/fission/shell/pipe 
+* k8s-tools/graph-easy/get_shell 
+* k8s-tools/graph-easy/pipe 
+* k8s-tools/graph-easy/shell 
+* k8s-tools/graph-easy/shell/pipe 
+* k8s-tools/gum/get_shell 
+* k8s-tools/gum/pipe 
+* k8s-tools/gum/shell 
+* k8s-tools/gum/shell/pipe 
+* k8s-tools/helm-diff/get_shell 
+* k8s-tools/helm-diff/pipe 
+* k8s-tools/helm-diff/shell 
+* k8s-tools/helm-diff/shell/pipe 
+* k8s-tools/helm/get_shell 
+* k8s-tools/helmify/get_shell 
+* k8s-tools/helmify/pipe 
+* k8s-tools/helmify/shell 
+* k8s-tools/helmify/shell/pipe 
+* k8s-tools/helm/pipe 
+* k8s-tools/helm-push/get_shell 
+* k8s-tools/helm-push/pipe 
+* k8s-tools/helm-push/shell 
+* k8s-tools/helm-push/shell/pipe 
+* k8s-tools/helm/shell 
+* k8s-tools/helm/shell/pipe 
+* k8s-tools/helm-unittest/get_shell 
+* k8s-tools/helm-unittest/pipe 
+* k8s-tools/helm-unittest/shell 
+* k8s-tools/helm-unittest/shell/pipe 
+* k8s-tools/jq/get_shell 
+* k8s-tools/jq/pipe 
+* k8s-tools/jq/shell 
+* k8s-tools/jq/shell/pipe 
+* k8s-tools/k3d/get_shell 
+* k8s-tools/k3d/pipe 
+* k8s-tools/k3d/shell 
+* k8s-tools/k3d/shell/pipe 
+* k8s-tools/k8s/get_shell 
+* k8s-tools/k8s/pipe 
+* k8s-tools/k8s/shell 
+* k8s-tools/k8s/shell/pipe 
+* k8s-tools/k9s/get_shell 
+* k8s-tools/k9s/pipe 
+* k8s-tools/k9s/shell 
+* k8s-tools/k9s/shell/pipe 
+* k8s-tools/kind/get_shell 
+* k8s-tools/kind/pipe 
+* k8s-tools/kind/shell 
+* k8s-tools/kind/shell/pipe 
+* k8s-tools/kn/get_shell 
+* k8s-tools/kn/pipe 
+* k8s-tools/kn/shell 
+* k8s-tools/kn/shell/pipe 
+* k8s-tools/kompose/get_shell 
+* k8s-tools/kompose/pipe 
+* k8s-tools/kompose/shell 
+* k8s-tools/kompose/shell/pipe 
+* k8s-tools/krew/get_shell 
+* k8s-tools/krew/pipe 
+* k8s-tools/krew/shell 
+* k8s-tools/krew/shell/pipe 
+* k8s-tools/kubeconform/get_shell 
+* k8s-tools/kubeconform/pipe 
+* k8s-tools/kubeconform/shell 
+* k8s-tools/kubeconform/shell/pipe 
+* k8s-tools/kubectl/get_shell 
+* k8s-tools/kubectl/pipe 
+* k8s-tools/kubectl/shell 
+* k8s-tools/kubectl/shell/pipe 
+* k8s-tools/kubefwd/get_shell 
+* k8s-tools/kubefwd/pipe 
+* k8s-tools/kubefwd/shell 
+* k8s-tools/kubefwd/shell/pipe 
+* k8s-tools/kubeseal/get_shell 
+* k8s-tools/kubeseal/pipe 
+* k8s-tools/kubeseal/shell 
+* k8s-tools/kubeseal/shell/pipe 
+* k8s-tools/kustomize/get_shell 
+* k8s-tools/kustomize/pipe 
+* k8s-tools/kustomize/shell 
+* k8s-tools/kustomize/shell/pipe 
+* k8s-tools/lazydocker/get_shell 
+* k8s-tools/lazydocker/pipe 
+* k8s-tools/lazydocker/shell 
+* k8s-tools/lazydocker/shell/pipe 
+* k8s-tools/promtool/get_shell 
+* k8s-tools/promtool/pipe 
+* k8s-tools/promtool/shell 
+* k8s-tools/promtool/shell/pipe 
+* k8s-tools/rancher/get_shell 
+* k8s-tools/rancher/pipe 
+* k8s-tools/rancher/shell 
+* k8s-tools/rancher/shell/pipe 
+* k8s-tools/tui/get_shell 
+* k8s-tools/tui/pipe 
+* k8s-tools/tui/shell 
+* k8s-tools/tui/shell/pipe 
+* k8s-tools/vals/get_shell 
+* k8s-tools/vals/pipe 
+* k8s-tools/vals/shell 
+* k8s-tools/vals/shell/pipe 
+* k8s-tools/yq/get_shell 
+* k8s-tools/yq/pipe 
+* k8s-tools/yq/shell 
+* k8s-tools/yq/shell/pipe 
+
+</details>
 
 ----------------------------------------------------
 
@@ -2559,7 +2779,26 @@ Interface for ansible's helm module[1].
  This accepts only module args, but there are a few ways to pass them.  
  See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
 
- [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+ * `[1]`: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+```
+
+ 
+##### **`k8s.cluster.ready`**
+
+
+```bash 
+Checks whether the cluster is available.  
+ This just returns the exit status of cluster-info, and not 
+ whether pods are all in a ready state. For that, see 'k8s.wait'
+
+ EXAMPLE: 
+   ./k8s.mk k8s.cluster.ready
+
+ EXAMPLE: ( in a loop )
+   ./k8s.mk flux.loop.until/k8s.cluster.ready
+
+ REFS:
+   * `[1]`: https://github.com/alecjacobs5401/kubectl-sick-pods
 ```
 
  
@@ -2642,6 +2881,7 @@ Previews topology for a given kubernetes <namespace>/<kind> in a way that's term
 
  USAGE: (same as k8s.graph)
    ./k8s.mk k8s.graph.tui/<namespace>/<kind>
+   ./k8s.mk k8s.graph.tui/<namespace>/<kind>,<outfile>
 ```
 
  
@@ -2663,6 +2903,7 @@ Previews topology for a given kubernetes <namespace>/<kind> in a way that's term
 
  USAGE: (same as k8s.graph)
    ./k8s.mk k8s.graph.tui/<namespace>/<kind>
+   ./k8s.mk k8s.graph.tui/<namespace>/<kind>,<outfile>
 ```
 
  
@@ -2676,10 +2917,10 @@ Graphs resources under the given namespace, for the given kind, in dot-format.
  This requires the krew plugin "graph" (installed by default with k8s-tools.yml).
 
  USAGE: 
-	 ./k8s.mk k8s.graph/<namespace>/<kind>/<field_selector>
+	 ./k8s.mk k8s.graph/<namespace>/<kind>
+	 ./k8s.mk k8s.graph/<namespace>/<kind>,<outfile>
 
- Argument for 'kind' must be provided, but may be "all".  
- Argument for field-selector is optional.  (Default value is 'status.phase=Running')
+ Argument for 'kind' must be provided, but may be "all".
 ```
 
  
@@ -2693,10 +2934,10 @@ Graphs resources under the given namespace, for the given kind, in dot-format.
  This requires the krew plugin "graph" (installed by default with k8s-tools.yml).
 
  USAGE: 
-	 ./k8s.mk k8s.graph/<namespace>/<kind>/<field_selector>
+	 ./k8s.mk k8s.graph/<namespace>/<kind>
+	 ./k8s.mk k8s.graph/<namespace>/<kind>,<outfile>
 
- Argument for 'kind' must be provided, but may be "all".  
- Argument for field-selector is optional.  (Default value is 'status.phase=Running')
+ Argument for 'kind' must be provided, but may be "all".
 ```
 
  
@@ -2812,7 +3053,7 @@ Waits for every pod in the given namespace to be ready.
    ./k8s.mk k8s.namespace.wait/<namespace>
 
  REFS:
-   [1]: https://github.com/alecjacobs5401/kubectl-sick-pods
+   * `[1]`: https://github.com/alecjacobs5401/kubectl-sick-pods
 ```
 
  
@@ -2832,7 +3073,7 @@ Waits for every pod in the given namespace to be ready.
    ./k8s.mk k8s.namespace.wait/<namespace>
 
  REFS:
-   [1]: https://github.com/alecjacobs5401/kubectl-sick-pods
+   * `[1]`: https://github.com/alecjacobs5401/kubectl-sick-pods
 ```
 
  
@@ -2847,6 +3088,25 @@ Context-manager.  Activates the given namespace.
 
  USAGE:  
 	 ./k8s.mk k8s.namespace/<namespace>
+```
+
+ 
+##### **`k8s.ready`**
+
+
+```bash 
+Checks whether the cluster is available.  
+ This just returns the exit status of cluster-info, and not 
+ whether pods are all in a ready state. For that, see 'k8s.wait'
+
+ EXAMPLE: 
+   ./k8s.mk k8s.cluster.ready
+
+ EXAMPLE: ( in a loop )
+   ./k8s.mk flux.loop.until/k8s.cluster.ready
+
+ REFS:
+   * `[1]`: https://github.com/alecjacobs5401/kubectl-sick-pods
 ```
 
  
@@ -3070,7 +3330,7 @@ Interface for ansible's block-in-file module[1].
  EXAMPLE:
    path=.gitignore block=".flux.stage.*" | ./k8s.mk ansible.blockinfile
 
- [1] https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
+ * `[1]`: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
 ```
 
  
@@ -3082,8 +3342,7 @@ Interface for ansible's helm module[1].
  This accepts only module args, but there are a few ways to pass them.  
  See the docs in 'ansible.adhoc/<module>' for discussion of examples.
 
-
- [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html#examples
+ * `[1]`: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html
 ```
 
  
@@ -3095,7 +3354,7 @@ Interface for ansible's helm module[1].
  This accepts only module args, but there are a few ways to pass them.  
  See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
 
- [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+ * `[1]`: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
 ```
 
  
@@ -3107,7 +3366,7 @@ Interface for ansible's helm module[1].
  This accepts only module args, but there are a few ways to pass them.  
  See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
 
- [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+ * `[1]`: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
 ```
 
  
@@ -3118,14 +3377,7 @@ Interface for ansible's helm module[1].
 Runs the input-stream as an ansible playbook.
  This calls ansible in a way that ensures all output is JSON.
 
- EXAMPLE: (pass a string)
-   echo '{"msg":"some info here"}'' | ./compose.mk .ansible.gen.task/debug | jq .
-
- EXAMPLE: (pass data in environment variables)
-   data="msg='some info here" ./compose.mk .ansible.gen.task/debug | jq .
-
- EXAMPLE: (use jb[1] to generate input)
-   jb msg='my info' | ./compose.mk .ansible.gen.task/debug | jq .	@# USAGE:
+ USAGE:
    cat <playbook> | ./compose.mk ansible.run
 ```
 
@@ -3137,7 +3389,8 @@ Runs the input-stream as an ansible playbook.
 Runs the given playbook file.
  This calls ansible in a way that ensures all output is JSON.
 
- USAGE: ./k8s.mk ansible.run/<path>
+ USAGE: 
+   ./k8s.mk ansible.run/<path>
 ```
 
  
@@ -3209,17 +3462,11 @@ Shorthand for k8s-tools/ansible/shell/pipe
 
 
 
-e *`k3d.*`* targets describe a small interface for working with `k3d`[2].
+he *`k3d.*`* targets describe a small interface for working with `k3d`[2].
 
 
 
-st targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host.
-
-st targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d
-
-
-
-CS:
+ost targets in this namespace will use k3d directly, and so are usually **dispatched**, and not run from the host. Most targets are small utilities that can help to keep common tasks idempotent, but there's also a TUI that provides a useful overview of what's going on with K3d
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -3406,15 +3653,15 @@ https://github.com/search?q=repo%3Aelo-enterprises%2Fk8s-tools+path%3Ak8s-tools.
 
 
 
-e *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.
+he *`kubefwd.*`* targets describe a small interface for working with kubefwd.  It aims to cleanly background / foreground `kubefwd` in an unobtrusive way, with clean setup/teardown and reasonable defaults for usage per-project.
 
 
 
 
 
-rwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
 
 
+orwarding is not just for ports but for DNS as well. **This takes effect everywhere, including the containers in k8s-tools.yml (via /etc/hosts bind-mount), as it does on the docker-host.**
 
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
@@ -3809,7 +4056,9 @@ Idempotent version of a 'helm install'
 
 
 ```bash 
-Idempotent version 'helm repo add'
+Idempotent version of `helm repo add`
+
+ See also the 'ansible.helm' target.
 
  USAGE:
    ./k8s.mk helm.repo.add/<repo_name> url=<repo_url>

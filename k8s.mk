@@ -96,9 +96,13 @@ export K8S_MK_STANDALONE=1
 export K8S_MK_SRC=$(findstring k8s.mk, ${MAKE_CLI})
 endif
 
+ifeq (,$(filter compose.mk,$(MAKEFILE_LIST)))
+include compose.mk
+else
+endif
+
 # Import compose.mk iff we're in stand-alone mode.
 ifeq ($(K8S_MK_STANDALONE),1)
-include $(shell dirname ${K8S_MK_SRC}||echo .)/compose.mk
 $(eval $(call compose.import, ▰, TRUE, $(shell dirname ${K8S_MK_SRC}||echo .)/k8s-tools.yml))
 loadf: self.loadf
 endif
@@ -164,6 +168,29 @@ ansible.adhoc/%:
 		*) $(call log, ${red}Cannot parse output from ansible:${dim}); cat $${tmp}; exit 77; ;; \
 	esac
 
+
+promtool.pull: 
+	$(call gum.style.target)
+	printf "${DIM_GREEN}pulling data with promtool${NO_ANSI}\n" > /dev/stderr 
+	query="fission_function_calls_total{function_name=\"${FISSION_APP_NAME}\", namespace=\"fission\"}" \
+	&& before=`date --date='-120 minutes' '+%s'` \
+	&& after=`date --date='+120 minutes' '+%s'` \
+	&& set -x && promtool \
+		query series \
+		--match "$${query}" \
+		--start $${before} --end $${after} \
+		${PROM_URL} \
+	&& set +x \
+	&& printf "${DIM_GREEN}pulling data with curl and visualizing it${NO_ANSI}\n" > /dev/stderr \
+	&& tmpf=`make io.mktemp` \
+	&& curl -s "${PROM_URL}/api/v1/query_range" \
+		--data-urlencode "query=$${query}" \
+		--data-urlencode "start=$${before}" \
+		--data-urlencode "end=$${after}" \
+		--data-urlencode 'step=60s' \
+	| jq -r .data.result[0].values[][1] > $${tmpf} \
+	&& cat $${tmpf} | spark
+
 ansible.blockinfile: ansible.adhoc/blockinfile
 	@# Interface for ansible's block-in-file module[1].
 	@# This accepts only module args, but there are several ways to pass them.  
@@ -177,15 +204,14 @@ ansible.blockinfile: ansible.adhoc/blockinfile
 	@# EXAMPLE:
 	@#   path=.gitignore block=".flux.stage.*" | ./k8s.mk ansible.blockinfile
 	@#
-	@# [1] https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
+	@# * `[1]`: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
     
 ansible.helm: ansible.adhoc/kubernetes.core.helm
 	@# Interface for ansible's helm module[1].
 	@# This accepts only module args, but there are a few ways to pass them.  
 	@# See the docs in 'ansible.adhoc/<module>' for discussion of examples.
 	@#
-	@#
-	@# [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html#examples
+	@# * `[1]`: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html
 	@#
 
 ansible.kubernetes.core.k8s ansible.k8s k8s.ansible: ansible.adhoc/kubernetes.core.k8s
@@ -193,7 +219,7 @@ ansible.kubernetes.core.k8s ansible.k8s k8s.ansible: ansible.adhoc/kubernetes.co
 	@# This accepts only module args, but there are a few ways to pass them.  
 	@# See the docs in 'ansible.adhoc/<module>' for discussion of examples.	@#
 	@#
-	@# [1]: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
+	@# * `[1]`: https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html
 	@#
 
 .ansible.gen.playbook/%:
@@ -234,14 +260,7 @@ ansible.run:
 	@# Runs the input-stream as an ansible playbook.
 	@# This calls ansible in a way that ensures all output is JSON.
 	@#
-	@# EXAMPLE: (pass a string)
-	@#   echo '{"msg":"some info here"}'' | ./compose.mk .ansible.gen.task/debug | jq .
-	@#
-	@# EXAMPLE: (pass data in environment variables)
-	@#   data="msg='some info here" ./compose.mk .ansible.gen.task/debug | jq .
-	@#
-	@# EXAMPLE: (use jb[1] to generate input)
-	@#   jb msg='my info' | ./compose.mk .ansible.gen.task/debug | jq .	@# USAGE:
+	@# USAGE:
 	@#   cat <playbook> | ./compose.mk ansible.run
 	@#
 	$(call io.mktemp) \
@@ -252,7 +271,8 @@ ansible.run/%: .ansible.require
 	@# Runs the given playbook file.
 	@# This calls ansible in a way that ensures all output is JSON.
 	@#
-	@# USAGE: ./k8s.mk ansible.run/<path>
+	@# USAGE: 
+	@#   ./k8s.mk ansible.run/<path>
 	@#
 	${trace_maybe} \
 	&& ansible_args="-eansible_python_interpreter=\`which python3\`" \
@@ -282,7 +302,9 @@ ansible.run/%: .ansible.require
 #░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 helm.repo.add/%:
-	@# Idempotent version 'helm repo add'
+	@# Idempotent version of `helm repo add`
+	@#
+	@# See also the 'ansible.helm' target.
 	@#
 	@# USAGE:
 	@#   ./k8s.mk helm.repo.add/<repo_name> url=<repo_url>
@@ -449,10 +471,10 @@ k8s.graph/%:
 	@# This requires the krew plugin "graph" (installed by default with k8s-tools.yml).
 	@#
 	@# USAGE: 
-	@#	 ./k8s.mk k8s.graph/<namespace>/<kind>/<field_selector>
+	@#	 ./k8s.mk k8s.graph/<namespace>/<kind>
+	@#	 ./k8s.mk k8s.graph/<namespace>/<kind>,<outfile>
 	@#
 	@# Argument for 'kind' must be provided, but may be "all".  
-	@# Argument for field-selector is optional.  (Default value is 'status.phase=Running')
 	@#
 	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
 	$(eval export kind:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
@@ -492,6 +514,7 @@ k8s.graph.tui/%:
 	@#
 	@# USAGE: (same as k8s.graph)
 	@#   ./k8s.mk k8s.graph.tui/<namespace>/<kind>
+	@#   ./k8s.mk k8s.graph.tui/<namespace>/<kind>,<outfile>
 	@#
 	case $${CMK_DIND} in \
 		0) CMK_DEBUG=0 entrypoint=make \
@@ -502,18 +525,21 @@ k8s.graph.tui/%:
 .k8s.graph.tui/%:
 	@# (Private helper for k8s.graph.tui)
 	@#
-	$(call io.mktemp) \
-	&& make k8s.graph/${*} > $${tmpf} \
+	$(call io.mktemp) && ${trace_maybe} \
+	&& namespace=`printf ${*}|cut -d/ -f1` \
+	&& outfile=`printf ${*}|cut -s -d, -f2-` \
+	&& outfile="$${outfile:-/tmp/png.png}" \
+	&& ${make} k8s.graph/$${namespace} > $${tmpf} \
 	&& cat $${tmpf} \
 		| dot /dev/stdin -Tsvg -o /tmp/svg.svg \
 			-Gbgcolor=transparent -Gsize=200,200 \
 			-Estyle=bold -Ecolor=red -Eweight=150 > /dev/null \
-		&& convert /tmp/svg.svg -transparent white png:- > /tmp/png.png \
+		&& convert /tmp/svg.svg -transparent white -background transparent -flatten png:- > $${outfile} \
 		&& default_size=`echo .5*\`tput cols||echo 30\`|bc`x \
 		&& chafa \
 			--invert -c full --size $${size:-$${default_size}} \
-			--center=on $${clear:-} /tmp/png.png
-.k8s.graph.tui.clear/%:; clear="--clear" make .k8s.graph.tui/${*}
+			--center=on $${clear:-} $${outfile}
+.k8s.graph.tui.clear/%:; clear="--clear" ${make} .k8s.graph.tui/${*}
 
 k8s.help:; ${make} mk.namespace.filter/k8s.
 	@# Shows targets for just the 'k8s' namespace.
@@ -616,7 +642,7 @@ k8s.namespace.wait/%:
 	@#   ./k8s.mk k8s.namespace.wait/<namespace>
 	@#
 	@# REFS:
-	@#   [1]: https://github.com/alecjacobs5401/kubectl-sick-pods
+	@#   * `[1]`: https://github.com/alecjacobs5401/kubectl-sick-pods
 	@#
 	$(trace_maybe) \
 	&& [ "$${CMK_INTERNAL}" = "1" ] \
@@ -625,6 +651,38 @@ k8s.namespace.wait/%:
 		${log.target.rerouting} \
 		; CMK_DEBUG=0 make k8s/dispatch/.k8s.namespace.wait/${*} \
 	)
+
+k8s.cluster.ready k8s.ready:
+	@# Checks whether the cluster is available.  
+	@# This just returns the exit status of cluster-info, and not 
+	@# whether pods are all in a ready state. For that, see 'k8s.wait'
+	@#
+	@# EXAMPLE: 
+	@#   ./k8s.mk k8s.cluster.ready
+	@#
+	@# EXAMPLE: ( in a loop )
+	@#   ./k8s.mk flux.loop.until/k8s.cluster.ready
+	@#
+	@# REFS:
+	@#   * `[1]`: https://github.com/alecjacobs5401/kubectl-sick-pods
+	@#
+	$(trace_maybe) \
+	&& [ "$${CMK_INTERNAL}" = "1" ] \
+	&& ${make} .k8s.cluster.ready/$${KUBECONFIG} \
+	|| (\
+		${log.target.rerouting} \
+		; CMK_DEBUG=0 make k8s/dispatch/.k8s.cluster.ready/$${KUBECONFIG} \
+	)
+
+.k8s.cluster.ready/%:
+	@#
+	@#
+	@#
+	KUBECONFIG=${*} kubectl cluster-info > /dev/null 2>&1 \
+	; case $$? in \
+		0) $(call log, ${GLYPH_K8S} k8s.cluster.ready ${sep} Cluster connectivity ok); exit 0; ;; \
+		*) $(call log, ${GLYPH_K8S} k8s.cluster.ready ${sep} Failed to connect to the cluster); exit 1; ;; \
+	esac
 
 .k8s.namespace.wait/%:
 	@#
@@ -909,7 +967,7 @@ kubefwd.start/% k8s.namespace.fwd/%:
 	$(eval export namespace:=$(strip $(shell echo ${*} | awk -F/ '{print $$1}')))
 	$(eval export svc_name:=$(strip $(shell echo ${*} | awk -F/ '{print $$2}')))
 	mapping=$${mapping:-} \
-	&& header="${GLYPH_K8S} ${@} ${sep} ${dim_green}$${namespace}" \
+	&& header="${GLYPH_K8S} kubefwd ${sep} ${dim_green}$${namespace}" \
 	&& case "$${svc_name}" in \
 		"") filter=$${filter:-}; ;; \
 		*) \
@@ -924,17 +982,17 @@ kubefwd.start/% k8s.namespace.fwd/%:
 	&& cname=`${make} .kubefwd.container_name/${*}` \
 	&& fwd_cmd="kubefwd svc -n $${namespace} $${filter} $${mapping} -v" \
 	&& fwd_cmd_wrapped="docker compose -f k8s-tools.yml run --name $${cname} --rm -d $${fwd_cmd}" \
-	&& printf "$${header}${no_ansi}\n" > ${stderr} \
+	&& $(call log, $${header}) \
+	&& header="${GLYPH_K8S} kubefwd ${sep} " \
 	&& echo {} \
 		| ${make} stream.json.object.append key=namespace val="$${namespace}" \
 		| ${make} stream.json.object.append key=svc val="$${svc_name}" \
 		| ${stream.dim.indent.stderr} \
-	&& echo {} \
-		| ${make} stream.json.object.append key=container val="$${cname}" \
-		| ${make} stream.json.object.append key=cmd val="$${fwd_cmd}" \
-		| ${stream.dim.indent.stder} \
-	&& printf "$${fwd_cmd_wrapped}\n" | ${make} stream.dim > ${stderr} \
-	&& cid=`$${fwd_cmd_wrapped}` && cid=$${cid:0:8} \
+	&& $(call log, $${header} ${dim}container=${no_ansi}$${cname}) \
+	&& $(call log, $${header} ${dim}cmd=${no_ansi}$${fwd_cmd}) \
+	&& $(call io.mktemp) \
+	&& bash -x -c "$${fwd_cmd_wrapped} > $${tmpf}" \
+	&& cid="`cat $${tmpf}|${stream.trim}`" \
 	&& cmd="docker logs -f $${cname}" timeout=3 ${make} flux.timeout.sh 
 	
 #░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░

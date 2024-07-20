@@ -94,8 +94,8 @@ endef
 
 
 # Wrapper target that's using the container.
-# This basically sets the container-build as a pre-req,
-# so that within the body we can assume the base image exists.
+# This sets the container-build as a pre-req, so that
+# within the body we can assume the base image exists.
 demo.dockerfile: docker.from.def/demo_dockerfile
 	# Working with the image directly, note the 'compose.mk' prefix.
 	docker image inspect compose.mk:demo_dockerfile > /dev/null
@@ -125,53 +125,11 @@ Inlined containers can actually be extended with other inlines, but notice again
 ```Makefile 
 # tests/Makefile.mad-science.mk
 
-## Inlined Docker Files
-
-# Minimal inlined dockerfile.  
-# You can install anything or nothing here, 
-# but let's have the minimal stuff required for target dispatch.
-define Dockerfile.demo_dockerfile
-FROM alpine
-RUN echo building container spec from inlined dockerfile
-RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng
-endef
-
-
-# Wrapper target that's using the container.
-# This basically sets the container-build as a pre-req,
-# so that within the body we can assume the base image exists.
-demo.dockerfile: docker.from.def/demo_dockerfile
-	# Working with the image directly, note the 'compose.mk' prefix.
-	docker image inspect compose.mk:demo_dockerfile > /dev/null
-	docker run -it --entrypoint sh compose.mk:demo_dockerfile -x -c "true" > /dev/null
-	
-	# Working with compose.mk builtins omits prefix, 
-	# and can do dispatch targets to run inside the new image
-	img=demo_dockerfile make mk.docker.run/self.demo.dockerfile
-	
-	# Add the prefix explicitly, and you can use `docker.run` instead of private `.docker.run`
-	img=compose.mk:demo_dockerfile make docker.run/self.demo.dockerfile
-	entrypoint=sh cmd='-c "ls"' img=compose.mk:demo_dockerfile make docker.run.sh 
-	# Subsequent runs will use the cached image.  
-	# Pass 'force' to work around this.
-	force=1 make docker.from.def/demo_dockerfile
-
-self.demo.dockerfile:
-	echo "Testing target from inside the inlined-container"
-	uname -a
-
-```
-
-### Local Interpretters, Without a Container
-
-```Makefile 
-# tests/Makefile.mad-science.mk
-
 ## Extending Inlined Docker Files
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
 # but let's have the minimal stuff required for target dispatch.
-define Dockerfile.demo_dockerfile2
+define Dockerfile.demo.extend.container
 FROM compose.mk:demo_dockerfile
 RUN echo hello-docker
 endef
@@ -180,29 +138,29 @@ endef
 # Wrapper target that's using the container.
 # This basically sets the container-build as a pre-req,
 # so that within the body we can assume the base image exists.
-demo.dockerfile2: docker.from.def/demo_dockerfile2
+demo.container.extension: docker.from.def/demo.extend.container
 	# # Working with the image directly, note the 'compose.mk' prefix.
-	docker image inspect compose.mk:demo_dockerfile2 > /dev/null
-	docker run -it --entrypoint sh compose.mk:demo_dockerfile2 -x -c "true" > /dev/null
+	docker image inspect compose.mk:demo.extend.container > /dev/null
+	docker run -it --entrypoint sh compose.mk:demo.extend.container -x -c "true" > /dev/null
 	
 	# Working with compose.mk builtins omits prefix, 
 	# and can dispatch targets to run inside the new image
-	img=demo_dockerfile2 make mk.docker.run/self.demo.dockerfile2
+	img=demo.extend.container make mk.docker.run/self.demo.container.extension
 	
 	# Add the prefix explicitly, and you can use `docker.run` instead of private `.docker.run`
-	img=compose.mk:demo_dockerfile2 make docker.run/self.demo.dockerfile2
+	img=compose.mk:demo.extend.container make docker.run/self.demo.container.extension
 	
 	# Subsequent runs will use the cached image.  
 	# Pass 'force' to work around this.
-	force=1 make docker.from.def/demo_dockerfile2
+	force=1 make docker.from.def/demo.extend.container
 
-self.demo.dockerfile2:
+self.demo.container.extension:
 	echo "Testing target from inside the inlined-container"
 	uname -a
 
 ```
 
-### Exotic Targets & Pipes
+### Local Interpretters, Without a Container
 
 ```Makefile 
 # tests/Makefile.mad-science.mk
@@ -222,6 +180,34 @@ endef
 # the interpretter is actually available.
 demo.python:
 	make mk.def.dispatch/python3/Python.demo
+
+```
+
+### Exotic Targets & Pipes
+
+```Makefile 
+# tests/Makefile.mad-science.mk
+
+## Exotic Targets & Pipes
+
+# A more complex python script, 
+# testing comments, indention, & using pipes
+define Python.demo.python.pipes
+# python script
+import sys, json
+input = json.loads(sys.stdin.read())
+input.update(hello_python=sys.platform)
+output = input
+print(json.dumps(output))
+for x in [1, 2, 3]:
+  msg=f"{x} testing loops, indents, string interpolation"
+  print(msg, file=sys.stderr)
+endef
+
+# Runs the script, passing data into the pipe
+demo.python.pipes:
+	echo '{"hello":"bash"}' \
+	| make mk.def.dispatch/python3/Python.${@}
 
 ```
 
@@ -234,21 +220,27 @@ Let's embed a playbook, then run it with the `ansible` container defined in `k8s
 ```Makefile 
 # tests/Makefile.mad-science.mk
 
-## Local Interpretters, Without a Container
+### Passing Data Structures to Externally Managed Containers
 
-# Look, here's a simple python script 
-define Python.demo
-import sys
-print('python world')
-print('dollarsigns are safe: $')
+# Look, it's a simple ansible playbook 
+define Ansible.example_playbook
+- name: Example Playbook with Debug Task
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Print a debug message
+      debug:
+        msg: "Hello, this is a debug message!"
 endef
 
-# Minimal boilerplate to run the script,
-# using a specific interpretter (python3).
-# No container here, so this requires that 
-# the interpretter is actually available.
-demo.python:
-	make mk.def.dispatch/python3/Python.demo
+# Writes the playbook to a temp file,
+# then runs it from inside the 'ansible' container
+demo.ansible.playbook: 
+	$(call io.mktemp) \
+	&& make mk.def.to.file/Ansible.example_playbook/$${tmpf} \
+	&& entrypoint=ansible-playbook \
+		cmd="-i localhost, $${tmpf}" \
+			make k8s-tools/ansible
 
 ```
 
@@ -258,6 +250,6 @@ But of course the playbook above could just as easily be an `eksctl` config or `
 
 ### How it Works 
 
-Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/docs/api#api-mk) and [*`docker.*`*](/docs/api#api-docker) for more details.  Note also that the [*`mk.def.*`* targets](/docs/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no nightmare of escaping the contents and things like '$' are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P
+Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/docs/api#api-mk) and [*`docker.*`*](/docs/api#api-docker) for more details.  Note also that the [*`mk.def.*`* targets](/docs/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P
 
 </details>

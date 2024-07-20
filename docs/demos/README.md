@@ -44,22 +44,21 @@
 
 
 
-<details><summary>:arrow_up_down:<h2>
-Demo: Cluster Automation
-</h3></summary>
+<details><summary>&nbsp;&nbsp; <h3>Demo: Cluster Automation</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 
 
 
 This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
 
-<details>:arrow_up_down:<summary><h3> Boilerplate, Overrides, Clean & Init</h3></summary>
+<details><summary>&nbsp;&nbsp; <h4>Boilerplate, Overrides, Clean & Init</h4> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
 
 ```Makefile 
 # tests/Makefile.e2e.mk
 
 # k8s-tools.git End-to-end tests
-# Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services to create & interact  with a small k3d cluster.
+# Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services 
+# to create & interact  with a small k3d cluster.
 SHELL := bash
 MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -euo pipefail -c
@@ -68,10 +67,9 @@ MAKEFLAGS=-sS --warn-undefined-variables
 # Override k8s-tools.yml service-defaults, 
 # explicitly setting the k3d version used
 export K3D_VERSION:=v5.6.3
-export KREW_PLUGINS:=graph
 # Cluster details that will be used by k3d.
 export CLUSTER_NAME:=k8s-tools-e2e
-# Ensure KUBECONFIG exists
+# Ensure local KUBECONFIG exists & ignore anything from environment
 export KUBECONFIG:=./fake.profile.yaml
 export _:=$(shell umask 066;touch ${KUBECONFIG})
 # Chart & Pod details that we'll use later during deploy
@@ -82,10 +80,9 @@ export POD_NAMESPACE?=default
 # Include and invoke the `compose.import` macro 
 # so we have targets for k8s-tools.yml services
 include k8s.mk
-include compose.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 # Default target should do everything, end to end.
-all: build cluster.clean cluster.create deploy test
+all: clean create deploy test
 
 ```
 
@@ -100,18 +97,14 @@ Next we organize some targets for cluster-operations.  Below you can see there a
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-# Top level public targets for cluster operations & (optional) convenience-aliases and stage-labels.
+# Top level public targets for cluster operations, 
+# plus (optional) convenience-aliases and stage-labels.
 # These run private subtargets inside the named  tool containers (i.e. `k3d`).
 clean cluster.clean: flux.stage/ClusterClean ▰/k3d/self.cluster.clean
-cluster cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
+create cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
+teardown: flux.stage/ClusterTeardown cluster.teardown
 # Plus a convenience alias to wait for all pods in all namespaces.
-cluster.wait: k8s.cluster.wait
-# We stood up the test-harness with the 'k8s.test_harness' target,
-# and stood up nginx with plain kubectl.  Let's tear down with 
-# ansible to mix it up.
-cluster.teardown:
-	make jb wait=yes state=absent kind=Pod namespace=default name=test-harness | make ansible.k8s
-	make jb release_namespace=default name=ahoy state=absent wait=true | make ansible.helm 
+wait cluster.wait: k8s.cluster.wait
 # Private targets for low-level cluster-ops.
 # Host has no `k3d` command, so these targets
 # run inside the `k3d` service from k8s-tools.yml
@@ -149,9 +142,36 @@ But we also want operations to be idempotent, and blocking operations where that
 
 # Top level public targets for deployments & (optional) convenience-aliases and stage-labels.
 # These run private subtargets inside the named  tool containers (i.e. `helm`, and `k8s`).
-deploy cluster.deploy: flux.stage/DeployApps deploy.helm deploy.test_harness
+deploy cluster.deploy: flux.stage/DeployApps flux.loop.until/k8s.cluster.ready deploy.helm deploy.test_harness deploy.prometheus
 	# add a label to the default namespace
 	key=manager val=k8s.mk make k8s.namespace.label/${POD_NAMESPACE}
+deploy.prometheus:
+	printf "\
+		wait=yes \
+		create_namespace=yes \
+		chart_ref=prometheus \
+		chart_version=25.24.1 \
+		name=prometheus-community \
+		release_namespace=prometheus \
+		chart_repo_url=https://prometheus-community.github.io/helm-charts" \
+	| make jb \
+	| make ansible.helm
+fwd.grafana:
+	mapping="80:8081" make kubefwd.start/prometheus/grafana
+	$(call log, ${GLYPH_DOCKER} looking up grafana password) 
+	grafana_password=`kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}"|base64 --decode` \
+	&& printf "http://admin:$${grafana_password}@grafana:8081\n"
+deploy.grafana:
+	printf "\
+		wait=yes \
+		name=grafana \
+		chart_ref=grafana \
+		create_namespace=yes \
+		values:raw='{\"adminPassword\":\"test\"}' \
+		release_namespace=prometheus \
+		chart_repo_url=https://grafana.github.io/helm-charts" \
+	| make jb \
+	| make ansible.helm
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
 # Private targets with the low-level details for what to do in tool containers. 
@@ -166,6 +186,21 @@ self.cluster.deploy_helm_example:
 	set -x \
 	&& (helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO} ) \
 	&& (helm list | grep hello-world || helm install ahoy ${HELM_CHART})
+# We stood up the test-harness with the 'k8s.test_harness' target,
+# and stood up nginx with plain kubectl.  Let's tear down with 
+# ansible to mix it up.
+cluster.teardown:
+	printf "\
+		wait=yes kind=Pod state=absent \
+		name=test-harness namespace=default" \
+	| make ansible.k8s
+	printf "\
+		wait=true \
+		name=ahoy \
+		state=absent \
+		release_namespace=default" \
+	| make jb \
+	| make ansible.helm 
 # Prerequisites up top create & activate the `default` namespace 
 # and then deploy a pod named `test-harness` into it, using a default image.
 # In the body, we'll use kubectl directly to deploy a simple service into the default namespace.
@@ -204,6 +239,8 @@ test.cluster cluster.test: flux.stage/test ▰/k8s/k8s.cluster.wait
 	size=40x make k8s.graph.tui/default/pod
 	label="Previewing topology for kube-system namespace" make charm.gum.style 
 	make k8s.graph.tui/kube-system/pod
+	label="Previewing topology for prometheus namespace" make charm.gum.style 
+	make k8s.graph.tui/prometheus/pod
 test.contexts: 
 	@# Helpers for displaying platform info 
 	label="Demo pod connectivity" make charm.gum.style 
@@ -474,8 +511,8 @@ endef
 
 
 # Wrapper target that's using the container.
-# This basically sets the container-build as a pre-req,
-# so that within the body we can assume the base image exists.
+# This sets the container-build as a pre-req, so that
+# within the body we can assume the base image exists.
 demo.dockerfile: docker.from.def/demo_dockerfile
 	# Working with the image directly, note the 'compose.mk' prefix.
 	docker image inspect compose.mk:demo_dockerfile > /dev/null
@@ -505,53 +542,11 @@ Inlined containers can actually be extended with other inlines, but notice again
 ```Makefile 
 # tests/Makefile.mad-science.mk
 
-## Inlined Docker Files
-
-# Minimal inlined dockerfile.  
-# You can install anything or nothing here, 
-# but let's have the minimal stuff required for target dispatch.
-define Dockerfile.demo_dockerfile
-FROM alpine
-RUN echo building container spec from inlined dockerfile
-RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng
-endef
-
-
-# Wrapper target that's using the container.
-# This basically sets the container-build as a pre-req,
-# so that within the body we can assume the base image exists.
-demo.dockerfile: docker.from.def/demo_dockerfile
-	# Working with the image directly, note the 'compose.mk' prefix.
-	docker image inspect compose.mk:demo_dockerfile > /dev/null
-	docker run -it --entrypoint sh compose.mk:demo_dockerfile -x -c "true" > /dev/null
-	
-	# Working with compose.mk builtins omits prefix, 
-	# and can do dispatch targets to run inside the new image
-	img=demo_dockerfile make mk.docker.run/self.demo.dockerfile
-	
-	# Add the prefix explicitly, and you can use `docker.run` instead of private `.docker.run`
-	img=compose.mk:demo_dockerfile make docker.run/self.demo.dockerfile
-	entrypoint=sh cmd='-c "ls"' img=compose.mk:demo_dockerfile make docker.run.sh 
-	# Subsequent runs will use the cached image.  
-	# Pass 'force' to work around this.
-	force=1 make docker.from.def/demo_dockerfile
-
-self.demo.dockerfile:
-	echo "Testing target from inside the inlined-container"
-	uname -a
-
-```
-
-### Local Interpretters, Without a Container
-
-```Makefile 
-# tests/Makefile.mad-science.mk
-
 ## Extending Inlined Docker Files
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
 # but let's have the minimal stuff required for target dispatch.
-define Dockerfile.demo_dockerfile2
+define Dockerfile.demo.extend.container
 FROM compose.mk:demo_dockerfile
 RUN echo hello-docker
 endef
@@ -560,29 +555,29 @@ endef
 # Wrapper target that's using the container.
 # This basically sets the container-build as a pre-req,
 # so that within the body we can assume the base image exists.
-demo.dockerfile2: docker.from.def/demo_dockerfile2
+demo.container.extension: docker.from.def/demo.extend.container
 	# # Working with the image directly, note the 'compose.mk' prefix.
-	docker image inspect compose.mk:demo_dockerfile2 > /dev/null
-	docker run -it --entrypoint sh compose.mk:demo_dockerfile2 -x -c "true" > /dev/null
+	docker image inspect compose.mk:demo.extend.container > /dev/null
+	docker run -it --entrypoint sh compose.mk:demo.extend.container -x -c "true" > /dev/null
 	
 	# Working with compose.mk builtins omits prefix, 
 	# and can dispatch targets to run inside the new image
-	img=demo_dockerfile2 make mk.docker.run/self.demo.dockerfile2
+	img=demo.extend.container make mk.docker.run/self.demo.container.extension
 	
 	# Add the prefix explicitly, and you can use `docker.run` instead of private `.docker.run`
-	img=compose.mk:demo_dockerfile2 make docker.run/self.demo.dockerfile2
+	img=compose.mk:demo.extend.container make docker.run/self.demo.container.extension
 	
 	# Subsequent runs will use the cached image.  
 	# Pass 'force' to work around this.
-	force=1 make docker.from.def/demo_dockerfile2
+	force=1 make docker.from.def/demo.extend.container
 
-self.demo.dockerfile2:
+self.demo.container.extension:
 	echo "Testing target from inside the inlined-container"
 	uname -a
 
 ```
 
-### Exotic Targets & Pipes
+### Local Interpretters, Without a Container
 
 ```Makefile 
 # tests/Makefile.mad-science.mk
@@ -602,6 +597,34 @@ endef
 # the interpretter is actually available.
 demo.python:
 	make mk.def.dispatch/python3/Python.demo
+
+```
+
+### Exotic Targets & Pipes
+
+```Makefile 
+# tests/Makefile.mad-science.mk
+
+## Exotic Targets & Pipes
+
+# A more complex python script, 
+# testing comments, indention, & using pipes
+define Python.demo.python.pipes
+# python script
+import sys, json
+input = json.loads(sys.stdin.read())
+input.update(hello_python=sys.platform)
+output = input
+print(json.dumps(output))
+for x in [1, 2, 3]:
+  msg=f"{x} testing loops, indents, string interpolation"
+  print(msg, file=sys.stderr)
+endef
+
+# Runs the script, passing data into the pipe
+demo.python.pipes:
+	echo '{"hello":"bash"}' \
+	| make mk.def.dispatch/python3/Python.${@}
 
 ```
 
@@ -614,21 +637,27 @@ Let's embed a playbook, then run it with the `ansible` container defined in `k8s
 ```Makefile 
 # tests/Makefile.mad-science.mk
 
-## Local Interpretters, Without a Container
+### Passing Data Structures to Externally Managed Containers
 
-# Look, here's a simple python script 
-define Python.demo
-import sys
-print('python world')
-print('dollarsigns are safe: $')
+# Look, it's a simple ansible playbook 
+define Ansible.example_playbook
+- name: Example Playbook with Debug Task
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Print a debug message
+      debug:
+        msg: "Hello, this is a debug message!"
 endef
 
-# Minimal boilerplate to run the script,
-# using a specific interpretter (python3).
-# No container here, so this requires that 
-# the interpretter is actually available.
-demo.python:
-	make mk.def.dispatch/python3/Python.demo
+# Writes the playbook to a temp file,
+# then runs it from inside the 'ansible' container
+demo.ansible.playbook: 
+	$(call io.mktemp) \
+	&& make mk.def.to.file/Ansible.example_playbook/$${tmpf} \
+	&& entrypoint=ansible-playbook \
+		cmd="-i localhost, $${tmpf}" \
+			make k8s-tools/ansible
 
 ```
 
@@ -638,6 +667,6 @@ But of course the playbook above could just as easily be an `eksctl` config or `
 
 ### How it Works 
 
-Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/docs/api#api-mk) and [*`docker.*`*](/docs/api#api-docker) for more details.  Note also that the [*`mk.def.*`* targets](/docs/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no nightmare of escaping the contents and things like '$' are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P
+Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/docs/api#api-mk) and [*`docker.*`*](/docs/api#api-docker) for more details.  Note also that the [*`mk.def.*`* targets](/docs/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P
 
 </details>

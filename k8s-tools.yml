@@ -276,7 +276,6 @@ services:
     entrypoint: argo 
   
   # https://github.com/txn2/kubefwd
-  # FIXME: pin version
   kubefwd:
     <<: *base 
     depends_on: ['k8s']
@@ -299,6 +298,7 @@ services:
       - ${HOME}/.cache:/home/${DOCKER_UGNAME:-root}/.cache
       - ${HOME}/.config/helm:/home/${DOCKER_UGNAME:-root}/.config/helm
       - ${HOME}/.local:/home/${DOCKER_UGNAME:-root}/.local:ro
+      - "${KUBECONFIG:-~/.kube/config}:/home/${DOCKER_UGNAME:-root}/.kube/config"
 
   # https://k3d.io/
   k3d:
@@ -392,11 +392,11 @@ services:
     entrypoint: promtool
 
   yq:
-    # NB: included in base, but this option is slimmer
+    # NB: included in base, but this option is smaller
     image: mikefarah/yq:${YQ_VERSION:-4.43.1}
 
   jq:
-    # NB: included in base, but this option is slimmer
+    # NB: included in base, but this option is smaller
     image: ghcr.io/jqlang/jq:${JQ_VERSION:-1.7.1}
   
   

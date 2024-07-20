@@ -29,7 +29,6 @@ export K3D_VERSION?=v5.6.3
 
 # Creates dynamic targets
 include k8s.mk
-include compose.mk
 $(eval $(call compose.import, ▰, TRUE, ${PROJECT_ROOT}/k8s-tools.yml))
 
 

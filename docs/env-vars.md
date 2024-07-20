@@ -97,7 +97,7 @@ HELM_CLI_VERSION=v3.14.4
 
 ### General Environment Variables
 
-Variables used internally:
+
 
 | Variable               | Meaning                                                          |
 | ---------------------- | ---------------------------------------------------------------- |

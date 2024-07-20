@@ -318,9 +318,11 @@ jq.run.pipe:=$(shell which jq 2>/dev/null || echo "${docker.run.base} -i -e key=
 jb.run:=docker container run --rm ghcr.io/h4l/json.bash/jb:$${JB_CLI_VERSION:-0.2.2}
 # NB: exit status doesn't work right without grep..
 docker.images.filter=docker images --filter reference=${1} --format "{{.Repository}}:{{.Tag}}"|grep ${1}
-PYNCHON_CLI_VERSION=54aa218
-# pynchon=$(trace_maybe) && docker run --entrypoint python -v `pwd`:/workspace -w/workspace robotwranglers/pynchon:${PYNCHON_CLI_VERSION} -mpynchon.util.makefile
-pynchon=python -mpynchon.util.makefile
+PYNCHON_CLI_VERSION=baf56b7
+pynchon=$(trace_maybe) && ${pynchon.run}
+# pynchon.run=docker run --entrypoint python -v `pwd`:/workspace -w/workspace robotwranglers/pynchon:${PYNCHON_CLI_VERSION} -mpynchon.util.makefile
+pynchon.run=python -m pynchon.util.makefile
+# pynchon=python -mpynchon.util.makefile
 
 export DEBIAN_CONTAINER_VERSION?=debian:bookworm
 
@@ -604,7 +606,7 @@ docker.build.quiet/%:
 	@# USAGE:
 	@#  tag=<tag_to_use> ./compose.mk docker.build.quiet/<fname>
 	@#
-	docker build -q -t $${tag} $${docker_args:-} ${*} > ${devnull}
+	docker build `[ $${TRACE} == 1 ] && true|| echo "-q"` -t $${tag} $${docker_args:-} ${*} > ${devnull}
 
 docker.context:; docker context inspect
 	@# Returns all of the available docker context. Pipe-friendly.
@@ -888,13 +890,13 @@ docker.stop:
 	@#   ./compose.mk docker.stop name=my-container
 	@#   ./compose.mk docker.stop name=my-container timeout=99
 	@#
-	printf "${GLYPH_DOCKER} docker.stop${no_ansi_dim} ${sep} ${green}$${id:-$${name}}${no_ansi}\n"
+	$(call log, ${GLYPH_DOCKER} docker.stop${no_ansi_dim} ${sep} ${green}$${id:-$${name}})
 	export cid=`[ -z "$${id:-}" ] && docker ps --filter name=$${name} --format json | jq -r .ID || echo $${id}` \
 	&& case "$${cid:-}" in \
 		"") \
-			printf "$${dim}${GLYPH_DOCKER} docker.stop${no_ansi} ${sep} ${yellow}No containers found${no_ansi}\n">${stderr}; ;; \
+			$(call log, ${dim}${GLYPH_DOCKER} docker.stop${no_ansi} ${sep} ${yellow}No containers found); ;; \
 		*) \
-			docker stop -t $${timeout:-1} $${cid} > ${devnull}; ;; \
+			set -x && docker stop -t $${timeout:-1} $${cid} > ${devnull}; ;; \
 	esac
 docker.stop.all:
 	@# Non-graceful stop for all running containers.
@@ -975,7 +977,7 @@ io.env:
 	@# USAGE:
 	@#   ./compose.mk io.env
 	@#
-	${make} io.env.filter.prefix/PWD,CMK,KUBE,K8S,MAKE,TUI,DOCKER
+	${make} io.env.filter.prefix/PWD,CMK,KUBE,K8S,MAKE,TUI,DOCKER| grep -iv password|grep -iv passwd
 
 io.env/% io.env.filter.prefix/%:
 	@# Filters environment variables by the given prefix or (comma-delimited) prefixes.
@@ -984,7 +986,7 @@ io.env/% io.env.filter.prefix/%:
 	@#   ./compose.mk io.env/<prefix1>,<prefix2>
 	@#
 	echo ${*} | sed 's/,/\n/g' \
-	| xargs -I% sh -c "env|grep \"^%.*=\"||true"
+	| xargs -I% sh -c "env | grep -iv password|grep -iv passwd| grep \"^%.*=\"||true"
 
 io.envp io.env.pretty .tux.widget.env:
 	@# Pretty version of io.env, this includes some syntax highlighting.
@@ -1156,24 +1158,6 @@ mk.docker.run.sh:; img="compose.mk:$${img}" ${make} docker.run.sh
 mk.get/%:; $(info ${${*}})
 	@# Returns the value of the given make-variable
 
-mk.parse/%:
-	@# Parses the given Makefile, returning JSON output that describes the targets, docs, etc.
-	@# This uses a dockerized version of the pynchon[1] tool.
-	@#
-	@# REFS:
-	@#   * `[1]`: https://github.com/elo-enterprises/pynchon/
-	${pynchon} parse --markdown ${*} 2>/dev/null
-
-mk.parse.targets/%:
-	@# Parses the given Makefile, returning target-names only.
-	@#
-	${make} mk.parse/${*} | ${jq.run} -r '.|keys[]'
-
-mk.parse.module.docs/%:
-	@# Parses the given Makefile, returning module-level documentation.
-	@#
-	${pynchon} parse --module-docs ${*} 2>/dev/null | jq .
-
 mk.help.module/%:
 	@# Shows help for the named module.
 	@#
@@ -1197,16 +1181,7 @@ mk.help.block/%:
 	@# USAGE:
 	@#   ./compose.mk mk.help.block/<pattern>
 	@#
-	pattern=${*} ${make} mk.parse.block/${MAKEFILE} | ${stream.glow} 
-
-mk.parse.block/%:
-	@#
-	@# USAGE:
-	@#  pattern=.. ./compose.mk mk.parse.block/<makefile>
-	@#
-	${make} mk.parse.module.docs/${*} \
-	| ${jq.run} "to_entries | map(select(.key | test(\".*$${pattern}.*\"))) | first | .value" \
-	| ${jq.run} -r '.[1:-1][]'
+	pattern="${*}" ${make} mk.parse.block/${MAKEFILE} | ${stream.glow} 
 
 mk.help.target/%:
 	@# Shows help for the named target.
@@ -1231,7 +1206,6 @@ mk.help.target/%:
 mk.help.search/%:
 	@# Shows targets matching the given prefix.
 	@#
-	@#
 	@# USAGE:
 	@#   ./compose.mk mk.help.search/<pattern>
 	@#
@@ -1253,6 +1227,70 @@ mk.help.search/%:
 	esac
 			
 
+mk.def.dispatch/%:
+	@# Reads the given <def_name>, writes to a tmp-file,
+	@# then runs the given interpretter on the tmp file.
+	@# 
+	@# This requires that the interpretter is actually available..
+	@# for dockerized access to similar functionality, see `docker.run.def`
+	@#
+	@# USAGE:
+	@#   ./compose.mk mk.def.dispatch/<interpretter>/<def_name>
+	@#
+	@# HINT: for testing, use 'make mk.def.dispatch/cat/<def_name>'
+	@#
+	$(call io.mktemp) \
+	&& export intr=`printf "${*}"|cut -d/ -f1` \
+	&& export def_name=`printf "${*}" | cut -d/ -f2-` \
+	&& ${make} mk.def.to.file/$${def_name}/$${tmpf} \
+	&& [ -z $${preview:-} ] && true || ${make} io.file.preview/$${tmpf} \
+	&& header="${GLYPH_MK} mk.def.dispatch${no_ansi}" \
+	&& ([ $${TRACE} == 1 ] &&  printf "$${header} ${sep} ${dim}`pwd`${no_ansi} ${sep} ${dim}$${tmpf}${no_ansi}\n" > ${stderr} || true ) \
+	&& $(call log, $${header} ${sep} ${cyan}[${no_ansi}${bold}$${intr}${no_ansi}${cyan}] ${sep} ${dim}$${tmpf}) \
+	&& which $${intr} > ${devnull} || exit 1 \
+	&& $(trace_maybe) \
+	&& src="$${intr} $${tmpf}" \
+	&& [ -p ${stdin} ] && cat ${stdin} | eval $${src} || eval $${src}
+
+mk.def.read/%:
+	@# Reads the named define/endef block from this makefile, emitting it to stdout.
+	@#
+	@# This works around make's normal behaviour of completely wrecking indention/newlines
+	@# present inside the block.
+	@#
+	@# USAGE:
+	@#   ./compose.mk mk.read_def/<name_of_define>
+	@#
+	$(eval def_name=${*})
+	$(info $(value ${def_name}))
+
+mk.def.to.file/%:
+	@# Reads the given define/endef block from this makefile context, writing it to the given output file.
+	@#
+	@# USAGE: 
+	@#   ./compose.mk mk.def.to.file/<def_name>/<fname>
+	@#
+	def_name=`printf "${*}" | cut -d/ -f1` \
+	&& out_file=`printf "${*}" | cut -d/ -f2-` \
+	&& header="${GLYPH_MK} mk.def ${sep}" \
+	&& ([ ${CMK_DEBUG} == 1 ] && \
+		$(call log, $${header} ${dim_cyan}${ital}$${def_name}${no_ansi} ${green_flow_right} ${dim}${bold}$${out_file}) \
+		|| true) \
+	&& ${make} mk.def.read/$${def_name} > $${out_file}
+
+
+mk.help:; ${make} mk.namespace.filter/mk.
+	@# Lists only the targets available under the 'mk' namespace.
+
+mk.ifdef=echo "${.VARIABLES}" | grep -w ${1} ${all_devnull}
+mk.ifdef/%:; $(call mk.ifdef, ${*})
+	@# Answers whether the given variable is defined.
+	@# This is silent, and only communicates via the exit code.
+	
+mk.ifndef=echo "${.VARIABLES}" | grep -v -w ${1} ${all_devnull}
+mk.ifndef/%:; $(call mk.ifndef,${*})
+	@# Flips the assertion for 'mk.ifdef'.
+
 mk.namespace.list help.namespaces:
 	@# Returns only the top-level target namespaces
 	@# Pipe-friendly; stdout is newline-delimited target prefixes.
@@ -1264,14 +1302,59 @@ mk.namespace.list help.namespaces:
 	&& $(call log, ${no_ansi}${GLYPH_MK} help.namespaces ${sep} ${dim}count=${no_ansi}$${count} )
 
 mk.namespace.filter/%:
+	@# Lists all targets in the given namespace. Simple, pipe-friendly output.  
+	@# WARNING:  Callers must anticipate parametric targets with percent-signs, i.e. "foo.bar/%"
 	@#
-	@#
+	@# USAGE:
+	@#   ./compose.mk mk.namespace.filter/<namespace>
 	@#
 	${make} mk.parse.targets/${MAKEFILE} | uniq | grep -v ^all$$ | grep ^${*}
 	
+
+mk.parse/%:
+	@# Parses the given Makefile, returning JSON output that describes the targets, docs, etc.
+	@# This uses a dockerized version of the pynchon[1] tool.
+	@#
+	@# REFS:
+	@#   * `[1]`: https://github.com/elo-enterprises/pynchon/
+	@#
+	${pynchon} parse --markdown ${*} 2>/dev/null
+
+mk.parse.block/%:
+	@# Pulls out documentation blocks that match the given pattern.
+	@#
+	@# USAGE:
+	@#  pattern=.. ./compose.mk mk.parse.block/<makefile>
+	@#
+	@# EXAMPLE:
+	@#   pattern='*Keybindings*' make mk.parse.block/compose.mk
+	@#
+	${make} mk.parse.module.docs/${*} \
+	| ${jq.run} "to_entries | map(select(.key | test(\".*$${pattern}.*\"))) | first | .value" \
+	| ${jq.run} -r '.[1:-1][]'
+
+mk.parse.targets/%:
+	@# Parses the given Makefile, returning target-names only. Simple, pipe-friendly output. 
+	@# WARNING: Callers must anticipate parametric targets with percent-signs, i.e. "foo.bar/%"
+	@#
+	@# USAGE: 
+	@#   ./compose.mk mk.parse.targets/<file>
+	@#
+	${make} mk.parse/${*} | ${jq.run} -r '.|keys[]'
+
+mk.parse.module.docs/%:
+	@# Parses the given Makefile, returning module-level documentation.
+	@#
+	@# USAGE:
+	@#  pattern=.. ./compose.mk mk.parse.module.docs/<makefile>
+	@#
+	${pynchon} parse --module-docs ${*} 2>/dev/null | jq .
+
+
 mk.set/%:
 	@#
-	@#
+	@# USAGE:
+	@#   ./compose.mk mk.set/<key>/<val>
 	@#
 	$(eval $(shell echo ${*}|cut -s -d/ -f1):=$(shell echo ${*}|cut -s -d/ -f2-))
 
@@ -1282,20 +1365,21 @@ mk.stat:
 	@#    ./compose.mk mk.stat
 	@#
 	@#
-	printf "${GLYPH_MK} mk.stat${no_ansi_dim}:\n" > ${stderr} \
-	&& make --version |${stream.dim.indent.stderr}
+	$(call log, ${GLYPH_MK} mk.stat${no_ansi_dim}:) \
+	&& make --version | ${stream.dim.indent.stderr}
 
-
-mk.interrupt: mk.interrupt/SIGINT
+mk.supervisor.interrupt mk.interrupt: mk.interrupt/SIGINT
 	@# The default interrupt.  This is shorthand for mk.interrupt/SIGINT
 
 ifeq (${CMK_SUPERVISOR},0)
-mk.interrupt/%:
+mk.supervisor.interrupt/% mk.interrupt/%:
 	@# CMK_SUPERVISOR is 0; signals are disabled.
 	@#
 	$(call log, ${GLYPH_MK} ${@} ${sep} ${dim}Supervisor is disabled.) \
 	; exit 1
 mk.supervisor.pid/%: #; $(call log ${GLYPH_COMPOSE} ${@} ${sep} ${dim}Supervisor is disabled.)
+	@# CMK_SUPERVISOR is 0; signals are disabled.
+	@#
 else 
 mk.supervisor.pid:
 	@# Returns the pid for the supervisor process which is responsible for trapping signals.
@@ -1320,7 +1404,7 @@ mk.supervisor.pid:
 			esac \
 	esac
 
-mk.interrupt/%:
+mk.supervisor.interrupt/% mk.interrupt/%:
 	@# Sends the given signal to this process-tree's supervisor, then kills this process with SIGKILL.
 	@#
 	@# This is mostly used to short-circuit make's default command-line processing, 
@@ -1376,84 +1460,28 @@ mk.supervisor.trap/%:
 	header="${GLYPH_MK} mk.supervisor.trap ${sep}" \
 	&& $(call log.trace, $${header} ${red}${*} ${sep} ${dim}Supervisor trapped signal)
 
-
-mk.help:; ${make} mk.namespace.filter/mk.
-	@# Lists only the targets available under the 'make' namespace.
-
-mk.def.dispatch/%:
-	@# Reads the given <def_name>, writes to a tmp-file,
-	@# then runs the given interpretter on the tmp file.
-	@# 
-	@# This requires that the interpretter is actually available..
-	@# for dockerized access to similar functionality, see `docker.run.def`
-	@#
-	@# USAGE:
-	@#   ./compose.mk mk.def.dispatch/<interpretter>/<def_name>
-	@#
-	@# HINT: for testing, use 'make mk.def.dispatch/cat/<def_name>'
-	@#
-	$(call io.mktemp) \
-	&& export intr=`printf "${*}"|cut -d/ -f1` \
-	&& export def_name=`printf "${*}" | cut -d/ -f2-` \
-	&& ${make} mk.def.to.file/$${def_name}/$${tmpf} \
-	&& [ -z $${preview:-} ] && true || ${make} io.file.preview/$${tmpf} \
-	&& header="${GLYPH_MK} mk.def.dispatch${no_ansi}" \
-	&& ([ $${TRACE} == 1 ] &&  printf "$${header} ${sep} ${dim}`pwd`${no_ansi} ${sep} ${dim}$${tmpf}${no_ansi}\n" > ${stderr} || true ) \
-	&& $(call log, $${header} ${sep} ${cyan}[${no_ansi}${bold}$${intr}${no_ansi}${cyan}] ${sep} ${dim}$${tmpf}) \
-	&& which $${intr} > ${devnull} || exit 1 \
-	&& $(trace_maybe) \
-	&& src="$${intr} $${tmpf}" \
-	&& [ -p ${stdin} ] && cat ${stdin} | eval $${src} || eval $${src}
-
-mk.def.read/%:
-	@# Reads the named define/endef block from this makefile, emitting it to stdout.
-	@#
-	@# This works around make's normal behaviour of completely wrecking indention/newlines
-	@# present inside the block.
-	@#
-	@# USAGE:
-	@#   ./compose.mk mk.read_def/<name_of_define>
-	@#
-	$(eval def_name=${*})
-	$(info $(value ${def_name}))
-
-mk.def.to.file/%:
-	@# Reads the given define/endef block from this makefile context, writing it to the given output file.
-	@#
-	@# USAGE: 
-	@#   ./compose.mk mk.def.to.file/<def_name>/<fname>
-	def_name=`printf "${*}" | cut -d/ -f1` \
-	&& out_file=`printf "${*}" | cut -d/ -f2-` \
-	&& header="${GLYPH_MK} mk.def ${sep}" \
-	&& ([ ${CMK_DEBUG} == 1 ] && \
-		$(call log, $${header} ${dim_cyan}${ital}$${def_name}${no_ansi} ${green_flow_right} ${dim}${bold}$${out_file}) \
-		|| true) \
-	&& ${make} mk.def.read/$${def_name} > $${out_file}
-
-
-mk.ifdef=echo "${.VARIABLES}" | grep -w ${1} ${all_devnull}
-mk.ifdef/%:; $(call mk.ifdef, ${*})
-	@# Answers whether the given variable is defined.
-	@# This is silent, and only communicates via the exit code.
-	
-mk.ifndef=echo "${.VARIABLES}" | grep -v -w ${1} ${all_devnull}
-mk.ifndef/%:; $(call mk.ifndef,${*})
-	@# Flips the assertion for 'mk.ifdef'.
-
 mk.vars:; echo "${.VARIABLES}\n" | sed 's/ /\n/g' | sort
 	@# Lists all the variables known to Make.
 	@# This is effectively local or inherited env-vars, plus make-vars and make-defines
 	
 
 ##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-## END: make.* targets
+## END: mk.* targets
 ## BEGIN: flux.* targets
 ##
-## The flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
+## The flux.* targets describe a miniature workflow library. Combining flux with container dispatch is similar in spirit to 
+## things like declarative pipelines in Jenkins, but simpler, more portable, and significantly easier to use.  What's a workflow
+## in this context? Shell by itself is fine for what you might call "process algebra", and using operators like `&&`, `||`, `|` in 
+## the grand unix tradition goes a long way. And adding `make` to the mix already provides DAGs.
 ##
-## What `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
+## What `flux.*` targets add is flow-control constructs and higher-level join/loop/map instructions over other make targets, 
+## taking inspiration from functional programming and threading libraries. Alternatively, one may think of flux as a programming
+## language where all primitives are the objects that make understands, like targets, defines, and variables. Since every target 
+## in `make` is a DAG, you might say that task-DAGs are also primitives. Since `compose.import` maps containers onto targets, 
+## containers are primitives too.  Since `tux` targets map targets onto TUI panes, UI elements are also effectively primitives.
 ##
-## In most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.  
+## In most cases flux targets are used programmatically for scripting, but in stand-alone mode it can sometimes be useful for 
+## cleaning up (external) bash scripts, or porting from bash to makefiles, or ad-hoc interactive scripting.  
 ##
 ## For parts that are more specific to shell code, see `flux.*.sh`, and for working with scripts see `flux.*.script`.
 ##
@@ -1684,7 +1712,7 @@ flux.loopf/%:
 flux.loopfq/%:; quiet=yes ${make} flux.loopf/${*}
 	@# Like flux.loopf, but even more quiet.
 
-flux.loopu/%:
+flux.loop.until/%:
 	@# Loop the given target until it succeeds.
 	@#
 	@# By default to reduce logging noise, this sends stderr to null, but preserves stdout.
@@ -1693,11 +1721,11 @@ flux.loopu/%:
 	@#
 	@# USAGE:
 	@#
-	header="${GLYPH_FLUX} flux.loopu${no_ansi_dim} ${sep} ${green}${*}${no_ansi}" \
+	header="${GLYPH_FLUX} flux.loop.until${no_ansi_dim} ${sep} ${green}${*}${no_ansi}" \
 	&& printf "$${header} (until success)\n" > ${stderr}
-	make ${*} || (sleep $${interval:-1}; make flux.loopu/${*})
+	${make} ${*} 2>/dev/null || (sleep $${interval:-1}; ${make} flux.loop.until/${*})
 
-flux.loopw/%:
+flux.loop.watch/%:
 	@# Loops the given target forever, using 'watch' instead of the while-loop default
 	@#
 	watch \
@@ -1711,8 +1739,8 @@ flux.map/%:
 	@#   echo hello-world | ./compose.mk flux.map/stream.echo,stream.echo
 	@#
 	$(call io.mktemp) && \
-	cat ${stdin} > $${tmpf} \
-	&& printf ${*}|sed 's/,/\n/g' | xargs -I% printf 'cat $${tmpf} | make %\n' \
+	${stream.stdin} > $${tmpf} \
+	&& printf ${*} | sed 's/,/\n/g' | xargs -I% printf 'cat $${tmpf} | make %\n' \
 	| bash -x
 
 flux.or/%:
@@ -1878,7 +1906,6 @@ flux.stage.pop/%:
 	@#
 	$(call log, ${GLYPH_FLUX} flux.stage.pop ${sep} ${*}) 
 	$(call io.stack.pop, ${flux.stage.file})
-
 flux.stage.push/%: 
 	@# Push the JSON data on stdin into the stack for the named stage.
 	@#
@@ -1886,10 +1913,10 @@ flux.stage.push/%:
 	@#   echo '<json_data>' | ./compose.mk flux.stage.push/<stage_name>
 	@#
 	header="${GLYPH_FLUX} flux.stage.push ${sep} ${dim}stage=${no_ansi}${*}" \
-	&& $(call log, $${header}) \
+	&& $(call log.trace, $${header}) \
 	&& test -p ${stdin}; st=$$?; case $${st} in \
 		0) ${stream.stdin} | ${make} io.stack.push/${flux.stage.file}; ;; \
-		*) $(call log, $${header} ${sep} ${red}Failed pushing data${no_ansi} because no data is present on stdin); ;; \
+		*) $(call log.trace, $${header} ${sep} ${red}Failed pushing data${no_ansi} because no data is present on stdin); ;; \
 	esac
 
 flux.stage.push:; ${make} flux.stage.push/${FLUX_STAGE}
@@ -1915,21 +1942,21 @@ flux.stage: mk.get/FLUX_STAGE
 	@# Returns the name of the current stage. No Arguments.
 
 flux.stage.stack:
+	@# Retrieves all the data on the current stack-file.  No arguments.
 	$(call log, ${GLYPH_FLUX} flux.stage.stack ${sep} ) 
 	$(call io.stack, ${flux.stage.file})
 flux.stage.stack=$(call io.stack, ${flux.stage.file})
+
 flux.stage/%:
 	@# Declares entry for the given stage.
-	@#
 	@# Stage names are generally target names or similar, no spaces allowed.
-	@# This announces the stage using pretty gum-dividers, 
-	@# then creates a stage-file which other processes may check for.
-	@# Stage files are JSON, containing at least the parent pid for 
-	@# this 'make' process, plus any extra data added by 'flux.stage.push'.
-	@# File is (usually) cleaned when the process exits.  This additionally
-	@# sets the FLUX_STAGE variable.  Note that variables / tmpfile 
-	@# availability depends on the process itself, not the parent process,
-	@# so behaviour can be surprising with recursive make.
+	@#
+	@# This is generally used to just to print a pretty divider that makes output 
+	@# easier to parse, but stages also add an idea of persistence to otherwise 
+	@# stateless workflows, via a file-backed JSON stack object that cooperating 
+	@# tasks can push to / pop from.
+	@#
+	@# Stack files contain at least the parent pid for this 'make' process.
 	@#
 	@# USAGE:
 	@#  ./compose.mk flux.stage/<stage_name>
@@ -1941,27 +1968,7 @@ flux.stage/%:
 		|| $(call log, ${yellow}WARNING:${no_ansi} could not push pid-data to stage-file)) \
 	&& true $(eval export FLUX_STAGE=${*}) $(eval export FLUX_STAGES+=${*}) \
 	&& label="${*}" ${make} charm.gum.style/2 \
-	&& $(call log, $${header} ${dim} @ $${stagef})
-
-# flux.stage.require/%:
-# 	@# Asserts that the given stage should have been already entered.
-# 	@#
-# 	@# USAGE:
-# 	@#  ./compose.mk flux.stage.
-# 	@#
-# 	stagef="$(call flux.stage.file, ${*})" \
-# 	&& header="${GLYPH_IO} flux.stage.require ${sep} ${bold}${underline}${*}${no_ansi_dim} ${sep}" \
-# 	&& ls $${stagef} \
-# 	|| (printf "$${header} (${red}failed${no_ansi_dim}, $${stagef} is missing) ${no_ansi}\n" >${stderr} \
-# 		&& exit 1) \
-# 	&& stage_ppid=`cat $${stagef}|${jq.run} .ppid` \
-# 	&& this_ppid="$${MAKE_SUPER:-$${PPID}}" \
-# 	&& case $${stage_ppid} in \
-# 		$${this_ppid}) printf "$${header} ${dim}match pid ${bold}${underline}$${this_ppid}${no_ansi}\n" > ${stderr}; ;; \
-# 		*) \
-# 			$(call log, $${header} ${yellow}pid $${stage_ppid} does not match $${this_ppid}) \
-# 			&& exit 0 ;; \
-# 	esac
+	&& $(call log, $${header} ${dim} stack_file=$${stagef})
 
 flux.timer/%:
 	@# Emits run time for the given make-target in seconds.
@@ -1988,21 +1995,22 @@ flux.timeout/%:
 
 flux.timeout.sh:
 	@# Runs the given command for the given amount of seconds, then stops it with TERM.
+	@# Exit status is ignored
 	@#
 	@# USAGE: (tails docker logs for up to 10s, then stops)
 	@#   ./compose.mk flux.timeout.sh cmd='docker logs -f xxxx' timeout=10
 	@#
-	printf "${GLYPH_IO} flux.timeout.sh${no_ansi_dim} (${yellow}$${timeout}s${no_ansi_dim}) ${sep} ${no_ansi_dim}$${cmd}${no_ansi} ${no_ansi}\n" >${stderr}
-	$(trace_maybe) \
+	timeout=$${timeout:-5} \
+	&& $(call log, ${GLYPH_IO} flux.timeout.sh${no_ansi_dim} (${yellow}$${timeout}s${no_ansi_dim}) ${sep} ${no_ansi_dim}$${cmd}) \
 	&& $(trace_maybe) \
 	&& trap "set -x && echo bye" EXIT INT TERM \
 	&& signal=$${signal:-TERM} \
 	&& eval "$${cmd} &" \
 	&& export command_pid=$$! \
 	&& sleep $${timeout} \
-	&& printf "${dim}${GLYPH_IO} flux.timeout.sh${no_ansi_dim} (${yellow}$${timeout}s${no_ansi_dim}) ${sep} ${no_ansi}${yellow}finished${no_ansi}\n" > ${stderr} \
+	&& $(call log, ${dim}${GLYPH_IO} flux.timeout.sh${no_ansi_dim} (${yellow}$${timeout}s${no_ansi_dim}) ${sep} ${no_ansi}${yellow}finished) \
 	&& trap '' EXIT INT TERM \
-	&& kill -$${signal} `ps -o pid --no-headers --ppid $${command_pid}` 
+	&& kill -$${signal} `ps -o pid --no-headers --ppid $${command_pid}` 2>/dev/null || true
 
 flux.try.except.finally/%:
 	@# Performs a try/except/finally operation with the named targets.
@@ -2230,7 +2238,7 @@ stream.json.object.append stream.json.append:
 	@# This is usually used to build JSON objects from scratch.
 	@#
 	@# EXAMPLE:
-	@#	 $ echo {} | key=foo val=bar ./compose.mk stream.json.object.append
+	@#	 echo {} | key=foo val=bar ./compose.mk stream.json.object.append
 	@#   {"foo":"bar"}
 	@#
 	cat ${stdin} | jq ". + {\"$${key}\": \"$${val}\"}"
@@ -2331,9 +2339,6 @@ stream.to.stderr stream.preview:; ${stream.to.stderr}
 ##   * `[1]`: https://github.com/elo-enterprises/k8s-tools/docs/api#api-tux
 ##   * `[2]`: https://github.com/elo-enterprises/k8s-tools/#embedded-tui
 ##
-##
-##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-
 ##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ## BEGIN: TUI Environment Variables
 ##
@@ -2348,6 +2353,7 @@ stream.to.stderr stream.preview:; ${stream.to.stderr}
 ## | TUI_THEME_HOOK_POST  | *Name of the post-theme hook to call.  This is required for buttons.*         |
 ##
 ##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
 
 ICON_DOCKER:=https://github.com/elo-enterprises/k8s-tools/raw/master/img/icon.png
 
@@ -2652,8 +2658,8 @@ tux/shell:
 	$(call log, ${GLYPH_TUI} ${@} ${sep} ${dim}Initializing TUI)
 	$(trace_maybe) \
 	&& ${make} .tux.init.panes .tux.init.bind_keys .tux.theme  || exit 1
-	tmux set -g pane-border-style fg=lightgreen \
-	&& tmux set -g pane-active-border-style "bg=black fg=green" \
+	tmux set -g pane-border-style fg=green \
+	&& tmux set -g pane-active-border-style "bg=black fg=lightgreen" \
 	&& index=0 \
 	&& cat .tmp.tmuxp.yml | yq -r .windows[].panes[].name \
 	| ${stream.peek} \
@@ -3116,6 +3122,28 @@ services:
             ./install_plugins.sh
 endef
 
+##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+## BEGIN: Default TUI Keybindings
+## | Shortcut         | Purpose                                                |
+## | ---------------- | ------------------------------------------------------ |
+## | Escape           | *Exit TUI*                                             |
+## | Ctrl b |         | *Split pane vertically*                                |
+## | Ctrl b -         | *Split pane horizontally*                              |
+## | Alt t            | *Shuffle pane layout*                                  |
+## | Alt ^            | *Grow pane up*                                         |
+## | Alt v            | *Grow pane down*                                       |
+## | Alt <            | *Grow pane left*                                       |
+## | Alt >            | *Grow pane right*                                      |
+## | Alt <left>       | *Grow pane left*                                       |
+## | Alt <right>      | *Grow pane right*                                      |
+## | Alt <up>         | *Grow pane up*                                         |
+## | Alt <down>       | *Grow pane down*                                       |
+## | Alt-1            | *Select pane 1*                                        |
+## | Alt-2            | *Select pane 2*                                        |
+## | ...              | *...*                                                  |
+## | Alt-N            | *Select pane N*                                        |
+##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
 define _TUI_TMUXP_PROFILE
 cat <<EOF
 # This tmuxp profile is generated by compose.mk.
@@ -3393,7 +3421,8 @@ ${compose_file_stem}/%:
 		printf "$${env:-}" | sed 's/,/\n/g' | xargs -I% echo --env %='☂$$$${%}☂'; fi))
 	@$$(eval export base:=docker compose -f ${compose_file} \
 		run --rm --remove-orphans --quiet-pull \
-		$$(subst ☂,\",$${extra_env}) --env CMK_INTERNAL=1 \
+		$$(subst ☂,\",$${extra_env}) \
+		--env CMK_INTERNAL=1 \
 		--env TRACE=$${TRACE} \
 		--env CMK_DEBUG=$${CMK_DEBUG} \
 		 $${pipe} $${user} $${entrypoint} $${svc_name} $${cmd})
@@ -3514,11 +3543,11 @@ jb jb.pipe:
 	@# features like process-substitution, but simple use-cases work fine.
 	@#
 	@# USAGE: ( Use when supervisors and signals[2] are enabled )
-	@#   $ ./compose.mk jb foo=bar 
+	@#   ./compose.mk jb foo=bar 
 	@#   {"foo":"bar"}
 	@# 
 	@# EXAMPLE: ( Otherwise, use with pipes )
-	@#   $ echo foo=bar | ./compose.mk jb 
+	@#   echo foo=bar | ./compose.mk jb 
 	@#   {"foo":"bar"}
 	@#
 	@# REFS:
