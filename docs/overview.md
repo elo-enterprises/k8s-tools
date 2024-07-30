@@ -1,5 +1,3 @@
-{% import 'macros.j2' as macros -%}
-
 ## Overview
 
 **This repository aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file as [k8s-tools.yml](k8s-tools.yml).**  It's useful for CI/CD pipelines or general development, and can be [embedded alongside your existing project](#integration-with-your-project), which helps to fix the problem of different project developers using different local versions of things like `helm`, `kubectl`, etc.
@@ -10,7 +8,7 @@ Containers defined here aren't built from scratch, and official sources are used
 
 **Besides bundling some tooling, this repository is a reference implementation** for a pattern that [bridges compose services and Makefile targets](#makecompose-bridge), creating a "minimum viable automation framework" for things like [orchestrating tasks across tool containers](#container-dispatch).  It's expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It's incredibly useful for lots of things, and whether it is a tool, a library, or a framework  depends on how you decide to use it.  There's 3 pieces to this, and the full triple of *k8s.mk*, *compose.mk*, and *k8s-tools.yml* is sometimes called **the k8s-tools suite.** 
 
-{#[compose.mk](#composemk) defines the core support for docker, docker-compose, and other extensions for `make` then [k8s.mk] uses it, 1. [k8s.mk](#k8smk), which uses it.  #}
+
 
 This reference focuses on a few use-cases in particular:
 
@@ -28,9 +26,9 @@ There's a lot of hate for `make` (especially for "creative" usage of it!), but y
 
 Beyond addressing the issues above, these tools add new capabilities to `make` itself, including some support for [quickly building custom TUIs](#embedded-tui) from dockerized components.
 
-{{macros.img_link("img/tui-6.gif", "90%")}}
+<p align="center"><a href="img/tui-6.gif"><img width="90%" src="img/tui-6.gif"></a></p>
 
 With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Help not only *works,* it also goes beyond mere target-listing to actually include namespace and per-target documentation, rendered via a dockerized version of [charmbracelete/glow](https://github.com/charmbracelet/glow).
 
-{{macros.img_link("img/tui-7.gif", "90%")}}
+<p align="center"><a href="img/tui-7.gif"><img width="90%" src="img/tui-7.gif"></a></p>
 

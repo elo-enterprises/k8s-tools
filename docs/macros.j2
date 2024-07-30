@@ -5,7 +5,8 @@ Jinja macros used in building docs (not make macros :)
 {% set img_base =  img_base | default('../img/') %}
 
 {% macro collapsed_details(name, level='h4') -%}
-<details><summary>&nbsp;&nbsp; <{{level}}>{{name}}</{{level}}> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+{#<details><summary>&nbsp;&nbsp;  &nbsp;&nbsp;{#</summary>#}#}
+<{{level}}>{{name}}</{{level}}>
 {%- endmacro -%}
 {% macro get_env_var(name) -%}
 {% set val=bash("cat docs/env-vars.md|grep ^"+name+"= | head -1 | cut -s -d'=' -f2 || true").strip()%}{{val}}{%- endmacro -%}

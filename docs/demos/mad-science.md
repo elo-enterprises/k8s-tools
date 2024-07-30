@@ -41,7 +41,7 @@
 
 
 
-<details><summary>&nbsp;&nbsp; <h2>Demo: Mad Science</h2> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+<details><summary>&nbsp;&nbsp; <h2>Demo: Mad Science</h2> &nbsp;&nbsp;{#</summary>#}
 
 
 

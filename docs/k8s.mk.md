@@ -1,4 +1,3 @@
-
 ## k8s.mk
 
 `k8s.mk` exists to create a automation APIs over the tool-containers described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with [compose.mk](#composemk) and [k8s-tools.yml](#features), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  
@@ -14,7 +13,7 @@ The full API is [here](/docs/api/#api-k8smk), and the [Cluster Lifecycle Demo](/
 By combining these tools with compose.mk's [`flux.*` API](/docs/api#api-flux) you can describe workflows, and using the [`tux.*` API](/docs/api#api-tux) you can send tasks, or groups of tasks, into panes on a TUI.
 
 
-{{macros.collapsed_details('Automation APIs over Tool Containers', level='h3')}}
+<details><summary>&nbsp;&nbsp; <h3>Automation APIs over Tool Containers</h3> &nbsp;&nbsp;{#</summary>#}
 
 What *is* an automation API over a tool container anyway?  As an example, let's consider the [`k8s.get` target](/docs/api/#k8sget), which you might use like this:
 
@@ -55,7 +54,7 @@ $ pod=`uuidgen` \
 
 </details>
 
-{{macros.collapsed_details('But Why?', level='h3')}}
+<details><summary>&nbsp;&nbsp; <h3>But Why?</h3> &nbsp;&nbsp;{#</summary>#}
 
 There's many reasons why you might want these capabilities if you're working with cluster-lifecycle automation.  People tend to have strong opions about this topic, and it's kind of a long story.  The short version is this: 
 
@@ -64,10 +63,10 @@ There's many reasons why you might want these capabilities if you're working wit
 * Project-local clusters are much-neglected, but also increasingly important aspects of project testing and overall developer-experience.  
 * Ansible/Terraform are great, but they have a lot of baggage, aren't necessarily a great fit for this type of problem, and they also have to be versioned.  
 
-`k8s.mk`, especially combined with `k8s-tools.yml` and `compose.mk`, is aimed at fixing this stuff.  {#Less fighting with tools, more building things.#}
+`k8s.mk`, especially combined with `k8s-tools.yml` and `compose.mk`, is aimed at fixing this stuff.  
 
 If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
 
-{#Documentation per-target is included in the next section, but these tools aren't that interesting in isolation.  See the [Cluster Automation Demo](/docs/demos#demo-cluster-automation) for an example of how you can put all this stuff together.#}
+
 
 </details>

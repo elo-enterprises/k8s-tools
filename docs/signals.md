@@ -1,7 +1,7 @@
 
 
 
-<details><summary>&nbsp;&nbsp; <h3>Signals and Supervisors</h3> <i>(click to expand)</i>&nbsp;&nbsp; :arrow_up_down: </summary>
+<details><summary>&nbsp;&nbsp; <h3>Signals and Supervisors</h3> &nbsp;&nbsp;{#</summary>#}
 
 
 

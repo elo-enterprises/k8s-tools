@@ -52,6 +52,7 @@ build:
 test: e2e-test integration-test smoke-test tui-test 
 
 docs: docs.jinja docs.mermaid
+mkdocs:; mkdocs build; mkdocs serve
 
 normalize: 
 
