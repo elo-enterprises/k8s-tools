@@ -26,6 +26,6 @@
     ]
   },
   "jinja": {
-    "template_includes": ['docs/']
+    "template_includes": ['docs/src']
   },
 }

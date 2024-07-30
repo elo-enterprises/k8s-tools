@@ -571,7 +571,8 @@ One way to look at the TUI is that it's just a way of mapping make-targets into 
 
 
 
-<details><summary>&nbsp;&nbsp; <h3>Signals and Supervisors</h3> &nbsp;&nbsp;
+#}
+<h3>Signals and Supervisors</h3>
 
 
 
