@@ -2,7 +2,7 @@
 Jinja macros used in building docs (not make macros :) 
 #}
 
-{% set img_base =  img_base | default('../img/') %}
+{% set img_base =  img_base | default('img/') %}
 
 {% macro collapsed_details(name, level='h4') -%}
 {#<details><summary>&nbsp;&nbsp;  &nbsp;&nbsp;{#</summary>#}#}

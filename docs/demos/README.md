@@ -35,7 +35,31 @@
 </span></center>
 
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#_1">}</a></li>
+<li><a href="#_2">}</a></li>
+<li><a href="#_3">}</a></li>
+<li><a href="#_4">}</a></li>
+<li><a href="#_5">}</a></li>
+<li><a href="#_6">}</a></li>
+<li><a href="#_7">}</a></li>
+<li><a href="#_8">}</a></li>
+<li><a href="#_9">}</a><ul>
+<li><a href="#basic-platforming">Basic Platforming</a></li>
+<li><a href="#extension-with-lme">Extension with LME</a></li>
+</ul>
+</li>
+<li><a href="#_10">}</a><ul>
+<li><a href="#working-with-foreign-languages">Working with Foreign Languages</a></li>
+<li><a href="#inlined-docker-files">Inlined Docker Files</a></li>
+<li><a href="#extending-inlined-docker-files">Extending Inlined Docker Files</a></li>
+<li><a href="#local-interpretters-without-a-container">Local Interpretters, Without a Container</a></li>
+<li><a href="#exotic-targets-pipes">Exotic Targets &amp; Pipes</a></li>
+<li><a href="#passing-data-structures-to-externally-managed-containers">Passing Data Structures to Externally Managed Containers</a></li>
+<li><a href="#how-it-works">How it Works</a></li>
+</ul>
+</li>
+</ul>
 </div>
 
 
@@ -44,14 +68,16 @@
 
 
 
-<details><summary>&nbsp;&nbsp; <h3>Demo: Cluster Automation</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Demo: Cluster Automation</h3>
 
 
 
 
 This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
 
-<details><summary>&nbsp;&nbsp; <h4>Boilerplate, Overrides, Clean & Init</h4> &nbsp;&nbsp;{#</summary>#}
+#}
+<h4>Boilerplate, Overrides, Clean & Init</h4>
 
 ```Makefile 
 # tests/Makefile.e2e.mk
@@ -131,7 +157,8 @@ Running `make init` looks like this when it's setting up the cluster:
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h4>Deployment</h4> &nbsp;&nbsp;{#</summary>#}
+#}
+<h4>Deployment</h4>
 
 The next section of the Makefile covers cluster provisioning.  Here we just want to install a helm chart, and to add a special "test-harness" pod to the default namespace.  
 
@@ -224,7 +251,8 @@ The other part of our provisioning is bootstrapping the test-harness pod.  This 
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Testing</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Testing</h3>
 
 With the test-harness in place, there's a block of target definitions for a miniature test-suite that checks properties of the cluster.
 
@@ -264,7 +292,8 @@ Running `make test` looks like this:
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Debugging</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Debugging</h3>
 
 The tests are not a bad start for exercising the cluster, and instead of displaying platform info you can imagine tests that check service availability.  Since we blocked on pods or whole-namespaces being ready, we also know that nothing is stuck in crash loop or container-pull.  And we know that there were not errors with the helm charts, and that we can communicate with the test-harness pod.  
 
@@ -295,7 +324,7 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 </details>
 
-<details><summary><h3>Development </h3>{#</summary>#}
+<details><summary><h3>Development </h3>
 
 For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
@@ -307,7 +336,8 @@ Note the weird DNS in the test above, where `nginx-service` resolves as expected
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Alternate Deployment</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Alternate Deployment</h3>
 
 Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for `KUBECONFIG`.
 
@@ -320,7 +350,8 @@ $ KUBECONFIG=rancher-desktop.yml make deploy test
 ```
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Next Steps</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Next Steps</h3>
 
 From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.
 
@@ -332,7 +363,8 @@ From here you'll probably want to get something real done.  Most likely you are 
 1. **Extending the make/compose technique to completely different automation tasks is straightforward,** as long as you stick to the layout.  For example substituing `k8s-tools.yml` for a new `iac-tools.yml` compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then `compose.mk` and `compose.import` generate targets as usual.  If necessary a new file `Makefile.iac.mk` can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>Conclusion</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Conclusion</h3>
 
 So that's how less than 100 lines of mostly-aliases-and-documentation Makefile is enough to describe a simple cluster lifecycle, and can give access to ~20 versioned platforming tools, all with no host dependencies except docker + make.  It's simple, structured, portable, and lightweight.  If you don't care about partial excutions and exposing step-wise entrypoints to the CLI, then you can cut this line-count roughly in half.  Good automation will be self-documenting, but even if you're code-golfing with this approach, the result will probably *still* be organized/maintainable/durable than the equivalent shell-script or ansible.
 
@@ -348,7 +380,8 @@ Happy platforming =D
 
 
 
-<details><summary>&nbsp;&nbsp; <h2>Demo: Platform Setup</h2> &nbsp;&nbsp;{#</summary>#}
+#}
+<h2>Demo: Platform Setup</h2>
 
 ### Basic Platforming 
 
@@ -458,7 +491,8 @@ For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterp
 
 
 
-<details><summary>&nbsp;&nbsp; <h2>Demo: Mad Science</h2> &nbsp;&nbsp;{#</summary>#}
+#}
+<h2>Demo: Mad Science</h2>
 
 
 

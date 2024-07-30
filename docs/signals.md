@@ -1,7 +1,8 @@
 
 
 
-<details><summary>&nbsp;&nbsp; <h3>Signals and Supervisors</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Signals and Supervisors</h3>
 
 
 

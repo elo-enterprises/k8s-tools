@@ -13,7 +13,8 @@ The full API is [here](/docs/api/#api-k8smk), and the [Cluster Lifecycle Demo](/
 By combining these tools with compose.mk's [`flux.*` API](/docs/api#api-flux) you can describe workflows, and using the [`tux.*` API](/docs/api#api-tux) you can send tasks, or groups of tasks, into panes on a TUI.
 
 
-<details><summary>&nbsp;&nbsp; <h3>Automation APIs over Tool Containers</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>Automation APIs over Tool Containers</h3>
 
 What *is* an automation API over a tool container anyway?  As an example, let's consider the [`k8s.get` target](/docs/api/#k8sget), which you might use like this:
 
@@ -54,7 +55,8 @@ $ pod=`uuidgen` \
 
 </details>
 
-<details><summary>&nbsp;&nbsp; <h3>But Why?</h3> &nbsp;&nbsp;{#</summary>#}
+#}
+<h3>But Why?</h3>
 
 There's many reasons why you might want these capabilities if you're working with cluster-lifecycle automation.  People tend to have strong opions about this topic, and it's kind of a long story.  The short version is this: 
 

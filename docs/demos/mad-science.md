@@ -36,12 +36,24 @@
 </span></center>
 
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#_1">}</a><ul>
+<li><a href="#working-with-foreign-languages">Working with Foreign Languages</a></li>
+<li><a href="#inlined-docker-files">Inlined Docker Files</a></li>
+<li><a href="#extending-inlined-docker-files">Extending Inlined Docker Files</a></li>
+<li><a href="#local-interpretters-without-a-container">Local Interpretters, Without a Container</a></li>
+<li><a href="#exotic-targets-pipes">Exotic Targets &amp; Pipes</a></li>
+<li><a href="#passing-data-structures-to-externally-managed-containers">Passing Data Structures to Externally Managed Containers</a></li>
+<li><a href="#how-it-works">How it Works</a></li>
+</ul>
+</li>
+</ul>
 </div>
 
 
 
-<details><summary>&nbsp;&nbsp; <h2>Demo: Mad Science</h2> &nbsp;&nbsp;{#</summary>#}
+#}
+<h2>Demo: Mad Science</h2>
 
 
 

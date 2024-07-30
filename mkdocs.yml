@@ -5,4 +5,6 @@ nav:
   - compose.mk.md
   - k8s.mk.md
   - demos
-
+docs_dir: docs
+site_dir: docs/site
+  

@@ -36,12 +36,19 @@
 </span></center>
 
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#_1">}</a><ul>
+<li><a href="#basic-platforming">Basic Platforming</a></li>
+<li><a href="#extension-with-lme">Extension with LME</a></li>
+</ul>
+</li>
+</ul>
 </div>
 
 
 
-<details><summary>&nbsp;&nbsp; <h2>Demo: Platform Setup</h2> &nbsp;&nbsp;{#</summary>#}
+#}
+<h2>Demo: Platform Setup</h2>
 
 ### Basic Platforming 
 
