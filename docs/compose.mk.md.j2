@@ -1,0 +1,91 @@
+{% import 'macros.j2' as macros -%}
+
+## compose.mk
+
+A tool / library / automation framework for working with containers.  Also the biggest, baddest, and most highly-powered mutant Makefile you're ever likely to see, although this aspect is generally safe to ignore unless you're interested ;)
+
+  * **Library-mode** extends `make` in a variety of ways, including support for working with containers (Docs: [[1]](#), [[2]](#), [[3]](#))
+  * **Stand-alone mode also available,** i.e. a tool that requires no external Makefile / compose file. (Docs: [[1]](#))
+  * **Zero host-dependencies,** as long as you have docker + make.  Even the [TUI backend](#embedded-tui) is dockerized.
+  * **Container-dependencies are minimal too,** so that almost any base can work with [container-dispatch](#container-dispatch).
+  * **Built-in TUI framework** that's small but powerful.  (See the [Embedded TUI docs](#embedded-tui) and the [tux.* API](/docs/api#api-tux))
+  * **A minimal, elegant, and dependency-free approach to describing workflow pipelines** (See the [flux.* API](/docs/api#api-flux))
+  
+In many ways, `compose.mk` breaks all the rules that you can imagine for how you are *supposed* to use Makefiles, starting with the fact that it weighs in at ~3.5k lines.  But there's method to this madness, and hopefully you'll agree that the juice is worth the squeeze!  
+
+Code-to-comment ratios throughout are roughly 1:1, and although it's not practical to measure code-coverage, [the test-suite](tests/) is pretty extensive.  The single-file approach used with `compose.mk` makes it easy to embed, and the API is quickly approaching a "frozen" status.  [Hacking is generally encouraged](#contributing), and users can feel free to rip out any parts of `compose.mk` they don't want or need.  With minor modifications, it's also easy to concatenate `compose.mk` and `k8s.mk` and use that, keeping one more piece of boilerplate out of your project repository.
+
+{{macros.collapsed_details('Library Mode:', level='strong')}}
+
+In library-mode, `compose.mk` is used as an `include` from your project Makefile.  With that as a starting place, you can **[build a bridge between docker-compose services and make-targets](#makecompose-bridge)** and use [**minimum viable patterns for container-dispatch.**](#container-dispatch).  The main macro is called *`compose.import`*, which can be used/included from any Makefile, used with any compose file, and [used with *multiple* compose files](#multiple-compose-files).  
+
+Besides support for compose-files, `compose.mk` has many other features that extend the core capabilities of make, plus a *[curated collection of reusable utility targets](#composemk-api).  Here's an overview:
+
+
+* 🚀 **Executable file:** `./compose.mk ...  <==> make -f compose.mk ...`
+* Built-in supervisor process, [improving support for signal handling](#signals-and-supervisors).
+* [**`flux.*` targets:**](/docs/api#api-flux) A tiny but powerful workflow/pipelining API, roughly comparable to something like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/).  This provides composable concurrency & staging operators, where the primitives are usually make-target names.  
+* [**`tux.*` targets:**](#embedded-tui) Control-surface for a tmux-backed console geometry manager.
+  * **No host dependencies.** This uses the `compose.mk:tux` tool container to dockerize tmux itself.
+  * **Supports docker-in-docker style host-socket sharing with zero configuration,** so your TUI can generally do all the same container orchestration tasks as the docker host.
+  * Open split-screen displays, shelling into 1 or more of the tool containers in k8s-tools.yml (or any other compose file).
+  * Combines well with `flux.*` targets to quickly create dashboards / custom development environments.
+* [**`stream.*`:**](/docs/api#api-stream) Support for working with streams, including newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It's not what you'd call "typed", but it reduces error-prone parsing and moves a little bit closer to structured data.
+* [**`io.*`:**](/docs/api#api-io) Misc. utilities for printing, formatting, timers, etc.
+* [**`docker.*`:**](/docs/api#api-docker) An interface for working with docker.
+* [**`mk.*`:**](/docs/api#api-docker) Meta-tooling for 'make' itself. This enables help functions, signals and supervisors, some utilities for reflection, etc.
+* [**`compose.*`:**](/docs/api#api-docker) An interface for working with compose.  
+</details>
+
+
+{{macros.collapsed_details('Stand Alone Mode', level='strong')}}
+
+**In Stand-alone Mode,** you can still use most of the features above but skip [the usual project integration](#embedding-tools-with-makefiles). 
+
+Highlighting just a few random use-cases, you can:
+
+* [Load compose files into TUIs](#loading-compose-files) with 1 shell per service,
+* [Syntax-highlight files](/docs/api/#iofilepreviewarg)
+* [Build JSON with jb](/docs/api#jb)
+* [Parse JSON with jq](/docs/api#jq)
+* [Clean, refactor, or port existing bash script](#) towards something that's easier to read and write.
+
+And lots more, all using local tools if available and falling back to dockerized tool-versions if necessary.
+</details>
+
+If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/docs/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
+
+{{macros.collapsed_details('But Why?', level='h3')}}
+
+There's many reasons why you might want these capabilities if you're working with tool-containers, builds, deploys, and complex task orchestration.  But why `make`?  People tend to have strong opions about this topic, and it's kind of a long story.
+
+The short version is this:
+
+1. Makefiles run practically everywhere and most people can read/write them.  
+1. They're also really good at describing DAGs, and lots of automation, but *especially life-cycle automation*, is a natural fit for this paradigm.  
+
+The only trouble is that **a)** *make has nothing like native support for tasks in containers*, and **b)** *describing the containers themselves is even further outside of its domain*.  Meanwhile, docker-compose is exactly the opposite.  
+
+Make & Compose are already a strong combination for this reason, and by adding some syntactic sugar using *compose.mk*, you can orchestrate make-targets across several containers without cluttering your host.  More than that.. you can also bootstrap surprisingly sophisticated and flexible automation-APIs with surprisingly little effort.  
+
+One reason this works so well is because with `make`, *the programmatic API basically <ins>is</ins> the CLI interface,* or to put it another way, once you have finished one of these you automatically have the other.
+
+If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
+
+</details>
+
+{% include "bridge.md" %}
+
+{% include "container-dispatch.md" %}
+
+{% include "macro-arguments.md" %}
+
+{% include "dispatch-syntax.md" %}
+
+{% include "multiple-compose-files.md" %}
+
+{% include "loadf.md" %}
+
+{% include "embedded-tui.md" %}
+
+{% include "signals.md" %}

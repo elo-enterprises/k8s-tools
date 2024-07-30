@@ -1,0 +1,8 @@
+site_name: k8s-tools
+nav:
+  - overview.md
+  - features.md
+  - compose.mk.md
+  - k8s.mk.md
+  - demos
+
