@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>KUBECONFIG should already be set &#8212; k8s-tools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <p>{{macros.collapsed_details(‘Known Limitations and Issues’, level=’h1’)}}</p>
+<section id="kubeconfig-should-already-be-set">
+<h1>KUBECONFIG should already be set<a class="headerlink" href="#kubeconfig-should-already-be-set" title="Link to this heading">¶</a></h1>
+<p>We fake it for builds/tests, but note that <strong><code class="docutils literal notranslate"><span class="pre">KUBECONFIG</span></code> generally must be set for things to work!</strong>  Sadly, lots of tools will fail even simple invocations like <code class="docutils literal notranslate"><span class="pre">helm</span> <span class="pre">version</span></code> or even <code class="docutils literal notranslate"><span class="pre">--help</span></code> if this is undefined or set incorrectly, and it will often crash with errors that aren’t very clear.</p>
+<p>Dealing with per-project KUBECONFIGs is best, where you can set that inside your project Makefile and be assured of no interference with your main environment.  Alternatively, use bashrc if you really want globals, or provide it directly as environment variable per invocation using something like <code class="docutils literal notranslate"><span class="pre">KUBECONFIG=..</span> <span class="pre">make</span> <span class="pre">&lt;target_name&gt;</span></code>.</p>
+</section>
+<section id="working-directories">
+<h1>Working Directories<a class="headerlink" href="#working-directories" title="Link to this heading">¶</a></h1>
+<p>By default, the compose file shares the working directory with containers it’s using as volumes.  <strong>This means files you’re using should be inside or somewhere below the working directory!</strong>  The compose file itself can be anywhere though, so instead of keeping it in your projects source-tree you can decide to deploy it separately to <code class="docutils literal notranslate"><span class="pre">/opt</span></code> or <code class="docutils literal notranslate"><span class="pre">~/.config</span></code></p>
+</section>
+<section id="general-argument-passing">
+<h1>General Argument Passing<a class="headerlink" href="#general-argument-passing" title="Link to this heading">¶</a></h1>
+<p>Unfortunately, there’s not a good way to convince <code class="docutils literal notranslate"><span class="pre">make</span></code> to just proxy arguments without parsing them.  <strong>For example <code class="docutils literal notranslate"><span class="pre">./k8s.mk</span> <span class="pre">kubectl</span> <span class="pre">apply</span> <span class="pre">-f</span></code> looks convenient, but it won’t work.</strong>  (It will instead parse <code class="docutils literal notranslate"><span class="pre">apply</span> <span class="pre">-f</span></code> as arguments to make.)</p>
+<p>The simplest workaround is to just use <code class="docutils literal notranslate"><span class="pre">cmd=&quot;apply</span> <span class="pre">...&quot;</span> <span class="pre">./k8s.mk</span> <span class="pre">kubectl</span></code>.  However if <a class="reference internal" href="#supervisors-and-signals"><span class="xref myst">supervisors and signals</span></a> are supported, then you can use the special form ‘ – ‘, as in “./k8s.mk kubectl – version –client”.  See also <a class="reference internal" href="#tests/Makefile.smoke-test-k8s.mk"><span class="xref myst">the smoke-tests</span></a>.</p>
+</section>
+<section id="docker-and-file-permissions">
+<h1>Docker and File Permissions<a class="headerlink" href="#docker-and-file-permissions" title="Link to this heading">¶</a></h1>
+<p>The usual problem with root-user-in-containers vs normal-user on host and file permissions.  The alpine base is a container using root, as are many other things.  And there is a long-standing <a class="reference external" href="https://github.com/compose-spec/compose-go/pull/299">known bug in the compose spec</a> that makes fixing this from the compose file hard.</p>
+<p>Invoking compose exclusively from a Makefile actually helps with this though.  By default with <a class="reference internal" href="#composemk"><span class="xref myst">compose.mk</span></a>, <code class="docutils literal notranslate"><span class="pre">DOCKER_UID</span> <span class="pre">|</span> <span class="pre">DOCKER_GID|</span> <span class="pre">DOCKER_UGNAME</span></code> variables are set and available for use in <a class="reference internal" href="#k8s-tools.yml"><span class="xref myst">k8s-tools.yml</span></a>.  This works slightly differently for Linux and MacOS, based on what messes things up the least, but YMMV.  With Linux, it looks something like this:</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="k">export </span><span class="nv">DOCKER_UID</span><span class="o">?=</span><span class="k">$(</span>shell<span class="w"> </span>id<span class="w"> </span>-u<span class="k">)</span>
+<span class="k">export </span><span class="nv">DOCKER_GID</span><span class="o">?=</span><span class="k">$(</span>shell<span class="w"> </span>getent<span class="w"> </span>group<span class="w"> </span>docker<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d:<span class="w"> </span>-f3<span class="w"> </span><span class="o">||</span><span class="w"> </span>id<span class="w"> </span>-g<span class="k">)</span>
+<span class="k">export </span><span class="nv">DOCKER_UGNAME</span><span class="o">?=</span>user
+</pre></div>
+</div>
+<p>If you’re not working with Makefiles at all, you can export appropriate values in .bashrc or .env files you use.  If none of this is appealing, and you mix host-local and dockerized usage of things like helm, then you may end up with weird file ownership.  You can fix this if it comes up using <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">chown</span> <span class="pre">-R</span> <span class="pre">$USER:$USER</span> <span class="pre">.</span></code>.</p>
+</section>
+<section id="macos-docker-sockets-and-dind">
+<h1>MacOS, Docker Sockets, and DinD<a class="headerlink" href="#macos-docker-sockets-and-dind" title="Link to this heading">¶</a></h1>
+<p>As long as docker is working, any kind of setup (Docker Desktop, Rancher Desktop, Colima) can work with <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> for container-dispatch.  But for working with <code class="docutils literal notranslate"><span class="pre">k8s-tools.yml</span></code> containers specifically, the docker-socket sharing <em>must also be working</em>.  If you’re having problems that might be related to this, first make sure that your setup can correctly run this command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span>-ti<span class="w"> </span>docker<span class="w"> </span>ps
+</pre></div>
+</div>
+<p>If the volume mount is working correctly, the result here should look the same as <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">ps</span></code> from your host.  If your docker socket is in a different place (like <code class="docutils literal notranslate"><span class="pre">~/.rd/docker.sock</span></code> for Rancher Desktop), you may need to symlink the file.</p>
+<p>MacOS Docker desktop can be especially annoying here, and it seems likely the same is true for windows.  YMMV, but as of 2024 sharing the socket may mean required changes from the UI preferences, and/or enabling/disabling virtualization backends.  Another way the problem can manifest is an error like this:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">You can configure shared paths from Docker -&gt; Preferences... -&gt; Resources -&gt; File Sharing.</span>
+<span class="na">See https</span><span class="o">:</span><span class="s">//docs.docker.com/desktop/mac for more info.</span>
+</pre></div>
+</div>
+<p>If you want better parity with docker in Linux, you might like to checkout Colima/Rancher.</p>
+</section>
+<section id="pipes-temp-files">
+<h1>Pipes &amp; Temp Files<a class="headerlink" href="#pipes-temp-files" title="Link to this heading">¶</a></h1>
+<p>Working with streaming pipes generates temporary files with <code class="docutils literal notranslate"><span class="pre">mktemp</span></code>, removing them when the process exits with <code class="docutils literal notranslate"><span class="pre">trap</span></code>.  Pure streams would be better.  Also in many cases tmp files need to be in the working directory, otherwise they can’t be shared by docker volumes.  Moving to a temp-dir based approach would be better.</p>
+</details></section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">k8s-tools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, robot-wranglers.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/limitations.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

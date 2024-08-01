@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>compose.mk &#8212; k8s-tools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="compose-mk">
+<h1>compose.mk<a class="headerlink" href="#compose-mk" title="Link to this heading">¶</a></h1>
+<p>A tool / library / automation framework for working with containers.  Also the biggest, baddest, and most highly-powered mutant Makefile you’re ever likely to see, although this aspect is generally safe to ignore unless you’re interested ;)</p>
+<ul class="simple">
+<li><p><strong>Library-mode</strong> extends <code class="docutils literal notranslate"><span class="pre">make</span></code> in a variety of ways, including support for working with containers (Docs: <a class="reference internal" href="#"><span class="xref myst">[1]</span></a>, <a class="reference internal" href="#"><span class="xref myst">[2]</span></a>, <a class="reference internal" href="#"><span class="xref myst">[3]</span></a>)</p></li>
+<li><p><strong>Stand-alone mode also available,</strong> i.e. a tool that requires no external Makefile / compose file. (Docs: <a class="reference internal" href="#"><span class="xref myst">[1]</span></a>)</p></li>
+<li><p><strong>Zero host-dependencies,</strong> as long as you have docker + make.  Even the <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">TUI backend</span></a> is dockerized.</p></li>
+<li><p><strong>Container-dependencies are minimal too,</strong> so that almost any base can work with <a class="reference internal" href="container-dispatch.html"><span class="doc std std-doc">container-dispatch</span></a>.</p></li>
+<li><p><strong>Built-in TUI framework</strong> that’s small but powerful.  (See the <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">Embedded TUI docs</span></a> and the <a class="reference internal" href="#api/#api-tux"><span class="xref myst">tux.* API</span></a>)</p></li>
+<li><p><strong>A minimal, elegant, and dependency-free approach to describing workflow pipelines</strong> (See the <a class="reference internal" href="#api/#api-flux"><span class="xref myst">flux.* API</span></a>)</p></li>
+</ul>
+<p>In many ways, <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> breaks all the rules that you can imagine for how you are <em>supposed</em> to use Makefiles, starting with the fact that it weighs in at ~3.5k lines.  But there’s method to this madness, and hopefully you’ll agree that the juice is worth the squeeze!</p>
+<p>Code-to-comment ratios throughout are roughly 1:1, and although it’s not practical to measure code-coverage, <a class="reference internal" href="#tests/"><span class="xref myst">the test-suite</span></a> is pretty extensive.  The single-file approach used with <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> makes it easy to embed, and the API is quickly approaching a “frozen” status.  <a class="reference internal" href="contributing.html"><span class="doc std std-doc">Hacking is generally encouraged</span></a>, and users can feel free to rip out any parts of <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> they don’t want or need.  With minor modifications, it’s also easy to concatenate <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> and <code class="docutils literal notranslate"><span class="pre">k8s.mk</span></code> and use that, keeping one more piece of boilerplate out of your project repository.</p>
+<p>#}
+<strong>Library Mode:</strong></p>
+<p>In library-mode, <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> is used as an <code class="docutils literal notranslate"><span class="pre">include</span></code> from your project Makefile.  With that as a starting place, you can <strong><a class="reference internal" href="#makecompose-bridge"><span class="xref myst">build a bridge between docker-compose services and make-targets</span></a></strong> and use <a class="reference internal" href="container-dispatch.html"><span class="doc std std-doc"><strong>minimum viable patterns for container-dispatch.</strong></span></a>.  The main macro is called <em><code class="docutils literal notranslate"><span class="pre">compose.import</span></code></em>, which can be used/included from any Makefile, used with any compose file, and <a class="reference internal" href="multiple-compose-files.html"><span class="doc std std-doc">used with <em>multiple</em> compose files</span></a>.</p>
+<p>Besides support for compose-files, <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> has many other features that extend the core capabilities of make, plus a *<a class="reference internal" href="#composemk-api"><span class="xref myst">curated collection of reusable utility targets</span></a>.  Here’s an overview:</p>
+<ul class="simple">
+<li><p>🚀 <strong>Executable file:</strong> <code class="docutils literal notranslate"><span class="pre">./compose.mk</span> <span class="pre">...</span>&#160; <span class="pre">&lt;==&gt;</span> <span class="pre">make</span> <span class="pre">-f</span> <span class="pre">compose.mk</span> <span class="pre">...</span></code></p></li>
+<li><p>Built-in supervisor process, <a class="reference internal" href="#signals-and-supervisors"><span class="xref myst">improving support for signal handling</span></a>.</p></li>
+<li><p><a class="reference internal" href="#api/#api-flux"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">flux.*</span></code> targets:</strong></span></a> A tiny but powerful workflow/pipelining API, roughly comparable to something like <a class="reference external" href="https://www.jenkins.io/doc/book/pipeline/syntax/">declarative pipelines in Jenkins</a>.  This provides composable concurrency &amp; staging operators, where the primitives are usually make-target names.</p></li>
+<li><p><a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc"><strong><code class="docutils literal notranslate"><span class="pre">tux.*</span></code> targets:</strong></span></a> Control-surface for a tmux-backed console geometry manager.</p>
+<ul>
+<li><p><strong>No host dependencies.</strong> This uses the <code class="docutils literal notranslate"><span class="pre">compose.mk:tux</span></code> tool container to dockerize tmux itself.</p></li>
+<li><p><strong>Supports docker-in-docker style host-socket sharing with zero configuration,</strong> so your TUI can generally do all the same container orchestration tasks as the docker host.</p></li>
+<li><p>Open split-screen displays, shelling into 1 or more of the tool containers in k8s-tools.yml (or any other compose file).</p></li>
+<li><p>Combines well with <code class="docutils literal notranslate"><span class="pre">flux.*</span></code> targets to quickly create dashboards / custom development environments.</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#api/#api-stream"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">stream.*</span></code>:</strong></span></a> Support for working with streams, including newline/comma/space delimited streams, common use cases with JSON, etc.  Everything here is used with pipes, and reads from stdin.  It’s not what you’d call “typed”, but it reduces error-prone parsing and moves a little bit closer to structured data.</p></li>
+<li><p><a class="reference internal" href="#api/#api-io"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">io.*</span></code>:</strong></span></a> Misc. utilities for printing, formatting, timers, etc.</p></li>
+<li><p><a class="reference internal" href="#api/#api-docker"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">docker.*</span></code>:</strong></span></a> An interface for working with docker.</p></li>
+<li><p><a class="reference internal" href="#api/#api-docker"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">mk.*</span></code>:</strong></span></a> Meta-tooling for ‘make’ itself. This enables help functions, signals and supervisors, some utilities for reflection, etc.</p></li>
+<li><p><a class="reference internal" href="#api/#api-docker"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">compose.*</span></code>:</strong></span></a> An interface for working with compose.</p></li>
+</ul>
+</details>
+<p>#}
+<strong>Stand Alone Mode</strong></p>
+<p><strong>In Stand-alone Mode,</strong> you can still use most of the features above but skip <a class="reference internal" href="#embedding-tools-with-makefiles"><span class="xref myst">the usual project integration</span></a>.</p>
+<p>Highlighting just a few random use-cases, you can:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#loading-compose-files"><span class="xref myst">Load compose files into TUIs</span></a> with 1 shell per service,</p></li>
+<li><p><a class="reference internal" href="#api//#iofilepreviewarg"><span class="xref myst">Syntax-highlight files</span></a></p></li>
+<li><p><a class="reference internal" href="#api/#jb"><span class="xref myst">Build JSON with jb</span></a></p></li>
+<li><p><a class="reference internal" href="#api/#jq"><span class="xref myst">Parse JSON with jq</span></a></p></li>
+<li><p><a class="reference internal" href="#"><span class="xref myst">Clean, refactor, or port existing bash script</span></a> towards something that’s easier to read and write.</p></li>
+</ul>
+<p>And lots more, all using local tools if available and falling back to dockerized tool-versions if necessary.</p>
+</details>
+<p>If you prefer to learn from examples, you might want to just <a class="reference internal" href="#makecompose-bridge"><span class="xref myst">get started</span></a> or skip to the main <a class="reference internal" href="#/docs/demos#demo-cluster-automation"><span class="xref myst">cluster automation demo</span></a> or to a <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">tui demo</span></a>.  If you’re the type that needs to hear the motivation first, read on in the next section.</p>
+<p>#}</p>
+<h3>But Why?</h3>
+<p>There’s many reasons why you might want these capabilities if you’re working with tool-containers, builds, deploys, and complex task orchestration.  But why <code class="docutils literal notranslate"><span class="pre">make</span></code>?  People tend to have strong opions about this topic, and it’s kind of a long story.</p>
+<p>The short version is this:</p>
+<ol class="arabic simple">
+<li><p>Makefiles run practically everywhere and most people can read/write them.</p></li>
+<li><p>They’re also really good at describing DAGs, and lots of automation, but <em>especially life-cycle automation</em>, is a natural fit for this paradigm.</p></li>
+</ol>
+<p>The only trouble is that <strong>a)</strong> <em>make has nothing like native support for tasks in containers</em>, and <strong>b)</strong> <em>describing the containers themselves is even further outside of its domain</em>.  Meanwhile, docker-compose is exactly the opposite.</p>
+<p>Make &amp; Compose are already a strong combination for this reason, and by adding some syntactic sugar using <em>compose.mk</em>, you can orchestrate make-targets across several containers without cluttering your host.  More than that.. you can also bootstrap surprisingly sophisticated and flexible automation-APIs with surprisingly little effort.</p>
+<p>One reason this works so well is because with <code class="docutils literal notranslate"><span class="pre">make</span></code>, <em>the programmatic API basically <ins>is</ins> the CLI interface,</em> or to put it another way, once you have finished one of these you automatically have the other.</p>
+<p>If you’re interested in the gory details of a longer-format answer, see <a class="reference internal" href="#docs/but-why.md"><span class="xref myst">the Design Philosophy docs</span></a>.</p>
+</details>
+<p>#}</p>
+<h3>Make/Compose Bridge</h3>
+<p><em><code class="docutils literal notranslate"><span class="pre">compose.mk</span></code></em> provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.</p>
+<p>Let’s set aside the tool containers described inside k8s-tools.yml for now and walk through a much more minimal example, starting with a hypothetical compose file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># example docker-compose.yml</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">debian</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">debian</span>
+<span class="w">  </span><span class="nt">alpine</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpine</span><span class="w"> </span>
+</pre></div>
+</div>
+<p>Next, the Makefile.  To generate make-targets for every service in the given compose file, we just need to import the <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> macro and call it.</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># Inside your project Makefile</span>
+<span class="cp">include compose.mk</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">TRUE</span>, <span class="nv">docker-compose.yml</span><span class="k">))</span>
+</pre></div>
+</div>
+<p>The arguments <em><code class="docutils literal notranslate"><span class="pre">(▰,</span> <span class="pre">TRUE)</span></code></em> above allow for control of namespacing and syntax.  <em>(More on that later in the <a class="reference internal" href="macro-arguments.html"><span class="doc std std-doc">Macro Arguments section</span></a>.)</em>  The final argument is just the (unquoted) name of the file you want to import services from.</p>
+<p>That’s it for the Make/Compose boilerplate, but we already have lots of interoperability.</p>
+</details>
+<p>#}</p>
+<h3>Dynamic API</h3>
+<p>In general, the autogenerated targets created by <a class="reference internal" href="#make-compose-bridge"><span class="xref myst">the bridge described above</span></a> fall into these categories:</p>
+<p>Assuming <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> was allowed to import to the root namespace:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#target-svc_name"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code></strong></span></a></p></li>
+<li><p><a class="reference internal" href="#target-svc_nameshell"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/shell</strong></span></a></p></li>
+<li><p><a class="reference internal" href="#target-svc_nameshellpipe"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/shell/pipe</strong></span></a></p></li>
+<li><p><a class="reference internal" href="#target-svc_namespecial"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/get_shell</strong></span></a></p></li>
+</ul>
+<p>Assuming <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> was used at all:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#target-compose_stemspecial"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;</span></code>.services</strong></span></a></p></li>
+<li><p><a class="reference internal" href="#target-compose_stemspecial"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;</span></code>.build</strong></span></a></p></li>
+<li><p><a class="reference internal" href="#target-compose_stemspecial"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;</span></code>.clean</strong></span></a></p></li>
+<li><p><a class="reference internal" href="#target-svc_nameshell"><span class="xref myst"><strong><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;</span></code>/<code class="docutils literal notranslate"><span class="pre">&lt;svc&gt;</span></code></strong></span></a></p></li>
+</ul>
+<p>See the sections below for more concrete examples.</p>
+<section id="svc-name-shell">
+<h2><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/shell</strong><a class="headerlink" href="#svc-name-shell" title="Link to this heading">¶</a></h2>
+<p>The <strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/shell</strong> target drops to a containter shell for the named service, and is usually interactive.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Interactive shell on debian container</span>
+$<span class="w"> </span>make<span class="w"> </span>debian/shell
+
+<span class="c1"># Interactive shell on &quot;alpine&quot; container</span>
+$<span class="w"> </span>make<span class="w"> </span>alpine/shell
+</pre></div>
+</div>
+<img src="img/demo-bridge-shell.gif">
+<hr class="docutils" />
+</section>
+<section id="svc-name-shell-pipe">
+<h2><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/shell/pipe</strong><a class="headerlink" href="#svc-name-shell-pipe" title="Link to this heading">¶</a></h2>
+<p>The <strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/shell/pipe</strong> target allows streaming data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stream commands into debian container</span>
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>uname<span class="w"> </span>-n<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>make<span class="w"> </span>debian/shell/pipe
+
+<span class="c1"># Equivalent to above, since the debian image&#39;s default entrypoint is bash</span>
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>uname<span class="w"> </span>-n<span class="w"> </span>-v<span class="w"> </span><span class="p">|</span><span class="w"> </span>make<span class="w"> </span>debian/pipe
+
+<span class="c1"># Streams command input / output between containers</span>
+<span class="nb">echo</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>hello-world<span class="w"> </span><span class="p">|</span><span class="w"> </span>make<span class="w"> </span>alpine/pipe<span class="w"> </span><span class="p">|</span><span class="w"> </span>make<span class="w"> </span>debian/pipe
+</pre></div>
+</div>
+<img src="img/demo-bridge-stream.gif">
+<hr class="docutils" />
+</section>
+<section id="svc-name">
+<h2><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code></strong><a class="headerlink" href="#svc-name" title="Link to this heading">¶</a></h2>
+<p>The top-level <strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code></strong> target is more generic and can be used without arguments, or with optional explicit overrides for the compose-service defaults.  Usually this isn’t used directly, but it’s sometimes useful to call from automation.  Indirectly, most other targets are implemented using this target.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Runs an arbitrary command on debian container (overriding compose defaults)</span>
+$<span class="w"> </span><span class="nv">entrypoint</span><span class="o">=</span>ls<span class="w"> </span><span class="nv">cmd</span><span class="o">=</span><span class="s1">&#39;-l&#39;</span><span class="w"> </span>make<span class="w"> </span>debian
+
+<span class="c1"># Streams data into an arbitrary command on alpine container</span>
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>hello<span class="w"> </span>world<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nv">pipe</span><span class="o">=</span>yes<span class="w"> </span><span class="nv">entrypoint</span><span class="o">=</span>cat<span class="w"> </span><span class="nv">cmd</span><span class="o">=</span><span class="s1">&#39;/dev/stdin&#39;</span><span class="w"> </span>make<span class="w"> </span>alpine
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+<section id="svc-name-special">
+<h2><strong><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;</span></code>/<code class="docutils literal notranslate"><span class="pre">&lt;special&gt;</span></code></strong><a class="headerlink" href="#svc-name-special" title="Link to this heading">¶</a></h2>
+<p>Besides targets for working <em>with</em> services there are targets for answering questions <em>about</em> services.</p>
+<p>The <em><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;/get_shell</span></code></em> targets answers what shell can be used as an entrypoint for the container. Usually this is <code class="docutils literal notranslate"><span class="pre">bash</span></code>, <code class="docutils literal notranslate"><span class="pre">sh</span></code>, or an error, but when there’s an answer you’ll get it in the form of an absolute path.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span>debian/get_shell
+/bin/bash
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+<section id="compose-stem-svc">
+<h2><strong><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;/&lt;svc&gt;</span></code></strong><a class="headerlink" href="#compose-stem-svc" title="Link to this heading">¶</a></h2>
+<p>Namespaced aliases are also available. Due to the file-stem of the compose file we imported, all of the stuff above will work on targets like you see below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span>docker-compose/debian
+$<span class="w"> </span>make<span class="w"> </span>docker-compose/debian/shell
+</pre></div>
+</div>
+<p>Note that if <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> uses a file name like <code class="docutils literal notranslate"><span class="pre">k8s-tools.yml</span></code> instead, the namespace is <em><code class="docutils literal notranslate"><span class="pre">k8s-tools/&lt;svc_name&gt;</span></code></em>.</p>
+<hr class="docutils" />
+</section>
+<section id="compose-stem-cmd">
+<h2><strong><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;</span></code>.<code class="docutils literal notranslate"><span class="pre">&lt;cmd&gt;</span></code></strong><a class="headerlink" href="#compose-stem-cmd" title="Link to this heading">¶</a></h2>
+<p>Besides targets for working with compose-services, some targets work on the compose file itself.  Assuming your compose file is named <code class="docutils literal notranslate"><span class="pre">docker-compose.yml</span></code>, the special targets work like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build (equivalent to `docker compose -f docker-compose.yml build`)</span>
+make<span class="w"> </span>docker-compose.build
+
+<span class="c1"># Build (equivalent to `docker compose -f docker-compose.yml stop`)</span>
+make<span class="w"> </span>docker-compose.stop
+
+<span class="c1"># Clean (equivalent to `docker compose -f docker-compose.yml down --remove-orphans`)</span>
+make<span class="w"> </span>docker-compose.clean
+
+<span class="c1"># List all services defined for file (Array of strings, xargs-friendly)</span>
+make<span class="w"> </span>docker-compose.services
+</pre></div>
+</div>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;.services</span></code> target, it’s easy to map a command onto every container.  Try something like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span>docker-compose.services<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-n1<span class="w"> </span>-I%<span class="w"> </span>sh<span class="w"> </span>-x<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;echo uname -n |make docker-compose/%/shell/pipe&quot;</span>
+</pre></div>
+</div>
+</details>
+<p>#}</p>
+<h3>Make/Compose Bridge with k8s-tools.yml</h3>
+<p>This repo’s <a class="reference download internal" download="" href="_downloads/b67911656ef5d18c4ae36cb6741b7965/Makefile"><span class="xref download myst">Makefile</span></a> uses compose.mk macros to load services from <a class="reference internal" href="#k8s-tools.yml"><span class="xref myst">k8s-tools.yml</span></a>, so that <a class="reference internal" href="#tools-via-make"><span class="xref myst">the targets available at the project root</span></a> are similar to the ones above, but will use names like <em><code class="docutils literal notranslate"><span class="pre">k8s,</span> <span class="pre">kubectl,</span> <span class="pre">k3d</span></code></em> instead of <em><code class="docutils literal notranslate"><span class="pre">debian,</span> <span class="pre">alpine</span></code></em>, and will use <em><code class="docutils literal notranslate"><span class="pre">k8s-tools/</span></code></em> prefixes instead of <em><code class="docutils literal notranslate"><span class="pre">docker-compose/</span></code></em> prefixes.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span>k8s-tools.services
+ansible
+argo
+awscli
+aws-iam-authenticator
+cdk
+dind
+eksctl
+fission
+graph-easy
+gum
+helm
+helm-diff
+helmify
+helm-push
+helm-unittest
+jq
+k3d
+k8s
+k9s
+kind
+kn
+kompose
+krew
+kubeconform
+kubectl
+kubefwd
+kubeseal
+kustomize
+lazydocker
+promtool
+rancher
+tui
+vals
+yq
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>k3d<span class="w"> </span>--version<span class="w"> </span><span class="p">|</span><span class="w"> </span>make<span class="w"> </span>k8s-tools/k3d/shell/pipe<span class="w"> </span>
+k3d<span class="w"> </span>version<span class="w"> </span>v5.6.3
+k3s<span class="w"> </span>version<span class="w"> </span>v1.28.8-k3s1<span class="w"> </span><span class="o">(</span>default<span class="o">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span>k8s/shell
+⇒<span class="w"> </span>k8s-tools/k8s/shell<span class="w"> </span><span class="o">(</span><span class="nv">entrypoint</span><span class="o">=</span>/bin/bash<span class="o">)</span>
+▰<span class="w"> </span>//<span class="w"> </span>k8s-tools<span class="w"> </span>//<span class="w"> </span>k8s<span class="w"> </span>container
+▰<span class="w"> </span><span class="o">[</span>/bin/bash<span class="o">]</span><span class="w"> </span>⋘<span class="w"> </span>&lt;interactive&gt;
+k8s-base:/workspace$<span class="w"> </span>
+</pre></div>
+</div>
+<p>See also the <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">TUI docs</span></a> for examples of opening up multiple container-shells inside a split-screen display.</p>
+</details>
+<p>#}</p>
+<h3>Container Dispatch</h3>
+<p>Let’s look at a more complicated example where we want to use make to dispatch commands <em>into</em> the compose-service containers.  For this we’ll have to change the boilerplate somewhat as we add more functionality.</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># Makefile (make sure you have real tabs, not spaces)</span>
+
+<span class="cp">include compose.mk</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">TRUE</span>, <span class="nv">docker-compose.yml</span><span class="k">))</span>
+
+<span class="c"># New target declaration that we can use to run stuff</span>
+<span class="c"># inside the `debian` container.  The syntax conventions</span>
+<span class="c"># are configured by the `compose.import` call we used above.</span>
+<span class="nf">demo</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span>
+
+<span class="c"># Displays platform info to show where target is running.</span>
+<span class="c"># Since this target is intended to be private, we will </span>
+<span class="c"># prefix &quot;self&quot; to indicate it should not run on host.</span>
+<span class="nf">self.demo</span><span class="o">:</span>
+<span class="w">	</span><span class="nb">source</span><span class="w"> </span>/etc/os-release<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$$</span><span class="s2">{PRETTY_NAME}\n&quot;</span>
+<span class="w">	</span>uname<span class="w"> </span>-n<span class="w"> </span>-v
+</pre></div>
+</div>
+<p>The example above demonstrates another automatically generated target that uses some special syntax: <code class="docutils literal notranslate"><span class="pre">▰/&lt;svc_name&gt;/&lt;target_to_dispatch&gt;</span></code>.  This is just syntactic sugar that says that running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">demo</span></code> on the host runs <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">self.demo</span></code> on the debian container.  Calling the top-level target looks like this:</p>
+<img src="img/demo-dispatch.gif">
+<p>What just happend?  If we unpack the syntactic sugar even more, you could say that the following are roughly equivalent:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># pithy invocation with compose.mk</span>
+$<span class="w"> </span>make<span class="w"> </span>demo
+
+<span class="c1"># the verbose alternative invocation</span>
+$<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>run<span class="w"> </span>--entrypoint<span class="w"> </span>bash<span class="w"> </span>debian<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;make self.demo&quot;</span>
+</pre></div>
+</div>
+<p>Let’s add another target to demonstrate dispatch for multiple containers:</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># Makefile (make sure you have real tabs, not spaces)</span>
+
+<span class="cp">include compose.mk</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">TRUE</span>, <span class="nv">docker-compose.yml</span><span class="k">))</span>
+
+<span class="c"># User-facing top-level target, with two dependencies</span>
+<span class="nf">demo-double-dispatch</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span> ▰/<span class="n">alpine</span>/<span class="n">self</span>.<span class="n">demo</span>
+
+<span class="c"># Displays platform info to show where target is running.</span>
+<span class="c"># Since this target is intended to be private, we will </span>
+<span class="c"># prefix &quot;self&quot; to indicate it should not run on host.</span>
+<span class="nf">self.demo</span><span class="o">:</span>
+<span class="w">	</span><span class="nb">source</span><span class="w"> </span>/etc/os-release<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$$</span><span class="s2">{PRETTY_NAME}\n&quot;</span>
+<span class="w">	</span>uname<span class="w"> </span>-n<span class="w"> </span>-v
+</pre></div>
+</div>
+<p>The <em><code class="docutils literal notranslate"><span class="pre">self</span></code></em> prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:</p>
+<img src="img/demo-double-dispatch.gif">
+<p>Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># pithy invocation with compose.mk</span>
+$<span class="w"> </span>make<span class="w"> </span>demo-double-dispatch<span class="w"> </span>
+
+<span class="c1"># verbose, fragile alternative</span>
+$<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>run<span class="w"> </span>--entrypoint<span class="w"> </span>bash<span class="w"> </span>debian<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;make self.demo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>run<span class="w"> </span>--entrypoint<span class="w"> </span>bash<span class="w"> </span>alpine<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;make self.demo&quot;</span>
+</pre></div>
+</div>
+<p><ins><strong>This simple pattern for dispatching targets in containers is the main feature of <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> as a library, and it’s surprisingly powerful.</strong></ins>  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you’re interested in a demo of how you can use this with k8s-tools.yml, you can skip to <a class="reference internal" href="#cluster-automation-demo"><span class="xref myst">this section</span></a>.</p>
+<p>Container-dispatch with <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> can also autodetect what shell to use with the container (via the <a class="reference internal" href="#target-svc_namespecial"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">&lt;svc_name&gt;/get_shell</span></code> target</span></a>).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See <a class="reference external" href="https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html">docs for <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">--reconn</span></code></a> to learn more about dry-runs).  If you are thoughtful about the ways that you’re using volumes and file state, you can also consider using <a class="reference external" href="https://www.gnu.org/software/make/manual/make.html#Parallel-Execution"><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">--jobs</span></code> for parallel execution</a>.</p>
+<p><strong>To make this work as expected though, we do have to add more stuff to the compose file.</strong>  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, <strong>if the subtarget is going to run on the container, the container needs to at least have:</strong>  <code class="docutils literal notranslate"><span class="pre">make</span></code>, <code class="docutils literal notranslate"><span class="pre">bash</span></code> (or whatever shell the Makefile uses), and a volume mount to read the <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1">##</span>
+<span class="c1"># tests/docker-compose.yml: </span>
+<span class="c1">#  A minimal compose file that works with target dispatch</span>
+<span class="c1">##</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">debian</span><span class="p">:</span><span class="w"> </span><span class="nl">&amp;base</span>
+<span class="w">    </span><span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">debian</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">      </span><span class="nt">dockerfile_inline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">FROM debian</span>
+<span class="w">        </span><span class="no">RUN apt-get update &amp;&amp; apt-get install -y make procps</span>
+<span class="w">    </span><span class="nt">entrypoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
+<span class="w">    </span><span class="nt">working_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/workspace</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${PWD}:/workspace</span>
+<span class="w">  </span><span class="nt">ubuntu</span><span class="p">:</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">&lt;&lt;</span><span class="p">:</span><span class="w"> </span><span class="nv">*base</span>
+<span class="w">    </span><span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">      </span><span class="nt">dockerfile_inline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">FROM ubuntu</span>
+<span class="w">        </span><span class="no">RUN apt-get update &amp;&amp; apt-get install -y make procps</span>
+<span class="w">  </span><span class="nt">alpine</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">&lt;&lt;</span><span class="p">:</span><span class="w"> </span><span class="nv">*base</span>
+<span class="w">    </span><span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpine</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">      </span><span class="nt">dockerfile_inline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">FROM alpine</span>
+<span class="w">        </span><span class="no">RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng</span>
+</pre></div>
+</div>
+<p>The debian/alpine compose file above and most of the interfaces described so far are all exercised inside <a class="reference internal" href="#tests/"><span class="xref myst">this repo’s test suite</span></a>.</p>
+</details>
+<p>#}</p>
+<h3>Macro Arguments</h3>
+<p>Make isn’t big on named-arguments, so let’s unpack the typical <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> macro invocation.</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="cp">include compose.mk</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">TRUE</span>, <span class="nv">docker-compose.yml</span><span class="k">))</span>
+</pre></div>
+</div>
+<p><strong>The 1st argument for <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> is called <code class="docutils literal notranslate"><span class="pre">target_namespace</span></code></strong>.  You can swap the unicode for <code class="docutils literal notranslate"><span class="pre">▰</span></code> out, opting instead for different symbols, path-like prefixes, whatever.  If you’re bringing in services from several compose files, one way to control syntax and namespacing is to use different symbols for different calls to <code class="docutils literal notranslate"><span class="pre">compose.import</span></code>.  (For a 2-file example, see the <a class="reference internal" href="multiple-compose-files.html"><span class="doc std std-doc">Multiple Compose Files</span></a> section.)</p>
+<p><strong>The 2nd argument for <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> controls whether service names are available as top-level Makefile targets.</strong>  The only value that means True is <em><code class="docutils literal notranslate"><span class="pre">TRUE</span></code></em>, because Make isn’t big on bool types.  Regardless of the value here, service targets are always under <code class="docutils literal notranslate"><span class="pre">&lt;compose_file_stem&gt;/&lt;compose_service_name&gt;</span></code>.</p>
+<p><strong>The last argument for <code class="docutils literal notranslate"><span class="pre">compose.import</span></code> is the compose-file to load services from.</strong>  It will be tempting to quote this and the other arguments, but that won’t work, so resist the urge!</p>
+</details>
+<p>#}</p>
+<h3>Container Dispatch Syntax/Semantics</h3>
+<p>Let’s look at the container-dispatch example in more detail.  This isn’t a programming language you’ve never seen before, it’s just a (legal) Makefile that uses unicode symbols in some of the targets.</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># A target that runs stuff inside the `debian` container, runs from host using `make demo`</span>
+<span class="nf">demo</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span>
+
+<span class="c"># Dispatching 1 target to 2 containers looks like this</span>
+<span class="nf">demo-dispatch</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span> ▰/<span class="n">alpine</span>/<span class="n">self</span>.<span class="n">demo</span>
+
+<span class="c"># Displays platform info to show where target is running.</span>
+<span class="nf">self.demo</span><span class="o">:</span>
+<span class="w">	</span><span class="nb">source</span><span class="w"> </span>/etc/os-release<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$$</span><span class="s2">{PRETTY_NAME}\n&quot;</span>
+<span class="w">	</span>uname<span class="w"> </span>-n<span class="w"> </span>-v
+</pre></div>
+</div>
+<p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won’t collide with existing file paths or targets.  Using the <em><code class="docutils literal notranslate"><span class="pre">self</span></code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code class="docutils literal notranslate"><span class="pre">self</span></code></em> hopefully implies internal/private, and it’s not easy to type the weird characters at the command line.  So users likely won’t think to call anything except <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">demo</span></code>.  For people reading the code, the visual hints make it easy to understand what’s at the top-level.</p>
+<p>But what about the semantics?  In this example, the user-facing <code class="docutils literal notranslate"><span class="pre">demo</span></code> target depends on <code class="docutils literal notranslate"><span class="pre">▰/debian/demo</span></code>, which isn’t really a target as much as a declaration.  The declaration means the <em>private</em> target <code class="docutils literal notranslate"><span class="pre">self.demo</span></code>, will be executed inside the <code class="docutils literal notranslate"><span class="pre">debian</span></code> container that the compose file defines.  <em>Crucially, the <code class="docutils literal notranslate"><span class="pre">self.demo</span></code> target can use tools the host doesn’t have, stuff that’s only available in the tool container.</em></p>
+<p>Look, no <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span> <span class="pre">..</span></code> clutter littered everywhere!  Ok, yeah, it’s still kind of a weird CI/CD DSL, but the conventions are simple and it’s not locked inside Jenkins or github =)</p>
+<p>Under the hood, dispatch is implemented by building on the <a class="reference internal" href="#makecompose-bridge"><span class="xref myst">default targets that are provided by the bridge</span></a>.</p>
+</details>
+<p>#}</p>
+<h3>Multiple Compose Files</h3>
+<p>This can be easily adapted for working with <em>multiple</em> compose files, but you’ll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># Makefile (Make sure you have real tabs, not spaces!)</span>
+
+<span class="c"># Load 1st compose file under paralleogram namespace,</span>
+<span class="c"># Load 2nd compose file under triangle namespace</span>
+<span class="cp">include compose.mk</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">FALSE</span>, <span class="nv">my-compose-files</span>/<span class="nv">build-tools.yml</span><span class="k">))</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▲, <span class="nv">FALSE</span>, <span class="nv">my-compose-files</span>/<span class="nv">cluster-tools.yml</span><span class="k">))</span>
+
+<span class="c"># Top-level &quot;build&quot; target that dispatches subtargets</span>
+<span class="c"># &quot;build-code&quot; and &quot;build-cluster&quot; on different containers</span>
+<span class="nf">build</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">maven</span>/<span class="n">build</span>.<span class="n">code</span> ▲/<span class="n">kubectl</span>/<span class="n">build</span>.<span class="n">cluster</span>
+<span class="nf">build.cluster</span><span class="o">:</span>
+<span class="w">  </span>kubectl<span class="w"> </span>..<span class="w"> </span>
+<span class="nf">build.code</span><span class="o">:</span>
+<span class="w">  </span>maven<span class="w"> </span>...
+</pre></div>
+</div>
+<p>There’s lots of ways to use this.  And if your service names across 2 files do not collide, you are free to put everything under exactly the same namespace.  It’s only syntax, but if you choose the conventions wisely then it will probably help you to think and to read whatever you’re writing.</p>
+<p>Confused about what targets are available after using <code class="docutils literal notranslate"><span class="pre">compose.import</span></code>?  See the <a class="reference internal" href="#target-compose_stemcmd"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">&lt;compose_stem&gt;.services</span></code></span></a> for list services, and check out the <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">help</span></code> output.</p>
+</details>
+<p>#}</p>
+<h3>Loading Compose Files</h3>
+<p>For the simplest use-cases where you have a compose-file, and want some of the compose.mk features, but don’t have a project makefile, it’s possible to skip some of the steps in the <a class="reference internal" href="#embedding-tools-with-makefiles"><span class="xref myst">usual integration</span></a> by letting <code class="docutils literal notranslate"><span class="pre">loadf</span></code> generate integration for you just in time.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./compose.mk<span class="w"> </span>loadf<span class="w"> </span>&lt;path_to_compose_file&gt;<span class="w"> </span>&lt;other_instructions&gt;
+</pre></div>
+</div>
+<p>Since <code class="docutils literal notranslate"><span class="pre">make</span></code> can’t modify available targets from inside recipes, this basically works by creating temporary files that use the <a class="reference internal" href="macro-arguments.html"><span class="doc std std-doc">compose.import macro</span></a> on the given compose file, then proxying subsequent CLI arguments over to <em>that</em> automation.  When no other instructions are provided, the default is to <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">open container shells in the TUI</span></a>.</p>
+<p><a href=img/tui-3.gif><img src=img/tui-3.gif></a></p>
+<p>Actually any type of instructions you pass will get the compose-file context, so you can use any of the other targets documented as <a class="reference internal" href="#make-compose-bridge"><span class="xref myst">part of the bridge</span></a> or the <a class="reference internal" href="#api/#api-compose.mk"><span class="xref myst">static targets</span></a>.  For example:</p>
+<p><a href=img/tui-4.gif><img src=img/tui-4.gif></a></p>
+<p>Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">Embedded TUI</span></a> docs for other examples that are using <code class="docutils literal notranslate"><span class="pre">loadf</span></code>.</p>
+</details>
+<p>#}</p>
+<h3>Embedded TUI</h3>
+<table align=center width=95%>
+    <tr>
+        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-4.gif"><img width="200px" src="img/tui-4.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-6.gif"><img width="200px" src="img/tui-6.gif"></a></p></td>
+    </tr>
+    <tr>
+        <td><p align="center"><a href="img/tui-2.gif"><img width="200px" src="img/tui-2.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-3.gif"><img width="200px" src="img/tui-3.gif"></a></p></td>
+        <td><p align="center"><a href="img/tui-5.gif"><img width="200px" src="img/tui-5.gif"></a></p></td>
+    </tr>
+</table>
+<p>The basic components of the TUI are things like <a class="reference external" href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, <a class="reference external" href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a class="reference external" href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a class="reference external" href="https://github.com/tmux-plugins/tpm">plugins</a>, <a class="reference internal" href="#tui-keybindings"><span class="xref myst">keybindings</span></a>, etc.  These elements (plus other niceties like <a class="reference external" href="https://github.com/charmbracelet/gum">gum</a> and <a class="reference external" href="https://hpjansson.org/chafa/">chafa</a>) are all setup in the embedded <code class="docutils literal notranslate"><span class="pre">compose.mk:tux</span></code> container so that there are no host requirements for any of this except docker.</p>
+<img src=img/tui-5.gif>
+<p>How does this work?  The behaviour above relies on a few things.  First, the <code class="docutils literal notranslate"><span class="pre">compose.mk:tux</span></code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.</p>
+<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that’s running inside it.  By combining the TUI with the <a class="reference internal" href="#loading-compose-files"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">loadf</span></code> target,</span></a> you can leverage existing compose files but skip <a class="reference internal" href="#embedding-tools-with-makefiles"><span class="xref myst">the usual integration with a project Makefile</span></a>.</p>
+<img src=img/tui-1.gif>
+<p>One way to look at the TUI is that it’s just a way of mapping make-targets into tmux panes.  So you don’t actually have to use targets that are related to containers.</p>
+<img src=img/tui-2.gif>
+<p>#}</p>
+<h4>TUI Keybindings</h4>
+<p>| —————- | —————————————————— |
+| Escape           | <em>Exit TUI</em>                                             |
+| Ctrl b |         | <em>Split pane vertically</em>                                |
+| Ctrl b -         | <em>Split pane horizontally</em>                              |
+| Alt t            | <em>Shuffle pane layout</em>                                  |
+| Alt ^            | <em>Grow pane up</em>                                         |
+| Alt v            | <em>Grow pane down</em>                                       |
+| Alt &lt;            | <em>Grow pane left</em>                                       |
+| Alt &gt;            | <em>Grow pane right</em>                                      |
+| Alt <left>       | <em>Grow pane left</em>                                       |
+| Alt <right>      | <em>Grow pane right</em>                                      |
+| Alt <up>         | <em>Grow pane up</em>                                         |
+| Alt <down>       | <em>Grow pane down</em>                                       |
+| Alt-1            | <em>Select pane 1</em>                                        |
+| Alt-2            | <em>Select pane 2</em>                                        |
+| …              | <em>…</em>                                                  |</p>
+</details>
+</details>
+<p>#}</p>
+<h3>Signals and Supervisors</h3>
+</section>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading">¶</a></h2>
+<p>Without <a class="reference external" href="https://remake.readthedocs.io/en/latest/">forking make</a>, there’s no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people <a class="reference external" href="https://www.gnu.org/software/make/manual/html_node/Interrupts.html">it’s about cleanup</a>, but <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> doesn’t exactly look like traditional use-cases.</p>
+<p>The main reason to care is that short-circuiting make’s default CLI option parsing is <em>really useful</em>.  Especially since <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> allows us to “wrap” lots of containerized tools, we want to be able to proxy arguments over to those tools without <code class="docutils literal notranslate"><span class="pre">make</span></code> being greedy about parsing everything.</p>
+<p>The <a class="reference internal" href="#loading-compose-file"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">loadf</span></code> command</span></a> is a typical example: the 2nd argument, a filename, must not be parsed as a Makefile target:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Opens all shells for each service in the given file inside the TUI</span>
+./compose.mk<span class="w"> </span>loadf<span class="w"> </span>tests/docker-compose.yml
+</pre></div>
+</div>
+<p>Sometimes we want individual targets to essentially be able to consume the rest of the command line.  In this case, the filename is best understood as an argument to the first target, and not a target itself.</p>
+<p>The <a class="reference internal" href="#docs/api/#jb"><span class="xref myst">wrapper for jb</span></a> is another example of an invocation that requires reading the whole command-line.  And for targets created with <a class="reference internal" href="#makecompose-bridge"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">compose.import</span></code></span></a>, the [special form with ‘–’] (#special-form) also requires this kind of short-circuiting.</p>
+</section>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#docs/api#mk.supervisor.enterarg"><span class="xref myst">mk.supervisor.enter/<arg></span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.supervisor.exitarg"><span class="xref myst">mk.supervisor.exit/<arg></span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.supervisor.interrupt"><span class="xref myst">mk.supervisor.interrupt</span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.supervisor.interruptarg"><span class="xref myst">mk.supervisor.interrupt/<arg></span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.supervisor.pid"><span class="xref myst">mk.supervisor.pid</span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.supervisor.traparg"><span class="xref myst">mk.supervisor.trap/<arg></span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.interrupt"><span class="xref myst">mk.interrupt</span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.interruptarg"><span class="xref myst">mk.interrupt/<arg></span></a></p></li>
+<li><p><a class="reference internal" href="#docs/api#mk.interruptSIGINT"><span class="xref myst">mk.interrupt/SIGINT</span></a></p></li>
+</ul>
+</details>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">k8s-tools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, robot-wranglers.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/compose.mk.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

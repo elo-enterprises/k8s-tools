@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Overview &#8212; k8s-tools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
+<p><strong>This repository aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file as <a class="reference internal" href="#k8s-tools.yml"><span class="xref myst">k8s-tools.yml</span></a>.</strong>  It’s useful for CI/CD pipelines or general development, and can be <a class="reference internal" href="#integration-with-your-project"><span class="xref myst">embedded alongside your existing project</span></a>, which helps to fix the problem of different project developers using different local versions of things like <code class="docutils literal notranslate"><span class="pre">helm</span></code>, <code class="docutils literal notranslate"><span class="pre">kubectl</span></code>, etc.</p>
+<p>Containers defined here aren’t built from scratch, and official sources are used where possible.  Low-level tools (<em>like <code class="docutils literal notranslate"><span class="pre">kubectl</span></code>, <code class="docutils literal notranslate"><span class="pre">helm</span></code>, etc</em>) mostly come from <a class="reference external" href="https://hub.docker.com/r/alpine/k8s">alpine/k8s</a> but <a class="reference internal" href="features.html"><span class="doc std std-doc">many other tools</span></a> (*like <code class="docutils literal notranslate"><span class="pre">argo</span></code>, <code class="docutils literal notranslate"><span class="pre">knative</span></code>, <code class="docutils literal notranslate"><span class="pre">cdk</span></code>, <code class="docutils literal notranslate"><span class="pre">k9s</span></code>, <code class="docutils literal notranslate"><span class="pre">k3d</span></code>, etc) are also included.  However, <em>this isn’t an attempt to build an omnibus “do-everything” container..</em> it’s more a response to the fact that there are a lot of diverse tools that really can’t be unified, so it’s better to just learn how to work with that.  Tools containers are versioned independently, and pulled only when they are used.</p>
+<hr class="docutils" />
+<p><strong>Besides bundling some tooling, this repository is a reference implementation</strong> for a pattern that <a class="reference internal" href="#makecompose-bridge"><span class="xref myst">bridges compose services and Makefile targets</span></a>, creating a “minimum viable automation framework” for things like <a class="reference internal" href="container-dispatch.html"><span class="doc std std-doc">orchestrating tasks across tool containers</span></a>.  It’s expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It’s incredibly useful for lots of things, and whether it is a tool, a library, or a framework  depends on how you decide to use it.  There’s 3 pieces to this, and the full triple of <em>k8s.mk</em>, <em>compose.mk</em>, and <em>k8s-tools.yml</em> is sometimes called <strong>the k8s-tools suite.</strong></p>
+<p>This reference focuses on a few use-cases in particular:</p>
+<ol class="arabic simple">
+<li><p>Cluster lifecycle / development / debugging workflows in general.</p></li>
+<li><p>Decoupling project automation from the choice of CI/CD backend.</p></li>
+<li><p>Project-local kubernetes clusters &amp; corresponding lifecycle automation using <code class="docutils literal notranslate"><span class="pre">kind</span></code> or <code class="docutils literal notranslate"><span class="pre">k3d</span></code>.</p></li>
+<li><p>Proper separation of automation tasks from specifications for runtime / container context.</p></li>
+<li><p>Less shell code in general, but where we need it: it <u>shouldn’t</u> be embedded in YAML, Jenkinsfiles, etc.</p></li>
+<li><p>Per-project tool-versioning, providing defaults but allowing overrides, and ensuring versions match everywhere.</p></li>
+<li><p>Generally modernizing &amp; extending <code class="docutils literal notranslate"><span class="pre">make</span></code> for containers, colors, &amp; concurrency, making it ready for the 21st Century.</p></li>
+</ol>
+<p>There’s a lot of hate for <code class="docutils literal notranslate"><span class="pre">make</span></code> (especially for “creative” usage of it!), but you’ll find that these are not the Makefile’s of your ancestors.  Support for <a class="reference internal" href="container-dispatch.html"><span class="doc std std-doc">container dispatch</span></a> feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, <em>the build-bots themselves will be happy to run your automation,</em> and the output is easy to parse.  See the <a class="reference external" href="https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster">this repo’s github actions</a>, which bootstrap and exercise a cluster as part of the <a class="reference internal" href="#/docs/demos#demo-cluster-automation"><span class="xref myst">end to end tests</span></a>.</p>
+<p><strong>Working with <a class="reference internal" href="#composemk"><span class="xref myst">compose.mk</span></a> and <a class="reference internal" href="#k8smk"><span class="xref myst">k8s.mk</span></a> makes <code class="docutils literal notranslate"><span class="pre">make</span></code> hit different.</strong></p>
+<p>Beyond addressing the issues above, these tools add new capabilities to <code class="docutils literal notranslate"><span class="pre">make</span></code> itself, including some support for <a class="reference internal" href="embedded-tui.html"><span class="doc std std-doc">quickly building custom TUIs</span></a> from dockerized components.</p>
+<p align="center"><a href="img/tui-6.gif"><img width="90%" src="img/tui-6.gif"></a></p>
+<p>With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Help not only <em>works,</em> it also goes beyond mere target-listing to actually include namespace and per-target documentation, rendered via a dockerized version of <a class="reference external" href="https://github.com/charmbracelet/glow">charmbracelete/glow</a>.</p>
+<p align="center"><a href="img/tui-7.gif"><img width="90%" src="img/tui-7.gif"></a></p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">k8s-tools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, robot-wranglers.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/overview.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

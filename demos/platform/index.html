@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Platform - k8s-tools</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Platform";
+        var mkdocs_page_input_path = "demos/platform.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> k8s-tools
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../overview/">Overview</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../features/">Features</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">Compose.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">K8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="..">None</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">k8s-tools</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Platform</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>% set subtitle = "Demo --  Platform" %}</p>
+<table align=center style="width:100%">
+  <tr>
+    <td colspan=2><strong>k8s-tools </strong>&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+  <tr>
+    <td align=center width=10%>
+      <center>
+        <img src=img//docker.png style="width:75px"><br/>
+        <img src=img//kubernetes.png style="width:75px"><br/>
+        <img src=img//make.png style="width:75px"><br/>
+      </center>
+    </td>
+    <td width=90%>
+      <table align=center border=1>
+        <tr align=center><td align=center width="13%"><a href=/README.md#overview>Overview</a></td>
+<td align=center width="13%"><a href=/README.md#features>Features</a></td>
+<td align=center width="13%"><a href=/README.md#integration>Integration</a></td>
+<td align=center width="13%"><a href=/README.md#composemk>compose.mk</a></td>
+<td align=center width="13%"><a href=/README.md#k8smk>k8s.mk</a></td>
+<td align=center width="13%"><a href=/docs/api/>API</a></td>
+<td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
+      </table>
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":" src="https://img.shields.io/badge/-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
+    </td>
+  </tr>
+</table>
+<p><center><span align=center>
+  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+</span></center></p>
+<div class="toc">
+<ul>
+<li><a href="#_1">}</a><ul>
+<li><a href="#basic-platforming">Basic Platforming</a></li>
+<li><a href="#extension-with-lme">Extension with LME</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h1 id="_1">}</h1>
+<h2>Demo: Platform Setup</h2>
+
+<h3 id="basic-platforming">Basic Platforming</h3>
+<p>Consider this hypothetical snippet:</p>
+<pre><code class="language-Makefile"># Project Makefile
+#
+# Implementing a fake setup for platform bootstrap:
+#   1. infrastructure is configured by the terraform container, 
+#   2. application is configured by the ansible container,
+#   3. we assume both emit json events (simulating terraform state output, etc)
+
+platform1.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
+self.infra.setup:
+    echo '{&quot;event&quot;:&quot;doing things in terraform container&quot;, &quot;log&quot;:&quot;infra setup done&quot;, &quot;metric&quot;:123}'
+self.app.setup:
+    echo '{&quot;event&quot;:&quot;doing things in ansible container&quot;, &quot;log&quot;:&quot;app setup done&quot;, &quot;metric&quot;:123}'
+</code></pre>
+<p>It's powerful, concise, expressive, and already orchestrating tasks across two containers defined in some external compose-file.  The syntax is configurable, and it's even starting to look object-oriented.  </p>
+<p>Typically app-setup and infra-setup might further split into stages, but you get the idea.  And the infrastructure/app split always comes up, but it might look different.. for example your setup might replace <code>terraform</code> with <code>eksctl</code>, and <code>ansible</code> with <code>helm</code>.</p>
+<h3 id="extension-with-lme">Extension with LME</h3>
+<p>Let's consider an extension of this.  Suppose output from <code>platform.setup</code> needs to be used separately by the next bootstrap processes.  For example, sending the platform output to different backends for <code>logging</code>, <code>metrics</code>, and <code>events</code>, respectively.  </p>
+<p>For this kind of thing it's most natural to think in terms of process algebra, and you can express it like this:</p>
+<pre><code class="language-Makefile">
+# Fake some handlers for logging, metrics, events.
+#   1. logging uses the `elk` container,
+#   2. metrics uses the `prometheus` container,
+#   3. events uses the `datadog` container.
+
+logging: ▰/elk/self.logging
+self.logging:
+    # pretending to push data somewhere with curl
+    cat /dev/stdin | jq .log
+
+metrics: ▰/prometheus/self.metrics
+self.metrics:
+    # pretending to do stuff with the promtool CLI
+    cat /dev/stdin | jq .metric
+
+events: ▰/datadog/self.events
+self.events:
+    echo 'pretending to do stuff with the datadog CLI'
+    cat /dev/stdin | jq .event
+
+bootstrap:
+    # pipes all the platform.setup output into a handler-target for each LME backend
+    make platform1.setup | make flux.dmux/logging,metrics,events
+</code></pre>
+<p>Above, the builtin <a href="/docs/api#fluxdmux">flux.dmux target</a> is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The <code>bootstrap</code> entrypoint kicks everything off.  </p>
+<p>This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:</p>
+<p align="center"><a href="/docs/example-platform-1.png"><img width="90%" src="/docs/example-platform-1.png"></a></p>
+
+<p>Whew.  We know what happens next is probably <em>more</em> platforms, more tools/containers, and more data flows.  Not to belabor the point but let's watch how it blows up with just one more platform:</p>
+<p align="center"><a href="/docs/example-platform-2.png"><img width="90%" src="/docs/example-platform-2.png"></a></p>
+
+<p>The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weighs in at only ~20 lines.  That's almost exactly the same number of lines in the <a href="docs/example-platform-1.mmd">mermaid source-code for the diagram</a>, which is kind of remarkable, because usually implementations are usually <em>orders of magnitude larger</em> than the diagrams that describe them!  Zeroing in on a minimum viable description length?</p>
+<pre><code class="language-Makefile">include compose.mk
+$(eval $(call compose.import, ▰, TRUE, my-containers.yml))
+
+all: bootstrap 
+bootstrap:
+    make platform1.setup | make flux.dmux/logging,metrics,events
+platform1.setup: ▰/terraform/self.infra.setup ▰/ansible/self.app.setup
+logging: ▰/elk/self.logging
+metrics: ▰/prometheus/self.metrics
+events: ▰/datadog/self.events
+self.infra.setup:
+    echo '{&quot;event&quot;:&quot;doing things in terraform container&quot;, &quot;log&quot;:&quot;infra setup done&quot;, &quot;metric&quot;:123}'
+self.app.setup:
+    echo '{&quot;event&quot;:&quot;doing things in ansible container&quot;, &quot;log&quot;:&quot;app setup done&quot;, &quot;metric&quot;:123}'
+self.logging:
+    cat /dev/stdin | jq .log
+self.metrics:
+    cat /dev/stdin | jq .metric
+self.events:
+    cat /dev/stdin | jq .event
+</code></pre>
+<p>There are many other <code>flux.*</code> targets (<a href="/docs/api#api-flux">see the API docs</a>), and while it's not recommended to go crazy with this stuff, when you need it you need it.</p>
+<p>This tight expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF users.  <em>But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless!</em>  It neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔</p>
+<p>It's a neat party trick that <code>compose.mk</code> has some features that look like Luigi or Airflow if you squint, but of course it's not <em>really</em> made for ETLs.  Flux is similar in spirit to things like <a href="https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline">declarative pipelines in Jenkins</a>.</p>
+<p>This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually <a href="/docs/api#jb"><code>jb</code></a> or <a href="/docs/api#api-stream"><code>stream.json.object.append</code></a> can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the <a href="#container-dispatch">simple dispatch demo</a> (which runs as part of <a href="tests/Makefile.itest.mk">integration tests</a>), or check out the <a href="/docs/demos#demo-cluster-automation">cluster lifecycle demo</a> (which is just a walk-through of the <a href="tests/Makefile.e2e.mk">end-to-end tests</a>).</p>
+<p>For a full blown project, check out <a href="https://github.com/elo-enterprises/k3d-faas">k3d-faas.git</a>, which also breaks down automation into platforms, infrastructure, and app phases.</p>
+</details>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

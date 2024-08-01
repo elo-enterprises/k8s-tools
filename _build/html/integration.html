@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Integration With Your Project &#8212; k8s-tools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="integration-with-your-project">
+<h1>Integration With Your Project<a class="headerlink" href="#integration-with-your-project" title="Link to this heading">¶</a></h1>
+<p>The k8s-tools suite can be integrated with your project in a few ways, either with some kind of global compose file and global aliases (<em>not recommended</em>), or with a more project-based approach.  But first, you might like to check out the compatibility notes.</p>
+<p>{{macros.collapsed_details(‘Compatibility Notes’, level=’h3’)}}</p>
+<p>Platforms used in development include modern docker (say <code class="docutils literal notranslate"><span class="pre">25+</span></code>), make (<code class="docutils literal notranslate"><span class="pre">3.8+</span></code>), and bash <code class="docutils literal notranslate"><span class="pre">(~5</span></code>) on both Linux and MacOS, but testing in github-actions only uses Linux and won’t try every possible combination of versions.</p>
+<p>In general, <em>the goal is to support most things you’ll encounter in the wild</em>, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to non-posix OSX default <code class="docutils literal notranslate"><span class="pre">sed</span></code> / <code class="docutils literal notranslate"><span class="pre">ps</span></code> / <code class="docutils literal notranslate"><span class="pre">xargs</span></code>, etc.  Please report issues!</p>
+</details>
+<p>{{macros.collapsed_details(‘Tools Via Simple Aliases’, level=’h3’)}}</p>
+<p>The simplest and most global way to use k8s-tools.yml is to just download it and setup shell aliases, ignoring <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> and <code class="docutils literal notranslate"><span class="pre">k8s.mk</span></code>.  Not generally recommended, since this is the least project-based, least portable thing you can do.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>myproject
+
+<span class="c1"># or use your fork/clone..</span>
+$<span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span><span class="o">{{</span>github.raw_url<span class="o">}}</span>/master/k8s-tools.yml<span class="w"> </span>&gt;<span class="w"> </span>k8s-tools.yml
+
+$<span class="w"> </span><span class="nb">alias</span><span class="w"> </span><span class="nv">helm</span><span class="o">=</span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>myproject/k8s-tools.yml<span class="w"> </span>run<span class="w"> </span>helm
+
+$<span class="w"> </span>helm<span class="w"> </span>....
+</pre></div>
+</div>
+<p>Not bad for experiments, but <em>don’t write scripts based on this an expect to ship them to coworkers or build bots!</em>  Aliases are convenient but rather fragile.  (For example, obviously this will break if you move your <code class="docutils literal notranslate"><span class="pre">myproject</span></code> folder around).  <strong>See the next sections for something that is a more durable and flexible.</strong></p>
+</details>
+<p>{{macros.collapsed_details(‘Embedding Tools With Makefiles’, level=’h3’)}}</p>
+<p>You’ll probably want to read over the <a class="reference internal" href="#composemk"><span class="xref myst">compose.mk</span></a> section to understand what’s going on here.  In case you’ve already seen it though, here’s the quick start with the copy/paste stuff.</p>
+<p>{% set integration_block %}
+First, copy the files from this repo into your project:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>myproject<span class="w"> </span>
+
+<span class="c1"># Download the compose file with the tool containers</span>
+$<span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">{{</span>github.raw_url<span class="o">}}</span>/master/k8s-tools.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>&gt;<span class="w"> </span>k8s-tools.yml
+
+<span class="c1"># Download the compose.mk automation lib</span>
+$<span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">{{</span>github.raw_url<span class="o">}}</span>/master/compose.mk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>&gt;<span class="w"> </span>compose.mk
+
+<span class="c1"># Download the k8s.mk automation lib.</span>
+$<span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">{{</span>github.raw_url<span class="o">}}</span>/master/k8s.mk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>&gt;<span class="w"> </span>k8s.mk
+</pre></div>
+</div>
+<p>These 3 files are usually working together, but in some cases they are useful in a stand-alone mode.  Make them all executable like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>chmod<span class="w"> </span>ugo+x<span class="w"> </span>k8s-tools.yml<span class="w"> </span>compose.mk<span class="w"> </span>k8s.mk
+
+<span class="c1"># equivalent to `make -f k8s.mk ..`</span>
+./k8s.mk<span class="w"> </span>...<span class="w"> </span>
+
+<span class="c1"># equivalent to `make -f compose.mk ..`</span>
+$<span class="w"> </span>./compose.mk<span class="w"> </span>...<span class="w"> </span>
+
+<span class="c1"># equivalent to `docker compose -f k8s-tools.yml run ...`</span>
+$<span class="w"> </span>./k8s-tools.yml<span class="w"> </span>run<span class="w"> </span>...
+</pre></div>
+</div>
+<p>That’s all the setup you’ll need just for using tools directly.  See the next section for more information/examples re: stand-alone mode.</p>
+<p>If you’re interested in tighter integration like setting up the <a class="reference internal" href="#makecompose-bridge"><span class="xref myst">Make/Compose bridge</span></a> or preparing for <a class="reference internal" href="container-dispatch.html"><span class="doc std std-doc">Container Dispatch</span></a>, here’s an example of what your project Makefile should look like:</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># myproject/Makefile (Make sure you have real tabs, not spaces!)</span>
+<span class="w"> </span>
+<span class="c"># Include/invoke the target-building macros </span>
+<span class="c"># somewhere near the top of your existing boilerplate</span>
+<span class="cp">include compose.mk</span>
+<span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">TRUE</span>, <span class="nv">k8s-tools.yml</span><span class="k">))</span>
+
+<span class="c"># At this point, targets are defined for whatever services</span>
+<span class="c"># are mentioned in the external compose config, and they are</span>
+<span class="c"># ready to use. Now you can dispatch any task to any container!</span>
+<span class="nf">test</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">k</span>8<span class="n">s</span>/<span class="n">self</span>.<span class="n">test</span>
+<span class="nf">self.test</span><span class="o">:</span>
+<span class="w">  </span>kubectl<span class="w"> </span>--version
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span>hello<span class="w"> </span>world<span class="w"> </span>from<span class="w"> </span><span class="sb">`</span>uname<span class="w"> </span>-n<span class="w"> </span>-v<span class="sb">`</span>
+</pre></div>
+</div>
+<p>{% endset %}
+{{integration_block}}</p>
+</details>
+<p>{{macros.collapsed_details(‘Stand Alone Tools’, level=’h3’)}}</p>
+<p>If you’re not interested in custom automation that requires project-Makefile integration, some features of <code class="docutils literal notranslate"><span class="pre">compose.mk</span></code> and <code class="docutils literal notranslate"><span class="pre">k8s.mk</span></code> can be used without that.  See the <a class="reference internal" href="#loading-compose-files"><span class="xref myst">Loading Compose Files</span></a> docs, plus the <a class="reference internal" href="#/api"><span class="xref myst">full CLI docs</span></a> for more details.</p>
+</details>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">k8s-tools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, robot-wranglers.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/integration.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

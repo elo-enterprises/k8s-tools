@@ -1,5 +1,0 @@
-compose.mk
-k8s-tools.yml
-# BEGIN ANSIBLE MANAGED BLOCK
-.flux.stage.*
-# END ANSIBLE MANAGED BLOCK

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>&lt;no title&gt; &#8212; k8s-tools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <p>{{macros.collapsed_details(‘Container Dispatch Syntax/Semantics’, level=’h3’)}}</p>
+<p>Let’s look at the container-dispatch example in more detail.  This isn’t a programming language you’ve never seen before, it’s just a (legal) Makefile that uses unicode symbols in some of the targets.</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># A target that runs stuff inside the `debian` container, runs from host using `make demo`</span>
+<span class="nf">demo</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span>
+
+<span class="c"># Dispatching 1 target to 2 containers looks like this</span>
+<span class="nf">demo-dispatch</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span> ▰/<span class="n">alpine</span>/<span class="n">self</span>.<span class="n">demo</span>
+
+<span class="c"># Displays platform info to show where target is running.</span>
+<span class="nf">self.demo</span><span class="o">:</span>
+<span class="w">	</span><span class="nb">source</span><span class="w"> </span>/etc/os-release<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$$</span><span class="s2">{PRETTY_NAME}\n&quot;</span>
+<span class="w">	</span>uname<span class="w"> </span>-n<span class="w"> </span>-v
+</pre></div>
+</div>
+<p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won’t collide with existing file paths or targets.  Using the <em><code class="docutils literal notranslate"><span class="pre">self</span></code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code class="docutils literal notranslate"><span class="pre">self</span></code></em> hopefully implies internal/private, and it’s not easy to type the weird characters at the command line.  So users likely won’t think to call anything except <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">demo</span></code>.  For people reading the code, the visual hints make it easy to understand what’s at the top-level.</p>
+<p>But what about the semantics?  In this example, the user-facing <code class="docutils literal notranslate"><span class="pre">demo</span></code> target depends on <code class="docutils literal notranslate"><span class="pre">▰/debian/demo</span></code>, which isn’t really a target as much as a declaration.  The declaration means the <em>private</em> target <code class="docutils literal notranslate"><span class="pre">self.demo</span></code>, will be executed inside the <code class="docutils literal notranslate"><span class="pre">debian</span></code> container that the compose file defines.  <em>Crucially, the <code class="docutils literal notranslate"><span class="pre">self.demo</span></code> target can use tools the host doesn’t have, stuff that’s only available in the tool container.</em></p>
+<p>Look, no <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span> <span class="pre">..</span></code> clutter littered everywhere!  Ok, yeah, it’s still kind of a weird CI/CD DSL, but the conventions are simple and it’s not locked inside Jenkins or github =)</p>
+<p>Under the hood, dispatch is implemented by building on the <a class="reference internal" href="#makecompose-bridge"><span class="xref myst">default targets that are provided by the bridge</span></a>.</p>
+</details>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">k8s-tools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, robot-wranglers.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/dispatch-syntax.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
