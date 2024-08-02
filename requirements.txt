@@ -1,2 +1,2 @@
-mkdocs
-mkdocstrings
+mkdocs==1.5.3
+mkdocstrings==0.25.2

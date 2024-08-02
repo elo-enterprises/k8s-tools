@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/multiple-compose-files/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Multiple compose files - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Multiple compose files";
         var mkdocs_page_input_path = "multiple-compose-files.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/multiple-compose-files/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Multiple compose files</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/multiple-compose-files.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -83,7 +98,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>{{macros.collapsed_details('Multiple Compose Files', level='h3')}}</p>
+                <h2 id="multiple-compose-files">Multiple Compose Files</h2>
 <p>This can be easily adapted for working with <em>multiple</em> compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:</p>
 <pre><code class="language-Makefile"># Makefile (Make sure you have real tabs, not spaces!)
 
@@ -103,7 +118,6 @@ build.code:
 </code></pre>
 <p>There's lots of ways to use this.  And if your service names across 2 files do not collide, you are free to put everything under exactly the same namespace.  It's only syntax, but if you choose the conventions wisely then it will probably help you to think and to read whatever you're writing.</p>
 <p>Confused about what targets are available after using <code>compose.import</code>?  See the <a href="#target-compose_stemcmd"><code>&lt;compose_stem&gt;.services</code></a> for list services, and check out the <code>make help</code> output.</p>
-</details>
               
             </div>
           </div><footer>
@@ -126,6 +140,10 @@ build.code:
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

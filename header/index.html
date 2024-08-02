@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/header/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Header - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Header";
         var mkdocs_page_input_path = "header.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/header/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Header</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/header.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -87,6 +102,13 @@
 {% import 'macros.j2' as macros -%}
 {% set subtitle = subtitle | default("") %}
 {% set subtitle = subtitle and "&nbsp; // &nbsp; <strong>" + subtitle + "</strong>" %}</p>
+<p>{% set project_summary="Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more."%}
+{% set mkdocs =  mkdocs | default(false) %}
+{% set img_base =  img_base | default('img/') %}
+{%if mkdocs %}
+{% set img_base =  '/img' %}
+{{project_summary}}
+{%else%}</p>
 <table align=center style="width:100%">
   <tr>
     <td colspan=2><strong>k8s-tools {{subtitle}}</strong>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -110,7 +132,8 @@
 </table>
 <p><center><span align=center>
   Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
-</span></center></p>
+</span></center>
+{%endif%}</p>
               
             </div>
           </div><footer>
@@ -133,6 +156,10 @@
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

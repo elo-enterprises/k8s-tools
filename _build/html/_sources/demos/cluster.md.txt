@@ -56,7 +56,7 @@
 
 
 
-This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
+This section is a walk-through of the [end-to-end test]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk) included in the test-suite.  
 
 #}
 <h4>Boilerplate, Overrides, Clean & Init</h4>
@@ -94,7 +94,7 @@ all: clean create deploy test
 
 ```
 
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/docs/env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
+Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](//env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
 
 The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
 

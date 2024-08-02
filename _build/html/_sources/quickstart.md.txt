@@ -30,7 +30,7 @@ Using the special form './k8s.mk <container_name> -- ... ` you can pass commands
 ./k8s.mk kubectl -- version --client
 ```
 
-You can see many more examples included as part of [the smoke tests](tests/Makefile.smoke-test-k8s.mk).  
+You can see many more examples included as part of [the smoke tests]({{github.repo_url}}/tree/master/tests/Makefile.smoke-test-k8s.mk).  
 
 This way of interacting with containers is sometimes convenient for interactive one-offs, but it's also missing the full flexibility of overriding the default container entrypoint, streaming more than one command into the container, etc.  When developing automation, it's often more convenient to use lower-level access that's more explicit and more flexible:
 
@@ -74,8 +74,8 @@ For the full documentation of those targets, see [k8s.mk API](api//#api-k8smk).
 This repository includes lots of examples for make/compose integration in general, and in particular how you can accomplish lifecycle scripting with k8s.mk.
 
 * For advanced usage that builds automation APIs by running targets *inside* tool containers, see [the dispatch-demo](#container-dispatch).
-* For a more involved tutorial [see the cluster-lifecycle demo](/docs/demos#demo-cluster-automation).
-* For examples, you can also the [integration tests](tests/Makefile.itest.mk) and [end-to-end tests](tests/Makefile.e2e.mk).  
+* For a more involved tutorial [see the cluster-lifecycle demo](/demos#demo-cluster-automation).
+* For examples, you can also the [integration tests]({{github.repo_url}}/tree/master/tests/Makefile.itest.mk) and [end-to-end tests]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk).  
 * For a complete, external project that uses this approach for cluster automation, see [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas)
 
 </details>

@@ -58,7 +58,7 @@
 
 
 
-This section is a small walk-through of some of the bad ideas in the [mad science test-suite](tests/Makefile.mad-science.mk).  You can run this test-suite from the project root with `make mad`.
+This section is a small walk-through of some of the bad ideas in the [mad science test-suite]({{github.repo_url}}/tree/master/tests/Makefile.mad-science.mk).  You can run this test-suite from the project root with `make mad`.
 
 Most of the demonstrations here are frankly nuts, and most likely no one will thank you for introducing these techniques into real projects!  Now, with that stern warning out of the way.. Here are some powerful techniques for "polyglotting" your Makefiles, or in other words **implementing different targets in different languages** and things like that.  This is useful for prototyping, and with some judicious restraint then you can potentially improve on many things that are otherwise very awkward from `make` or `bash`.  But if you use it with wild abandon you'll probably regret it.  Choose wisely ;)
 

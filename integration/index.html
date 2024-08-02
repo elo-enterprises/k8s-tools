@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/integration/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Integration - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Integration";
         var mkdocs_page_input_path = "integration.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/integration/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,45 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Integration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#compatibility-notes">Compatibility Notes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tools-via-simple-aliases">Tools Via Simple Aliases</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#embedding-tools-with-makefiles">Embedding Tools With Makefiles</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#stand-alone-tools">Stand Alone Tools</a>
+    </li>
+    </ul>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +100,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Integration</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/integration.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -85,42 +110,39 @@
               
                 <h2 id="integration-with-your-project">Integration With Your Project</h2>
 <p>The k8s-tools suite can be integrated with your project in a few ways, either with some kind of global compose file and global aliases (<em>not recommended</em>), or with a more project-based approach.  But first, you might like to check out the compatibility notes.</p>
-<p>{{macros.collapsed_details('Compatibility Notes', level='h3')}}</p>
+<h3 id="compatibility-notes">Compatibility Notes</h3>
 <p>Platforms used in development include modern docker (say <code>25+</code>), make (<code>3.8+</code>), and bash <code>(~5</code>) on both Linux and MacOS, but testing in github-actions only uses Linux and won't try every possible combination of versions.  </p>
 <p>In general, <em>the goal is to support most things you'll encounter in the wild</em>, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to non-posix OSX default <code>sed</code> / <code>ps</code> / <code>xargs</code>, etc.  Please report issues!</p>
-</details>
-<p>{{macros.collapsed_details('Tools Via Simple Aliases', level='h3')}}</p>
+<h3 id="tools-via-simple-aliases">Tools Via Simple Aliases</h3>
 <p>The simplest and most global way to use k8s-tools.yml is to just download it and setup shell aliases, ignoring <code>compose.mk</code> and <code>k8s.mk</code>.  Not generally recommended, since this is the least project-based, least portable thing you can do. </p>
 <pre><code class="language-bash">$ cd myproject
 
 # or use your fork/clone..
-$ curl -sL {{github.raw_url}}/master/k8s-tools.yml &gt; k8s-tools.yml
+$ curl -sL https://raw.githubusercontent.com/elo-enterprises/k8s-tools/master/k8s-tools.yml &gt; k8s-tools.yml
 
 $ alias helm=docker compose -f myproject/k8s-tools.yml run helm
 
 $ helm ....
 </code></pre>
 <p>Not bad for experiments, but <em>don't write scripts based on this an expect to ship them to coworkers or build bots!</em>  Aliases are convenient but rather fragile.  (For example, obviously this will break if you move your <code>myproject</code> folder around).  <strong>See the next sections for something that is a more durable and flexible.</strong></p>
-</details>
-<p>{{macros.collapsed_details('Embedding Tools With Makefiles', level='h3')}}</p>
-<p>You'll probably want to read over the <a href="#composemk">compose.mk</a> section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.</p>
-<p>{% set integration_block %}
-First, copy the files from this repo into your project:</p>
+<h3 id="embedding-tools-with-makefiles">Embedding Tools With Makefiles</h3>
+<p>You'll probably want to read over the <a href="/compose.mk">compose.mk</a> section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.</p>
+<p>First, copy the files from this repo into your project:</p>
 <pre><code class="language-bash">$ cd myproject 
 
 # Download the compose file with the tool containers
 $ curl -sL \
-  {{github.raw_url}}/master/k8s-tools.yml \
+  https://raw.githubusercontent.com/elo-enterprises/k8s-tools/master/k8s-tools.yml \
     &gt; k8s-tools.yml
 
 # Download the compose.mk automation lib
 $ curl -sL \
-  {{github.raw_url}}/master/compose.mk \
+  https://raw.githubusercontent.com/elo-enterprises/k8s-tools/master/compose.mk \
     &gt; compose.mk
 
 # Download the k8s.mk automation lib.
 $ curl -sL \
-  {{github.raw_url}}/master/k8s.mk \
+  https://raw.githubusercontent.com/elo-enterprises/k8s-tools/master/k8s.mk \
     &gt; k8s.mk
 
 </code></pre>
@@ -153,15 +175,15 @@ self.test:
   kubectl --version
   echo hello world from `uname -n -v`
 </code></pre>
-<p>{% endset %}
-{{integration_block}}</p>
-</details>
-<p>{{macros.collapsed_details('Stand Alone Tools', level='h3')}}</p>
+<h3 id="stand-alone-tools">Stand Alone Tools</h3>
 <p>If you're not interested in custom automation that requires project-Makefile integration, some features of <code>compose.mk</code> and <code>k8s.mk</code> can be used without that.  See the <a href="#loading-compose-files">Loading Compose Files</a> docs, plus the <a href="/api">full CLI docs</a> for more details.</p>
-</details>
               
             </div>
           </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../features/" class="btn btn-neutral float-left" title="Features"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../compose.mk/" class="btn btn-neutral float-right" title="compose.mk">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
 
   <hr/>
 
@@ -182,7 +204,15 @@ self.test:
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
+    
+      <span><a href="../features/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../compose.mk/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

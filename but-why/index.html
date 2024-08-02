@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/but-why/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>But why - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "But why";
         var mkdocs_page_input_path = "but-why.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/but-why/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">But why</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/but-why.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -106,7 +121,7 @@
 <td align=center width="13%"><a href=/docs/api/>API</a></td>
 <td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
       </table>
-      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":" src="https://img.shields.io/badge/-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docs.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docs.yml/badge.svg"></a><a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="cdk:2.149.0" src="https://img.shields.io/badge/cdk%3A2.149.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
     </td>
   </tr>
 </table>
@@ -194,7 +209,7 @@
 </ol>
 <p>Options are good, but in practice we often get dragged into negotiating with or debugging our tools instead of just using them.  Just getting location/contents for the kubeconfig file will be different for the scenarios above.  But to illustrate, let's consider a slightly more complex task like forwarding cluster ports for local-development.  </p>
 <p>Since you may have at least 1 developer using each of the approaches above, there's at least 3 ways ways to do this.  Automating <em>or</em> documenting the "idiomatic way" to port-forward in <a href="https://docs.k8slens.dev/cluster/use-port-forwarding/">each</a> of <a href="https://docs.rancherdesktop.io/ui/port-forwarding/">these</a> systems is <a href="https://minikube.sigs.k8s.io/docs/handbook/accessing/">tedious</a>, because if that's doable outside of the GUI at all, then there's probably 6 different paths that need to be addressed (3 systems, each with different config-locations on each of MacOS/Linux).  And it's all a moving target, because what works today will very likely break tomorrow.  And yet if you refuse to automate/document every path, then you're increasing bootstrap friction for new developers on your project, and support-requests for newbies just getting started will become a time-suck for more senior people.  Yuck.</p>
-<p>There's no reason a task as simple as port-forwarding should be mixed up with these choices for backends though.  Preferring simple tools that are automation friendly and promote correct coupling pays off, because eventually you'll want integration tests using these forwarded ports anyway.  <strong>The fix for this scenario is use simple tools and completely avoid dealing with all this churn</strong>.  You could go with <a href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/"><code>kubectl port-forward</code></a> directly, but working with <a href="/docs/api#api-kubefwd">kubefwd can be a nicer alternative</a>. The only challenges for using <code>kubefwd</code> for local development are context-management (like what KUBECONFIG/namespace/services to target), and how to foreground / background the port-forwarding while ensuring it can be cleanly torn down later.  A bit of helper automation goes a long way here to reduce bootstrap friction &amp; documentation burden, especially if you're up for adopting project-local clusters.  For an example of working with forwarded ports, see <a href="#development">the Cluster Demo docs</a>.</p>
+<p>There's no reason a task as simple as port-forwarding should be mixed up with these choices for backends though.  Preferring simple tools that are automation friendly and promote correct coupling pays off, because eventually you'll want integration tests using these forwarded ports anyway.  <strong>The fix for this scenario is use simple tools and completely avoid dealing with all this churn</strong>.  You could go with <a href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/"><code>kubectl port-forward</code></a> directly, but working with <a href="/api#api-kubefwd">kubefwd can be a nicer alternative</a>. The only challenges for using <code>kubefwd</code> for local development are context-management (like what KUBECONFIG/namespace/services to target), and how to foreground / background the port-forwarding while ensuring it can be cleanly torn down later.  A bit of helper automation goes a long way here to reduce bootstrap friction &amp; documentation burden, especially if you're up for adopting project-local clusters.  For an example of working with forwarded ports, see <a href="#development">the Cluster Demo docs</a>.</p>
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
               
             </div>
@@ -218,6 +233,10 @@
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

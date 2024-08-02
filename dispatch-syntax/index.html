@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/dispatch-syntax/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Dispatch syntax - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Dispatch syntax";
         var mkdocs_page_input_path = "dispatch-syntax.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/dispatch-syntax/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Dispatch syntax</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/dispatch-syntax.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -83,7 +98,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>{{macros.collapsed_details('Container Dispatch Syntax/Semantics', level='h3')}}</p>
+                <h2 id="container-dispatch-syntaxsemantics">Container Dispatch Syntax/Semantics</h2>
 <p>Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  </p>
 <pre><code class="language-Makefile"># A target that runs stuff inside the `debian` container, runs from host using `make demo`
 demo: ▰/debian/self.demo
@@ -99,8 +114,7 @@ self.demo:
 <p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the <em><code>self</code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code>self</code></em> hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except <code>make demo</code>.  For people reading the code, the visual hints make it easy to understand what's at the top-level.</p>
 <p>But what about the semantics?  In this example, the user-facing <code>demo</code> target depends on <code>▰/debian/demo</code>, which isn't really a target as much as a declaration.  The declaration means the <em>private</em> target <code>self.demo</code>, will be executed inside the <code>debian</code> container that the compose file defines.  <em>Crucially, the <code>self.demo</code> target can use tools the host doesn't have, stuff that's only available in the tool container.</em>  </p>
 <p>Look, no <code>docker run ..</code> clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)</p>
-<p>Under the hood, dispatch is implemented by building on the <a href="#makecompose-bridge">default targets that are provided by the bridge</a>.
-</details></p>
+<p>Under the hood, dispatch is implemented by building on the <a href="#makecompose-bridge">default targets that are provided by the bridge</a>.</p>
               
             </div>
           </div><footer>
@@ -123,6 +137,10 @@ self.demo:
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

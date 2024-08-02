@@ -1054,7 +1054,7 @@ OCS:
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
 
-See especially the [Platform Setup Example](/docs/demos.md#demo-platform-setup) for a more complete walk-through of motivation, starting from an example use-case.
+See especially the [Platform Setup Example](/demos.md#demo-platform-setup) for a more complete walk-through of motivation, starting from an example use-case.
 
 
 

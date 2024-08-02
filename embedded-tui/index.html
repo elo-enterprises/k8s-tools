@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/embedded-tui/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Embedded tui - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Embedded tui";
         var mkdocs_page_input_path = "embedded-tui.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/embedded-tui/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Embedded tui</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/embedded-tui.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -84,7 +99,7 @@
             <div class="section" itemprop="articleBody">
               
                 <p>{% import 'macros.j2' as macros -%}</p>
-<p>{{macros.collapsed_details('Embedded TUI', level='h3')}}</p>
+<h2 id="embedded-tui">Embedded TUI</h2>
 <table align=center width=95%>
     <tr>
         <td>{{macros.img_link("img/tui-1.gif", "200px")}}</td>
@@ -101,14 +116,12 @@
 <p>The basic components of the TUI are things like <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements (plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>) are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
 <p><img src=img/tui-5.gif></p>
 <p>How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
-<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="#embedding-tools-with-makefiles">the usual integration with a project Makefile</a>.</p>
+<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="/integration">the usual integration with a project Makefile</a>.</p>
 <p><img src=img/tui-1.gif></p>
 <p>One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.</p>
 <p><img src=img/tui-2.gif></p>
-<p>{{macros.collapsed_details('TUI Keybindings', level='h4')}}</p>
+<h4 id="tui-keybindings">TUI Keybindings</h4>
 <p>{{bash("pattern='<em>Keybindings</em>' make mk.parse.block/compose.mk")}}</p>
-</details>
-</details>
               
             </div>
           </div><footer>
@@ -131,6 +144,10 @@
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/features/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Features - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Features";
         var mkdocs_page_input_path = "features.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/features/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -40,24 +42,50 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Features</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#versioned-toolkit">Versioned Toolkit</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#bonus-features">Bonus Features</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#toolchain-automation">Toolchain Automation</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#importing-compose-services">Importing Compose Services</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#k8smk-features">k8s.mk Features</a>
+    </li>
+    </ul>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +104,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Features</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/features.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -83,13 +112,84 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                
+                <h2 id="features">Features</h2>
+<h3 id="versioned-toolkit">Versioned Toolkit</h3>
+<p><strong><a href="k8s-tools.yml">k8s-tools.yml</a></strong> is a compose file with 20+ container specifications covering popular platforming tools and other utilities for working with Kubernetes.  This file makes use of the <a href="https://docs.docker.com/compose/compose-file/build/#dockerfile_inline">dockerfile_inline directive</a>, plus the fact that tool-containers  <em>tend to involve layering really small customizations</em>.  Now you can version these tools explicitly, customize them if you need to, and still avoid having N Dockerfiles cluttering up your whole repository.  <strong>All tool containers are just-in-time &amp; on-demand,</strong> so that having these declared in case of eventual use won't saddle you with an enormous bootstrap process.  As usual with docker-compose, containers aren't pulled until they are used, and build-when-changed mostly works as you'd expect.  Here's a quick overview of the manifest and some details about versioning:</p>
+<ul>
+<li><strong>Local parts of the tool bundle</strong> (<a href="k8s-tools.yml">See the latest here</a>)</li>
+<li><ins>Cluster management:</ins> <a href="https://github.com/kubernetes-sigs/kind">kind</a>, <a href="https://k3d.io/">k3d</a></li>
+<li><ins>Workflows, FaaS, and Misc Platforming Tools:</ins> <a href="https://argo-workflows.readthedocs.io/en/latest/walk-through/argo-cli/">argocli</a>, <a href="https://knative.dev/docs/client/install-kn/">kn</a>, <a href="https://fission.io/docs/installation/">fission</a>, <a href="https://github.com/rancher/cli">rancher</a></li>
+<li><ins>Lower-level helpers:</ins> <a href="https://github.com/arttor/helmify">helmify</a>, <a href="https://kompose.io/">kompose</a>, <a href="https://github.com/txn2/kubefwd">kubefwd</a></li>
+<li><ins>Monitoring and metrics tools:</ins> <a href="https://prometheus.io/docs/prometheus/latest/command-line/promtool/">promtool</a>, <a href="https://k9scli.io/">k9s</a>, <a href="https://github.com/jesseduffield/lazydocker">lazydocker</a></li>
+<li><ins>Krew plugins:</ins> <a href="https://github.com/alecjacobs5401/kubectl-sick-pods">sick-pods</a>, <a href="https://github.com/vladimirvivien/ktop">ktop</a>, <a href="https://github.com/ahmetb/kubectx">kubectx, and kubens</a> available by default, and more on demand.</li>
+<li><ins>TUI and user-messaging utilities</ins>: <a href="https://github.com/charmbracelet/gum">gum</a>, <a href="https://www.ivarch.com/programs/pv.shtml">pv</a>, <a href="https://raw.githubusercontent.com/holman/spark/">spark</a>, <a href="https://github.com/ChrisBuilds/terminaltexteffects">tte</a></li>
+<li><ins>General Utilities:</ins> Fixed (i.e. non-busybox) versions of things like date, ps, uuidgen, etc</li>
+<li><strong>Tooling in the local bundle is all versioned independently:</strong><ul>
+<li>Defaults are provided, but <a href="docs/env-vars.md#k8stoolsyml">overrides allowed from environment variables</a>.</li>
+</ul>
+</li>
+<li><strong>Upstream parts of the tool bundle</strong> (<a href="https://github.com/alpine-docker/k8s/blob/master/README.md#installed-tools">See the latest here</a> for more details on that.)</li>
+<li><ins>Cluster management:</ins> <a href="https://github.com/weaveworks/eksctl">eksctl</a></li>
+<li><ins>Core Utilities:</ins> <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">kubectl</a>, <a href="https://github.com/kubernetes-sigs/kustomize">kustomize</a>, <a href="https://github.com/helm/helm">helm</a>, <a href="https://github.com/kubernetes-sigs/krew">krew</a></li>
+<li><ins>Misc Utilities:</ins> <a href="https://github.com/databus23/helm-diff">helm-diff</a>, <a href="https://github.com/helm-unittest/helm-unittest">helm-unittest</a>, <a href="https://github.com/chartmuseum/helm-push">helm-push</a>, <a href="https://github.com/bitnami-labs/sealed-secrets">kubeseal</a>, <a href="https://github.com/helmfile/vals">vals</a>, <a href="https://github.com/yannh/kubeconform">kubeconform</a></li>
+<li><ins>Cloud Utilities:</ins> <a href="https://github.com/aws/aws-cli">awscli v1</a>, <a href="https://github.com/kubernetes-sigs/aws-iam-authenticator">aws-iam-authenticator</a></li>
+<li><ins>General Utilities:</ins> Such as bash, curl, jq, yq, etc</li>
+<li><strong>Upstream tool versioning is determined by the alpine-k8s base,</strong><ul>
+<li>But <em>k8s-tools.yml</em> has service-stubs for quick overrides if you need something specific.</li>
+</ul>
+</li>
+</ul>
+<h3 id="bonus-features">Bonus Features</h3>
+<p><strong>Sane defaults for volumes &amp; environments are included for each tool-container,</strong> meaning that sharing the working directory, docker socket, and kubeconfigs is done automatically.  For host vs. container file permissions, <code>k8s-tools.yml</code> also attempts to provide <em>smoother operations with root-user containers</em> (<em><a href="/limitations#docker-and-file-permissions">more details here</a></em>.  </p>
+<p>For advanced usage of the tool containers defined in <code>k8s-tools.yml</code> it's best to pair it with the rest of the automation here, but the compose file also works in stand-alone mode.  The file is even executable, and  <em>./k8s-tools.yml ...</em>  is equivalent to <em>docker compose -f k8s-tools.yml ...</em>.</p>
+<p><strong>The focus for k8s-tools.yml is to stand alone with no host dependencies, not even Dockerfiles, yet provide boilerplate that's parametric enough to work pretty well across different projects  without changing the compose file.</strong>  If the default tool versions don't work for your use-cases, <a href="environment-variables">k8s-tools.yml probably has an environment variable you can override</a>.</p>
+<hr />
+<h3 id="toolchain-automation">Toolchain Automation</h3>
+<p>After you've made your whole kit portable in one swipe, you might want to focus on <em>driving</em> those tools with something that offers more structure than a shell script, and something that also <em>won't add to your host dependencies</em>.  If that sounds interesting, you might like to meet <code>compose.mk</code> and <code>k8s.mk</code>. </p>
+<p><ins><strong><a href="/compose.mk">compose.mk</a></strong> is simultaneously a stand-alone CLI tool and an automation library for working with <code>make</code> + containers.</ins>  It defines targets and macros that can extend Make's core functionality in a variety of ways actually, but the main feature is ensuring that it's simple to work with docker-compose files and services, and docker in general.</p>
+<h4 id="importing-compose-services">Importing Compose Services</h4>
+<ul>
+<li><strong>Tool containers can be "imported" as a group of related make-targets.</strong></li>
+<li>This creates wrapper-targets that use the containers.</li>
+<li>You can interact with them using the <a href="#makecompose-bridge">Make/compose bridge</a>.</li>
+<li>You can <a href="#container-dispatch">use container-dispatch syntax</a> to run existing make-targets <strong>inside</strong> tool containers.</li>
+<li>You can use the containers effectively from "outside", or drop into debugging shell "inside".</li>
+<li><strong>Tool containers can be anything, defined anywhere:</strong><ul>
+<li>No explicit dependency for <em>k8s-tools.yml</em>.</li>
+<li><a href="#multiple-compose-files">Multiple compose-files are supported</a></li>
+<li>Bring your own compose file and build automation APIs on those instead <em>(cm-tools.yml? docs-tools.yml? whatever)</em></li>
+</ul>
+</li>
+</ul>
+<p><ins>The best way to think of compose.mk is to consider it an extension of <code>make</code> that's written in <code>make</code>.</ins>  As a single file with no external dependencies, it can in principle work as a global-install, but the emphasis is on embedding it into existing projects.  Since it doesn't depend explicitly on either <code>k8s-tools.yml</code> or <code>k8s.mk</code>, it slots comfortably into many kinds of projects that have nothing to do with kubernetes.  Beyond the docker support, there are <a href="/compose.mk">many other features</a>.</p>
+<hr />
+<p><ins><strong><a href="/k8s.mk">k8s.mk</a></strong> inherits all the <em>compose.mk</em> features, then integrates with <em>k8s-tools.yml</em>.</ins>  Both <em>compose.mk</em> and <em>k8s-tools.yml</em> files are a soft-dependency for <em>k8s.mk</em>, because the emphasis is on seamless usage of those containers.  </p>
+<p>In terms of wrappers, all of the autogenerated targets for low-level container access described by <a href="#makecompose-bridge">the Make/Compose Bridge</a> are available for the <em>k8s-tools.yml</em> services, plus more composite functionality.  </p>
+<p>For example, <code>k8s.mk</code> provides some primitives for common tasks (<em>like waiting for all pods to be ready</em>), context management (<em>like setting the active namespace</em>), and the usual patterns (<em>like idempotent usage of <code>helm</code></em>).  Besides helping to version tools, it can make it simpler to interact with them or make it simpler to script actions that involve multiple tools. Additionally, <code>k8s.mk</code> also inherits and extends the <a href="#embedded-tui">TUI support from compose.mk</a>, including the ability to automate the TUI itself. </p>
+<h3 id="k8smk-features">k8s.mk Features</h3>
+<ul>
+<li><strong>Main features:</strong></li>
+<li>Useful as a library, especially if you're building cluster lifecycle automation</li>
+<li>Useful as an interactive debugging/inspection/development tool.</li>
+<li>Helps to do the common tasks quickly, either interactively or from other automation<ul>
+<li>Launch a pod in a namespace, or a shell in a pod, without lots of kubectl'ing</li>
+<li>Stream and pipe commands to/from pods, or between pods</li>
+</ul>
+</li>
+<li>Assemble custom interactive dashboards with new or existing TUI elements</li>
+<li><strong><a href="#k8smk-api">Curated collection of automation interfaces</a></strong>, arranged into a few namespaces:<ul>
+<li><a href="/api#api-k8s"><strong><code>k8s.*</code> targets:</strong></a> Default namespace with debugging tools, cluster life-cycle primitives, etc.</li>
+<li><a href="/api#api-ansible"><strong><code>ansible.*</code> targets:</strong></a> A direct interface to containerized versions of things like <a href="https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html">kubernetes.core.k8s</a> or <a href="https://docs.ansible.com/ansible/latest/collections/kubernetes/core/helm_module.html">kubernetes.core.helm</a>, no playbooks and no inventories required.</li>
+<li><strong>Many more specific interfaces</strong> to things like <a href="/api#api-k3d">k3d</a>, <a href="/api#api-kubefwd">kubefwd</a>, etc. <a href="#k8smk-api">See the full API here.</a></li>
+</ul>
+</li>
+</ul>
+<p>Whereas <code>compose.mk</code> is useful in general, <code>k8s.mk</code> is of course more focused on projects working with kubernetes, and is the best example of how to go about extending <code>compose.mk</code>.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../overview/" class="btn btn-neutral float-left" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../compose.mk/" class="btn btn-neutral float-right" title="Compose.mk">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../integration/" class="btn btn-neutral float-right" title="Integration">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -111,11 +211,13 @@
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
-      <span><a href="../overview/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../compose.mk/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../integration/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

@@ -147,7 +147,7 @@ This tight expression of complex flow will already be familiar to lots of people
 
 It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but of course it's not *really* made for ETLs.  Flux is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
 
-This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](api/#jb) or [`stream.json.object.append`](api/#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/docs/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).
+This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](api/#jb) or [`stream.json.object.append`](api/#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests]({{github.repo_url}}/tree/master/tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk)).
 
 For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and app phases.
 

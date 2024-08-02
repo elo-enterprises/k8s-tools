@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/container-dispatch/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
     <title>Container dispatch - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Container dispatch";
         var mkdocs_page_input_path = "container-dispatch.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/container-dispatch/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Container dispatch</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/container-dispatch.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -83,7 +98,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>{{macros.collapsed_details('Container Dispatch', level='h3')}}</p>
+                <h2 id="container-dispatch">Container Dispatch</h2>
 <p>Let's look at a more complicated example where we want to use make to dispatch commands <em>into</em> the compose-service containers.  For this we'll have to change the boilerplate somewhat as we add more functionality.</p>
 <pre><code class="language-Makefile"># Makefile (make sure you have real tabs, not spaces)
 
@@ -103,7 +118,7 @@ self.demo:
     uname -n -v
 </code></pre>
 <p>The example above demonstrates another automatically generated target that uses some special syntax: <code>▰/&lt;svc_name&gt;/&lt;target_to_dispatch&gt;</code>.  This is just syntactic sugar that says that running <code>make demo</code> on the host runs <code>make self.demo</code> on the debian container.  Calling the top-level target looks like this:</p>
-<p><img src="img/demo-dispatch.gif"></p>
+<p><img src="/img/demo-dispatch.gif"></p>
 <p>What just happend?  If we unpack the syntactic sugar even more, you could say that the following are roughly equivalent:</p>
 <pre><code class="language-bash"># pithy invocation with compose.mk
 $ make demo
@@ -129,7 +144,7 @@ self.demo:
     uname -n -v
 </code></pre>
 <p>The <em><code>self</code></em> prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:</p>
-<p><img src="img/demo-double-dispatch.gif"></p>
+<p><img src="/img/demo-double-dispatch.gif"></p>
 <p>Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.</p>
 <pre><code class="language-bash"># pithy invocation with compose.mk
 $ make demo-double-dispatch 
@@ -140,13 +155,44 @@ $ docker compose -f docker-compose.yml \
   &amp;&amp; docker compose -f docker-compose.yml \
     run --entrypoint bash alpine -c &quot;make self.demo&quot;
 </code></pre>
-<p><ins><strong>This simple pattern for dispatching targets in containers is the main feature of <code>compose.mk</code> as a library, and it's surprisingly powerful.</strong></ins>  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to <a href="#cluster-automation-demo">this section</a>.</p>
+<p><strong>This simple pattern for dispatching targets in containers is the main feature of <code>compose.mk</code> as a library, and it's surprisingly powerful.</strong>  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to <a href="#cluster-automation-demo">this section</a>.</p>
 <p>Container-dispatch with <code>compose.mk</code> can also autodetect what shell to use with the container (via the <a href="#target-svc_namespecial"><code>&lt;svc_name&gt;/get_shell</code> target</a>).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See <a href="https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html">docs for <code>make --reconn</code></a> to learn more about dry-runs).  If you are thoughtful about the ways that you're using volumes and file state, you can also consider using <a href="https://www.gnu.org/software/make/manual/make.html#Parallel-Execution"><code>make --jobs</code> for parallel execution</a>.</p>
 <p><strong>To make this work as expected though, we do have to add more stuff to the compose file.</strong>  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, <strong>if the subtarget is going to run on the container, the container needs to at least have:</strong>  <code>make</code>, <code>bash</code> (or whatever shell the Makefile uses), and a volume mount to read the <code>Makefile</code>.  </p>
-<pre><code class="language-yaml">{{open('tests/docker-compose.yml','r').read()}}
+<pre><code class="language-yaml">##
+# tests/docker-compose.yml: 
+#  A minimal compose file that works with target dispatch
+##
+services:
+  debian: &amp;base
+    hostname: debian
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM debian
+        RUN apt-get update &amp;&amp; apt-get install -y make procps
+    entrypoint: bash
+    working_dir: /workspace
+    volumes:
+      - ${PWD}:/workspace
+  ubuntu: 
+    &lt;&lt;: *base
+    hostname: ubuntu
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM ubuntu
+        RUN apt-get update &amp;&amp; apt-get install -y make procps
+  alpine:
+    &lt;&lt;: *base
+    hostname: alpine
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM alpine
+        RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng
+
 </code></pre>
-<p>The debian/alpine compose file above and most of the interfaces described so far are all exercised inside <a href="tests/">this repo's test suite</a>.</p>
-</details>
+<p>The debian/alpine compose file above and most of the interfaces described so far are all exercised inside <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/">this repo's test suite</a>.</p>
               
             </div>
           </div><footer>
@@ -169,6 +215,10 @@ $ docker compose -f docker-compose.yml \
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

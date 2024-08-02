@@ -11,7 +11,7 @@ A tool / library / automation framework for working with containers.  Also the b
   
 In many ways, `compose.mk` breaks all the rules that you can imagine for how you are *supposed* to use Makefiles, starting with the fact that it weighs in at ~3.5k lines.  But there's method to this madness, and hopefully you'll agree that the juice is worth the squeeze!  
 
-Code-to-comment ratios throughout are roughly 1:1, and although it's not practical to measure code-coverage, [the test-suite](tests/) is pretty extensive.  The single-file approach used with `compose.mk` makes it easy to embed, and the API is quickly approaching a "frozen" status.  [Hacking is generally encouraged](#contributing), and users can feel free to rip out any parts of `compose.mk` they don't want or need.  With minor modifications, it's also easy to concatenate `compose.mk` and `k8s.mk` and use that, keeping one more piece of boilerplate out of your project repository.
+Code-to-comment ratios throughout are roughly 1:1, and although it's not practical to measure code-coverage, [the test-suite]({{github.repo_url}}/tree/master/tests/) is pretty extensive.  The single-file approach used with `compose.mk` makes it easy to embed, and the API is quickly approaching a "frozen" status.  [Hacking is generally encouraged](#contributing), and users can feel free to rip out any parts of `compose.mk` they don't want or need.  With minor modifications, it's also easy to concatenate `compose.mk` and `k8s.mk` and use that, keeping one more piece of boilerplate out of your project repository.
 
 #}
 <strong>Library Mode:</strong>
@@ -53,7 +53,7 @@ Highlighting just a few random use-cases, you can:
 And lots more, all using local tools if available and falling back to dockerized tool-versions if necessary.
 </details>
 
-If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/docs/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
+If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
 
 #}
 <h3>But Why?</h3>
@@ -412,7 +412,7 @@ services:
 
 ```
 
-The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
+The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite]({{github.repo_url}}/tree/master/tests/).
 
 </details>
 

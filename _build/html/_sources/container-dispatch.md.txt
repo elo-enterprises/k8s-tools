@@ -83,6 +83,6 @@ Container-dispatch with `compose.mk` can also autodetect what shell to use with 
 {{open('tests/docker-compose.yml','r').read()}}
 ```
 
-The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
+The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite]({{github.repo_url}}/tree/master/tests/).
 
 </details>

@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/demos/cluster/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
     <title>Cluster - k8s-tools</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Cluster";
         var mkdocs_page_input_path = "demos/cluster.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/demos/cluster/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href="../.." class="icon icon-home"> k8s-tools
+          <a href="../..">
+          <img src="../../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="..">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Cluster</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/demos/cluster.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -83,57 +98,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>% set subtitle = "Demo --  Cluster" %}</p>
-<table align=center style="width:100%">
-  <tr>
-    <td colspan=2><strong>k8s-tools </strong>&nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-  </tr>
-  <tr>
-    <td align=center width=10%>
-      <center>
-        <img src=img//docker.png style="width:75px"><br/>
-        <img src=img//kubernetes.png style="width:75px"><br/>
-        <img src=img//make.png style="width:75px"><br/>
-      </center>
-    </td>
-    <td width=90%>
-      <table align=center border=1>
-        <tr align=center><td align=center width="13%"><a href=/README.md#overview>Overview</a></td>
-<td align=center width="13%"><a href=/README.md#features>Features</a></td>
-<td align=center width="13%"><a href=/README.md#integration>Integration</a></td>
-<td align=center width="13%"><a href=/README.md#composemk>compose.mk</a></td>
-<td align=center width="13%"><a href=/README.md#k8smk>k8s.mk</a></td>
-<td align=center width="13%"><a href=/docs/api/>API</a></td>
-<td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
-      </table>
-      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":" src="https://img.shields.io/badge/-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
-    </td>
-  </tr>
-</table>
-<p><center><span align=center>
-  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
-</span></center></p>
-<div class="toc">
-<ul>
-<li><a href="#_1">}</a></li>
-<li><a href="#_2">}</a></li>
-<li><a href="#_3">}</a></li>
-<li><a href="#_4">}</a></li>
-<li><a href="#_5">}</a></li>
-<li><a href="#_6">}</a></li>
-<li><a href="#_7">}</a></li>
-<li><a href="#_8">}</a></li>
-</ul>
-</div>
-
-<h1 id="_1">}</h1>
-<h3>Demo: Cluster Automation</h3>
-
-<p>This section is a walk-through of the <a href="tests/Makefile.e2e.mk">end-to-end test</a> included in the test-suite.  </p>
-<h1 id="_2">}</h1>
-<h4>Boilerplate, Overrides, Clean & Init</h4>
-
+                <h3 id="demo-cluster-automation">Demo: Cluster Automation</h3>
+<p>This section is a walk-through of the <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk">end-to-end test</a> included in the test-suite.  </p>
+<h4 id="boilerplate-overrides-clean-init">Boilerplate, Overrides, Clean &amp; Init</h4>
 <pre><code class="language-Makefile"># tests/Makefile.e2e.mk
 
 # k8s-tools.git End-to-end tests
@@ -165,7 +132,7 @@ $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
 all: clean create deploy test
 
 </code></pre>
-<p>Note that the <code>K3D_VERSION</code> part above is overriding defaults <a href="k8s-tools.yml">in k8s-tools.yml</a>, and effectively allows you to <strong>pin tool versions inside scripts that use them, without editing with the compose file.</strong>  Several of the compose-services <a href="/docs/env-vars.md##k8s-toolsyml">support explicit overrides along these lines</a>, and it's a convenient way to test upgrades.</p>
+<p>Note that the <code>K3D_VERSION</code> part above is overriding defaults <a href="k8s-tools.yml">in k8s-tools.yml</a>, and effectively allows you to <strong>pin tool versions inside scripts that use them, without editing with the compose file.</strong>  Several of the compose-services <a href="//env-vars.md##k8s-toolsyml">support explicit overrides along these lines</a>, and it's a convenient way to test upgrades.</p>
 <p>The <code>KREW_PLUGINS</code> variable holds a space-delimited list of <a href="https://krew.sigs.k8s.io/plugins/">krew plugin names</a> that should be installed in the base k8s container.  These plugins are always installed: <a href="https://github.com/ahmetb/kubectx">kubens</a>, <a href="https://github.com/ahmetb/kubectx">kubectx</a>, <a href="https://github.com/rajatjindal/kubectl-whoami">whoami</a>, and <a href="https://github.com/alecjacobs5401/kubectl-sick-pods">sick-pods plugin</a>, but here you can specify any extras.</p>
 <p>Note that when overrides like these are changed, <a href="k8s-tools.yml">k8s-tools.yml</a> needs to be rebuilt.  (You can do that with <code>make k8s-tools.build</code> or <code>docker compose -f k8s-tools.yml build k8s</code>)</p>
 <p>Next we organize some targets for cluster-operations.  Below you can see there are two public targets declared for direct access, and two private targets that run inside the <code>k3d</code> tool container.</p>
@@ -198,10 +165,7 @@ self.cluster.clean:
 <p>Running <code>make init</code> looks like this when it's setting up the cluster:</p>
 <p align="center"><a href="img/e2e-init.gif"><img width="90%" src="img/e2e-init.gif"></a></p>
 
-</details>
-<h1 id="_3">}</h1>
-<h4>Deployment</h4>
-
+<h4 id="deployment">Deployment</h4>
 <p>The next section of the Makefile covers cluster provisioning.  Here we just want to install a helm chart, and to add a special "test-harness" pod to the default namespace.  </p>
 <p>But we also want operations to be idempotent, and blocking operations where that makes sense, and we want to provide several entrypoints for the convenience of the user.</p>
 <pre><code class="language-Makefile"># tests/Makefile.e2e.mk
@@ -274,7 +238,7 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
     kubectl apply -f nginx.svc.yml
 
 </code></pre>
-<p>Note that the <code>test_harness.provision</code> target above doesn't actually have a body!  The <code>k8s.*</code> targets coming from k8s.mk (documented <a href="/docs/api/#api-k8smk">here</a>) do all of the heavy lifting.  </p>
+<p>Note that the <code>test_harness.provision</code> target above doesn't actually have a body!  The <code>k8s.*</code> targets coming from k8s.mk (documented <a href="/api/#api-k8smk">here</a>) do all of the heavy lifting.  </p>
 <p>Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.</p>
 <p align="center"><a href="img/e2e-provision-helm.gif"><img width="90%" src="img/e2e-provision-helm.gif"></a></p>
 
@@ -282,10 +246,7 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
 <p>The other part of our provisioning is bootstrapping the test-harness pod.  This pod is nothing very special, but we can use it later to inspect the cluster.  Setting it up looks like this:</p>
 <p align="center"><a href="img/e2e-provision-test-harness.gif"><img width="90%" src="img/e2e-provision-test-harness.gif"></a></p>
 
-</details>
-<h1 id="_4">}</h1>
-<h3>Testing</h3>
-
+<h3 id="testing">Testing</h3>
 <p>With the test-harness in place, there's a block of target definitions for a miniature test-suite that checks properties of the cluster.</p>
 <pre><code class="language-Makefile"># tests/Makefile.e2e.mk
 
@@ -316,10 +277,7 @@ get.pod.ctx:
 <p>Running <code>make test</code> looks like this:</p>
 <p align="center"><a href="img/e2e-test.gif"><img width="90%" src="img/e2e-test.gif"></a></p>
 
-</details>
-<h1 id="_5">}</h1>
-<h3>Debugging</h3>
-
+<h3 id="debugging">Debugging</h3>
 <p>The tests are not a bad start for exercising the cluster, and instead of displaying platform info you can imagine tests that check service availability.  Since we blocked on pods or whole-namespaces being ready, we also know that nothing is stuck in crash loop or container-pull.  And we know that there were not errors with the helm charts, and that we can communicate with the test-harness pod.  </p>
 <p>What if you want to inspect or interact with things though?  The next block of target definitions provides a few aliases to help with this.</p>
 <pre><code class="language-Makefile"># tests/Makefile.e2e.mk
@@ -339,32 +297,21 @@ cluster.show: k3d.commander
 <p>Since k3d is using docker for nodes, debugging problems sometimes involves inspecting host stats at the same time as a view of the cluster context.  Here's a side-by-side view of the kubernetes namespace (visualized with <code>ktop</code>), and the local docker containers (via <code>lazydocker</code>):</p>
 <p align="center"><a href="img/e2e-interactive-tui.gif"><img width="90%" src="img/e2e-interactive-tui.gif"></a></p>
 
-</details>
-<details><summary><h3>Development </h3>
+<h3>Development </h3>
 
-For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
-
-The [**`kubefwd.start/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
-
+<p>For doing real application development, you'll probably want to get into some port-forwarding.  Using the <code>k8s.shell/&lt;namespace&gt;/&lt;pod&gt;/pipe</code> target, we could use <code>curl</code> to test things, but that's only meaningful <em>inside</em> the cluster, which is awkward.  </p>
+<p>The <a href="#target-kubefwdnamespacearg"><strong><code>kubefwd.start/&lt;namespace&gt;</code></strong> target</a> makes it easy to forward ports/DNS for an entire namespace to the host:</p>
 <p align="center"><a href="img/e2e-kubefwd.gif"><img width="90%" src="img/e2e-kubefwd.gif"></a></p>
 
-Note the weird DNS in the test above, where `nginx-service` resolves as expected, even from the host.  The `kubefwd` tool makes this work smoothly because [k8s-tools.yml](k8s-tools.yml) mounts `/etc/hosts` as a volume.
-
-</details>
-
-<h1 id="_6">}</h1>
-<h3>Alternate Deployment</h3>
-
+<p>Note the weird DNS in the test above, where <code>nginx-service</code> resolves as expected, even from the host.  The <code>kubefwd</code> tool makes this work smoothly because <a href="k8s-tools.yml">k8s-tools.yml</a> mounts <code>/etc/hosts</code> as a volume.</p>
+<h3 id="alternate-deployment">Alternate Deployment</h3>
 <p>Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for <code>KUBECONFIG</code>.</p>
 <p>For example, if you're using rancher desktop, you might do something like this:</p>
 <pre><code class="language-bash">$ rdctl shell sudo k3s kubectl config view --raw &gt; rancher-desktop.yml
 
 $ KUBECONFIG=rancher-desktop.yml make deploy test
 </code></pre>
-</details>
-<h1 id="_7">}</h1>
-<h3>Next Steps</h3>
-
+<h3 id="next-steps">Next Steps</h3>
 <p>From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.</p>
 <ol>
 <li><strong>Experimenting with a different k8s distro than k3d should be easy,</strong> since both <code>kind</code> and <code>eksctl</code> are already part of k8s-tools.yml.  Once you add a new setup/teardown/auth process for another backend, the rest of your automation stays the same.  </li>
@@ -372,17 +319,12 @@ $ KUBECONFIG=rancher-desktop.yml make deploy test
 <li><strong>Experimenting with an application layer might mean more helm, and/or adding build/push/pull processes for application containers.</strong>  Application work can be organized externally, or since <strong>everything so far is still small enough to live in an application repository,</strong> there's no pressing need to split code / infracode / automation into lots of repositories yet.  This is a good way to begin if you want to be local-dev friendly and have basic E2E testing for your application from the start.  For local application developement, you'll probably also want use <code>kubefwd</code> to start sharing cluster service ports, making them available on the host.</li>
 <li><strong>For the architecture &amp; microservices enthusiast,</strong> a slight variation of this project boilerplate might involve adding another application-specific compose file that turns several of your first-party libraries into proper images using the using the <a href="https://docs.docker.com/compose/compose-file/build/#dockerfile_inline"><code>dockerfile_inline:</code> trick</a> to run a little bit of <code>pip</code> or <code>npm</code>, then turning those versioned libraries into versioned APIs.  (If you already have external repositories with Dockerfiles wrapping your services, then compose <code>build:</code> also support URLs.)  If your needs are simple, then using <a href="https://kompose.io/">kompose</a> can help multi-purpose that compose build-manifest, treating it as a deployment-manifest at the same time.  This is probably not where you want to stay, but an excellent place to start for things like PoCs and rapid-prototyping.</li>
 <li><strong>Experimenting with private registries</strong> might start with <a href="https://docs.docker.com/reference/cli/docker/compose/push/">compose-managed tags</a> and a <a href="https://docs.docker.com/docker-hub/mirror/">local caching docker registry</a>**, or you can push to a <a href="https://k3d.io/v5.2.0/usage/registries/">k3d registry</a>.  To use private, locally built images without a registry, see <a href="https://k3d.io/v5.3.0/usage/commands/k3d_image_import/"><code>k3d image import</code></a>, or the equivalent <a href="https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster">kind load</a>.</li>
-<li><strong>Extending the make/compose technique to completely different automation tasks is straightforward,</strong> as long as you stick to the layout.  For example substituing <code>k8s-tools.yml</code> for a new <code>iac-tools.yml</code> compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then <code>compose.mk</code> and <code>compose.import</code> generate targets as usual.  If necessary a new file <code>Makefile.iac.mk</code> can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.<br />
-</details></li>
+<li><strong>Extending the make/compose technique to completely different automation tasks is straightforward,</strong> as long as you stick to the layout.  For example substituing <code>k8s-tools.yml</code> for a new <code>iac-tools.yml</code> compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then <code>compose.mk</code> and <code>compose.import</code> generate targets as usual.  If necessary a new file <code>Makefile.iac.mk</code> can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  </li>
 </ol>
-<h1 id="_8">}</h1>
-<h3>Conclusion</h3>
-
+<h3 id="conclusion">Conclusion</h3>
 <p>So that's how less than 100 lines of mostly-aliases-and-documentation Makefile is enough to describe a simple cluster lifecycle, and can give access to ~20 versioned platforming tools, all with no host dependencies except docker + make.  It's simple, structured, portable, and lightweight.  If you don't care about partial excutions and exposing step-wise entrypoints to the CLI, then you can cut this line-count roughly in half.  Good automation will be self-documenting, but even if you're code-golfing with this approach, the result will probably <em>still</em> be organized/maintainable/durable than the equivalent shell-script or ansible.</p>
 <p>No container orchestration logic was harmed during the creation of this demo, nor confined inside a Jenkinsfile or github action, and yet <a href="https://github.com/elo-enterprises/k8s-tools/actions">it all works from github actions</a>.  </p>
-<p>Happy platforming =D
-</details></p>
-</details>
+<p>Happy platforming =D</p>
               
             </div>
           </div><footer>
@@ -405,6 +347,10 @@ $ KUBECONFIG=rancher-desktop.yml make deploy test
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

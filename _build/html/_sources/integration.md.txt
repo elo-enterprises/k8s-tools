@@ -31,7 +31,7 @@ $ helm ....
 
 {{macros.collapsed_details('Embedding Tools With Makefiles', level='h3')}}
 
-You'll probably want to read over the [compose.mk](#composemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.
+You'll probably want to read over the [compose.mk](/compose.mk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.
 
 {% set integration_block %}
 First, copy the files from this repo into your project:

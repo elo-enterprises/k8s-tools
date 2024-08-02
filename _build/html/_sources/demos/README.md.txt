@@ -74,7 +74,7 @@
 
 
 
-This section is a walk-through of the [end-to-end test](tests/Makefile.e2e.mk) included in the test-suite.  
+This section is a walk-through of the [end-to-end test]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk) included in the test-suite.  
 
 #}
 <h4>Boilerplate, Overrides, Clean & Init</h4>
@@ -112,7 +112,7 @@ all: clean create deploy test
 
 ```
 
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/docs/env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
+Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](//env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
 
 The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
 
@@ -480,7 +480,7 @@ This tight expression of complex flow will already be familiar to lots of people
 
 It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but of course it's not *really* made for ETLs.  Flux is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
 
-This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](api/#jb) or [`stream.json.object.append`](api/#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/docs/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](tests/Makefile.e2e.mk)).
+This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](api/#jb) or [`stream.json.object.append`](api/#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests]({{github.repo_url}}/tree/master/tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk)).
 
 For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and app phases.
 
@@ -497,7 +497,7 @@ For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterp
 
 
 
-This section is a small walk-through of some of the bad ideas in the [mad science test-suite](tests/Makefile.mad-science.mk).  You can run this test-suite from the project root with `make mad`.
+This section is a small walk-through of some of the bad ideas in the [mad science test-suite]({{github.repo_url}}/tree/master/tests/Makefile.mad-science.mk).  You can run this test-suite from the project root with `make mad`.
 
 Most of the demonstrations here are frankly nuts, and most likely no one will thank you for introducing these techniques into real projects!  Now, with that stern warning out of the way.. Here are some powerful techniques for "polyglotting" your Makefiles, or in other words **implementing different targets in different languages** and things like that.  This is useful for prototyping, and with some judicious restraint then you can potentially improve on many things that are otherwise very awkward from `make` or `bash`.  But if you use it with wild abandon you'll probably regret it.  Choose wisely ;)
 

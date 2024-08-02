@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/k8s.mk/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>K8s.mk - k8s-tools</title>
+    <title>k8s.mk - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "K8s.mk";
+        var mkdocs_page_name = "k8s.mk";
         var mkdocs_page_input_path = "k8s.mk.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/k8s.mk/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href=".." class="icon icon-home"> k8s-tools
+          <a href="..">
+          <img src="../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,25 +43,41 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">K8s.mk</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">k8s.mk</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#automation-apis-over-tool-containers">Automation APIs over Tool Containers</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#but-why">But Why?</a>
+    </li>
     </ul>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="../demos">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,8 +94,9 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">K8s.mk</li>
+      <li class="breadcrumb-item active">k8s.mk</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/k8s.mk.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -86,36 +105,34 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="k8smk">k8s.mk</h2>
-<p><code>k8s.mk</code> exists to create a automation APIs over the tool-containers described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with <a href="#composemk">compose.mk</a> and <a href="#features">k8s-tools.yml</a>, but in many cases that isn't strictly required if things like <code>kubectl</code> are already available on your host.  </p>
+<p><code>k8s.mk</code> exists to create automation APIs over the tool-containers that are described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with <a href="/compose.mk">compose.mk</a> and <a href="#features">k8s-tools.yml</a>, but in many cases that isn't strictly required if things like <code>kubectl</code> are already available on your host.  </p>
 <p>The focus is on simplifying a few categories of frequent challenges:</p>
 <ol>
-<li><strong>Reusable implementations for common cluster automation tasks,</strong> like <a href="/docs/api#k8s.wait">waiting for pods to get ready</a></li>
-<li><strong>Context-management tasks,</strong> (like <a href="/docs/api#k8snamespacearg">setting the currently active namespace</a>)</li>
-<li><strong>Interactive debugging tasks,</strong> (like <a href="/docs/api#k8sshellarg">shelling into a new or existing pod inside some namespace</a>)</li>
+<li><strong>Reusable implementations for common cluster automation tasks,</strong> like <a href="/api#k8s.wait">waiting for pods to get ready</a></li>
+<li><strong>Context-management tasks,</strong> (like <a href="/api#k8snamespacearg">setting the currently active namespace</a>)</li>
+<li><strong>Interactive debugging tasks,</strong> (like <a href="/api#k8sshellarg">shelling into a new or existing pod inside some namespace</a>)</li>
 </ol>
-<p>The full API is <a href="/docs/api/#api-k8smk">here</a>, and the <a href="//docs/demos#demo-cluster-automation">Cluster Lifecycle Demo</a> includes a walk-through of using it from your own project automation.  </p>
-<p>By combining these tools with compose.mk's <a href="/docs/api#api-flux"><code>flux.*</code> API</a> you can describe workflows, and using the <a href="/docs/api#api-tux"><code>tux.*</code> API</a> you can send tasks, or groups of tasks, into panes on a TUI.</p>
-<h1 id="_1">}</h1>
-<h3>Automation APIs over Tool Containers</h3>
-
-<p>What <em>is</em> an automation API over a tool container anyway?  As an example, let's consider the <a href="/docs/api/#k8sget"><code>k8s.get</code> target</a>, which you might use like this:</p>
+<p>The full API is <a href="/api/#api-k8smk">here</a>, and the <a href="/demos#demo-cluster-automation">Cluster Lifecycle Demo</a> includes a walk-through of using it from your own project automation.  </p>
+<p>By combining these tools with compose.mk's <a href="/api#api-flux"><code>flux.*</code> API</a> you can describe workflows, and using the <a href="/api#api-tux"><code>tux.*</code> API</a> you can send tasks, or groups of tasks, into panes on a TUI.</p>
+<h3 id="automation-apis-over-tool-containers">Automation APIs over Tool Containers</h3>
+<p>What <em>is</em> an automation API over a tool container anyway?  As an example, let's consider the <a href="/api/#k8sget"><code>k8s.get</code> target</a>, which you might use like this:</p>
 <pre><code class="language-bash"># Usage: k8s.get/&lt;namespace&gt;/&lt;kind&gt;/&lt;name&gt;/&lt;filter&gt;
 $ KUBECONFIG=.. ./k8s.mk k8s.get/argo-events/svc/webhook-eventsource-svc/.spec.clusterIP
 
 # roughly equivalent to:
 $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot;
 </code></pre>
-<p>The first command has no host requirements for <code>kubectl</code> or <code>jq</code>, but uses both via docker.  Similarly, the <a href="/docs/api#helm.install"><code>helm.install</code> target</a> works as you'd expect but does not require <code>helm</code> ( and plus it's a little more idempotent than using <code>helm</code> directly).  Meanwhile <code>k8s.mk k9s/&lt;namespace&gt;</code> works like <code>k9s --namespace</code> does, but doesn't require k9s.</p>
+<p>The first command has no host requirements for <code>kubectl</code> or <code>jq</code>, but uses both via docker.  Similarly, the <a href="/api#helm.install"><code>helm.install</code> target</a> works as you'd expect but does not require <code>helm</code> ( and plus it's a little more idempotent than using <code>helm</code> directly).  Meanwhile <code>k8s.mk k9s/&lt;namespace&gt;</code> works like <code>k9s --namespace</code> does, but doesn't require k9s.</p>
 <p>Many of these targets are fairly simple wrappers, but just declaring them accomplishes several things at once.</p>
 <p>The typical <code>k8s.mk</code> entrypoint is:</p>
 <ol>
 <li>CLI friendly, for interactive contexts, as above</li>
 <li>API friendly, for more programmatic use, as part of the prereqs or the body for other project automation</li>
-<li>Workflow friendly, either as part of <code>make</code>'s native DAG processing, or via <a href="/docs/api#api-flux">flux</a>.</li>
-<li>Potentially a TUI element, via the <a href="/#embedded-tui">embedded TUI</a> and <a href="/docs/api#tux">tux</a>.</li>
+<li>Workflow friendly, either as part of <code>make</code>'s native DAG processing, or via <a href="/api#api-flux">flux</a>.</li>
+<li>Potentially a TUI element, via the <a href="/#embedded-tui">embedded TUI</a> and <a href="/api#tux">tux</a>.</li>
 <li>Context-agnostic, generally using tools directly if available or falling back to docker when necessary.</li>
 </ol>
-<p>Some targets like <a href="/docs/api/#k8sshell"><code>k8s.shell</code></a> or <a href="/docs/api/#kubefwd"><code>kubefwd.[start|stop|restart]</code></a> are more composite than simple wrappers, and achieve more complex behaviour by orchestrating 1 or more commands across 1 or more containers.  See also the <a href="/docs/api#api-ansible">ansible wrapper</a>, which exposes a subset of <code>ansible</code> without all the overhead of inventories &amp; config.</p>
+<p>Some targets like <a href="/api/#k8sshell"><code>k8s.shell</code></a> or <a href="/api/#kubefwd"><code>kubefwd.[start|stop|restart]</code></a> are more composite than simple wrappers, and achieve more complex behaviour by orchestrating 1 or more commands across 1 or more containers.  See also the <a href="/api#api-ansible">ansible wrapper</a>, which exposes a subset of <code>ansible</code> without all the overhead of inventories &amp; config.</p>
 <p>If you want you can always to stream arbitrary commands or scripts into these containers more directly, via <a href="#makecompose-bridge">the Make/Compose bridge</a>, or write your own targets that run inside those containers.  But the point of <code>k8s.mk</code> is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, adds a label to it, launches a pod there, and shells into it:</p>
 <pre><code class="language-bash">$ pod=`uuidgen` \
 &amp;&amp; namespace=testing \
@@ -126,10 +143,7 @@ $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot
     k8s.namespace.wait/${namespace} \
     k8s.shell/${namespace}/${pod}
 </code></pre>
-</details>
-<h1 id="_2">}</h1>
-<h3>But Why?</h3>
-
+<h3 id="but-why">But Why?</h3>
 <p>There's many reasons why you might want these capabilities if you're working with cluster-lifecycle automation.  People tend to have strong opions about this topic, and it's kind of a long story.  The short version is this: </p>
 <ul>
 <li>Tool versioning, idempotent operations, &amp; deterministic cluster bootstrapping are all hard problems, but not really the problems we <em>want</em> to be working on.</li>
@@ -139,12 +153,12 @@ $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot
 </ul>
 <p><code>k8s.mk</code>, especially combined with <code>k8s-tools.yml</code> and <code>compose.mk</code>, is aimed at fixing this stuff.  </p>
 <p>If you're interested in the gory details of a longer-format answer, see <a href="docs/but-why.md">the Design Philosophy docs</a>.</p>
-</details>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../compose.mk/" class="btn btn-neutral float-left" title="Compose.mk"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../compose.mk/" class="btn btn-neutral float-left" title="compose.mk"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../demos/" class="btn btn-neutral float-right" title="Demos">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -166,9 +180,15 @@ $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
     
       <span><a href="../compose.mk/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
+    
+      <span><a href="../demos/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

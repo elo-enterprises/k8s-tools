@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/demos/mad-science/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
     <title>Mad science - k8s-tools</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
         var mkdocs_page_name = "Mad science";
         var mkdocs_page_input_path = "demos/mad-science.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/k8s-tools/demos/mad-science/";
       </script>
     
     <!--[if lt IE 9]>
@@ -31,7 +32,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href="../.." class="icon icon-home"> k8s-tools
+          <a href="../..">
+          <img src="../../img/icon-transparent.png" class="logo" alt="Logo"/>
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
@@ -41,23 +43,35 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../overview/">Overview</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../../features/">Features</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">Compose.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../integration/">Integration</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">K8s.mk</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">compose.mk</a>
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="..">None</a>
+                <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">k8s.mk</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../">Demos</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../api/">API</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../limitations/">Known Limitations and Issues</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
                 </li>
               </ul>
       </div>
@@ -76,6 +90,7 @@
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Mad science</li>
     <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/demos/mad-science.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -107,32 +122,18 @@
 <td align=center width="13%"><a href=/docs/api/>API</a></td>
 <td align=center width="13%"><a href=/docs/demos>Demos</a></td></tr>
       </table>
-      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":" src="https://img.shields.io/badge/-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
+      <hr style="border-bottom:1px solid black;"><center><span align=center>&nbsp;<a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docs.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docs.yml/badge.svg"></a><a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>&nbsp;<a href="/docs/env-vars.md"><img alt=":alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="alpine_k8s:alpine/k8s:1.30.0" src="https://img.shields.io/badge/alpine_k8s%3Aalpine%2Fk8s%3A1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="cdk:2.149.0" src="https://img.shields.io/badge/cdk%3A2.149.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kn:v1.14.0" src="https://img.shields.io/badge/kn%3Av1.14.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="debian_container:debian:bookworm" src="https://img.shields.io/badge/debian_container%3Adebian%3Abookworm-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helmify:v0.4.12" src="https://img.shields.io/badge/helmify%3Av0.4.12-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="fission:v1.20.1" src="https://img.shields.io/badge/fission%3Av1.20.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kompose:v1.33.0" src="https://img.shields.io/badge/kompose%3Av1.33.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="argo:v3.4.17" src="https://img.shields.io/badge/argo%3Av3.4.17-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubefwd:1.22.5" src="https://img.shields.io/badge/kubefwd%3A1.22.5-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k3d:v5.6.3" src="https://img.shields.io/badge/k3d%3Av5.6.3-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kind:v0.23.0" src="https://img.shields.io/badge/kind%3Av0.23.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="k9s:v0.32.4" src="https://img.shields.io/badge/k9s%3Av0.32.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="rancher:v2.8.4" src="https://img.shields.io/badge/rancher%3Av2.8.4-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="prometheus:v2.52.0" src="https://img.shields.io/badge/prometheus%3Av2.52.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="yq:4.43.1" src="https://img.shields.io/badge/yq%3A4.43.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="jq:1.7.1" src="https://img.shields.io/badge/jq%3A1.7.1-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="ansible:10.1.0" src="https://img.shields.io/badge/ansible%3A10.1.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;&nbsp;<a href="/docs/env-vars.md"><img alt="kubectl:v1.30.0" src="https://img.shields.io/badge/kubectl%3Av1.30.0-blue"></a>&nbsp;<a href="/docs/env-vars.md"><img alt="helm:v3.14.4" src="https://img.shields.io/badge/helm%3Av3.14.4-blue"></a>&nbsp;</span></center><hr style="border-bottom:1px solid black;">
     </td>
   </tr>
 </table>
 <p><center><span align=center>
   Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
 </span></center></p>
-<div class="toc">
-<ul>
-<li><a href="#_1">}</a><ul>
-<li><a href="#working-with-foreign-languages">Working with Foreign Languages</a></li>
-<li><a href="#inlined-docker-files">Inlined Docker Files</a></li>
-<li><a href="#extending-inlined-docker-files">Extending Inlined Docker Files</a></li>
-<li><a href="#local-interpretters-without-a-container">Local Interpretters, Without a Container</a></li>
-<li><a href="#exotic-targets-pipes">Exotic Targets &amp; Pipes</a></li>
-<li><a href="#passing-data-structures-to-externally-managed-containers">Passing Data Structures to Externally Managed Containers</a></li>
-<li><a href="#how-it-works">How it Works</a></li>
-</ul>
-</li>
-</ul>
-</div>
-
+<p>{{markdown_toc(<strong>template</strong>, level=4)}}</p>
 <h1 id="_1">}</h1>
 <h2>Demo: Mad Science</h2>
 
-<p>This section is a small walk-through of some of the bad ideas in the <a href="tests/Makefile.mad-science.mk">mad science test-suite</a>.  You can run this test-suite from the project root with <code>make mad</code>.</p>
+<p>This section is a small walk-through of some of the bad ideas in the <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.mad-science.mk">mad science test-suite</a>.  You can run this test-suite from the project root with <code>make mad</code>.</p>
 <p>Most of the demonstrations here are frankly nuts, and most likely no one will thank you for introducing these techniques into real projects!  Now, with that stern warning out of the way.. Here are some powerful techniques for "polyglotting" your Makefiles, or in other words <strong>implementing different targets in different languages</strong> and things like that.  This is useful for prototyping, and with some judicious restraint then you can potentially improve on many things that are otherwise very awkward from <code>make</code> or <code>bash</code>.  But if you use it with wild abandon you'll probably regret it.  Choose wisely ;)</p>
 <h3 id="working-with-foreign-languages">Working with Foreign Languages</h3>
 <pre><code class="language-Makefile"># tests/Makefile.mad-science.mk
@@ -307,11 +308,10 @@ demo.ansible.playbook:
             make k8s-tools/ansible
 
 </code></pre>
-<p>This is just an example, and anyway you may prefer to work with the <a href="/docs/api#ansibleadhocarg">ansible.adhoc</a> tooling which is better for simple use-cases.  </p>
+<p>This is just an example, and anyway you may prefer to work with the <a href="/api#ansibleadhocarg">ansible.adhoc</a> tooling which is better for simple use-cases.  </p>
 <p>But of course the playbook above could just as easily be an <code>eksctl</code> config or <code>kubectl</code> manifest.</p>
 <h3 id="how-it-works">How it Works</h3>
-<p>Most of this stuff hinges on multi-line defines, plus the ability of <code>compose.mk</code> to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for <a href="/docs/api#api-mk"><em><code>mk.*</code></em></a> and <a href="/docs/api#api-docker"><em><code>docker.*</code></em></a> for more details.  Note also that the <a href="/docs/api#api-mk"><em><code>mk.def.*</code></em> targets</a> leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the <strong>content is fairly static</strong>, and not typically amenable to pre-execution templating.  It <em>is</em> possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P</p>
-</details>
+<p>Most of this stuff hinges on multi-line defines, plus the ability of <code>compose.mk</code> to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for <a href="/api#api-mk"><em><code>mk.*</code></em></a> and <a href="/api#api-docker"><em><code>docker.*</code></em></a> for more details.  Note also that the <a href="/api#api-mk"><em><code>mk.def.*</code></em> targets</a> leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the <strong>content is fairly static</strong>, and not typically amenable to pre-execution templating.  It <em>is</em> possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P</p>
               
             </div>
           </div><footer>
@@ -334,6 +334,10 @@ demo.ansible.playbook:
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
     
     
     

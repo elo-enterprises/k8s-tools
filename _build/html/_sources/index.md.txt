@@ -106,9 +106,9 @@ This reference focuses on a few use-cases in particular:
 1. Per-project tool-versioning, providing defaults but allowing overrides, and ensuring versions match everywhere.
 1. Generally modernizing & extending `make` for containers, colors, & concurrency, making it ready for the 21st Century.
 
-There's a lot of hate for `make` (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for [container dispatch](#container-dispatch) feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, *the build-bots themselves will be happy to run your automation,* and the output is easy to parse.  See the [this repo's github actions](https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster), which bootstrap and exercise a cluster as part of the [end to end tests](/docs/demos#demo-cluster-automation).
+There's a lot of hate for `make` (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for [container dispatch](#container-dispatch) feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, *the build-bots themselves will be happy to run your automation,* and the output is easy to parse.  See the [this repo's github actions](https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster), which bootstrap and exercise a cluster as part of the [end to end tests](/demos#demo-cluster-automation).
 
-**Working with [compose.mk](#composemk) and [k8s.mk](#k8smk) makes `make` hit different.**  
+**Working with [compose.mk](/compose.mk) and [k8s.mk](/k8s.mk) makes `make` hit different.**  
 
 Beyond addressing the issues above, these tools add new capabilities to `make` itself, including some support for [quickly building custom TUIs](#embedded-tui) from dockerized components.
 
@@ -192,7 +192,7 @@ Using the special form './k8s.mk <container_name> -- ... ` you can pass commands
 ./k8s.mk kubectl -- version --client
 ```
 
-You can see many more examples included as part of [the smoke tests](tests/Makefile.smoke-test-k8s.mk).  
+You can see many more examples included as part of [the smoke tests]({{github.repo_url}}/tree/master/tests/Makefile.smoke-test-k8s.mk).  
 
 This way of interacting with containers is sometimes convenient for interactive one-offs, but it's also missing the full flexibility of overriding the default container entrypoint, streaming more than one command into the container, etc.  When developing automation, it's often more convenient to use lower-level access that's more explicit and more flexible:
 
@@ -236,8 +236,8 @@ For the full documentation of those targets, see [k8s.mk API](api//#api-k8smk).
 This repository includes lots of examples for make/compose integration in general, and in particular how you can accomplish lifecycle scripting with k8s.mk.
 
 * For advanced usage that builds automation APIs by running targets *inside* tool containers, see [the dispatch-demo](#container-dispatch).
-* For a more involved tutorial [see the cluster-lifecycle demo](/docs/demos#demo-cluster-automation).
-* For examples, you can also the [integration tests](tests/Makefile.itest.mk) and [end-to-end tests](tests/Makefile.e2e.mk).  
+* For a more involved tutorial [see the cluster-lifecycle demo](/demos#demo-cluster-automation).
+* For examples, you can also the [integration tests]({{github.repo_url}}/tree/master/tests/Makefile.itest.mk) and [end-to-end tests]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk).  
 * For a complete, external project that uses this approach for cluster automation, see [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas)
 
 </details>
@@ -280,7 +280,7 @@ $ helm ....
 #}
 <h3>Embedding Tools With Makefiles</h3>
 
-You'll probably want to read over the [compose.mk](#composemk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.
+You'll probably want to read over the [compose.mk](/compose.mk) section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.
 
 
 
@@ -367,7 +367,7 @@ A tool / library / automation framework for working with containers.  Also the b
   
 In many ways, `compose.mk` breaks all the rules that you can imagine for how you are *supposed* to use Makefiles, starting with the fact that it weighs in at ~3.5k lines.  But there's method to this madness, and hopefully you'll agree that the juice is worth the squeeze!  
 
-Code-to-comment ratios throughout are roughly 1:1, and although it's not practical to measure code-coverage, [the test-suite](tests/) is pretty extensive.  The single-file approach used with `compose.mk` makes it easy to embed, and the API is quickly approaching a "frozen" status.  [Hacking is generally encouraged](#contributing), and users can feel free to rip out any parts of `compose.mk` they don't want or need.  With minor modifications, it's also easy to concatenate `compose.mk` and `k8s.mk` and use that, keeping one more piece of boilerplate out of your project repository.
+Code-to-comment ratios throughout are roughly 1:1, and although it's not practical to measure code-coverage, [the test-suite]({{github.repo_url}}/tree/master/tests/) is pretty extensive.  The single-file approach used with `compose.mk` makes it easy to embed, and the API is quickly approaching a "frozen" status.  [Hacking is generally encouraged](#contributing), and users can feel free to rip out any parts of `compose.mk` they don't want or need.  With minor modifications, it's also easy to concatenate `compose.mk` and `k8s.mk` and use that, keeping one more piece of boilerplate out of your project repository.
 
 #}
 <strong>Library Mode:</strong>
@@ -409,7 +409,7 @@ Highlighting just a few random use-cases, you can:
 And lots more, all using local tools if available and falling back to dockerized tool-versions if necessary.
 </details>
 
-If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/docs/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
+If you prefer to learn from examples, you might want to just [get started](#makecompose-bridge) or skip to the main [cluster automation demo](/demos#demo-cluster-automation) or to a [tui demo](#embedded-tui).  If you're the type that needs to hear the motivation first, read on in the next section.
 
 #}
 <h3>But Why?</h3>
@@ -768,7 +768,7 @@ services:
 
 ```
 
-The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
+The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite]({{github.repo_url}}/tree/master/tests/).
 
 </details>
 
@@ -976,7 +976,7 @@ The [wrapper for jb](docs/api/#jb) is another example of an invocation that requ
 
 ## k8s.mk
 
-`k8s.mk` exists to create a automation APIs over the tool-containers described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with [compose.mk](#composemk) and [k8s-tools.yml](#features), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  
+`k8s.mk` exists to create a automation APIs over the tool-containers described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with [compose.mk](/compose.mk) and [k8s-tools.yml](#features), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  
 
 The focus is on simplifying a few categories of frequent challenges:
 
@@ -984,7 +984,7 @@ The focus is on simplifying a few categories of frequent challenges:
 1. **Context-management tasks,** (like [setting the currently active namespace](api/#k8snamespacearg))
 1. **Interactive debugging tasks,** (like [shelling into a new or existing pod inside some namespace](api/#k8sshellarg))
 
-The full API is [here](api//#api-k8smk), and the [Cluster Lifecycle Demo](//docs/demos#demo-cluster-automation) includes a walk-through of using it from your own project automation.  
+The full API is [here](api//#api-k8smk), and the [Cluster Lifecycle Demo](/demos#demo-cluster-automation) includes a walk-through of using it from your own project automation.  
 
 By combining these tools with compose.mk's [`flux.*` API](api/#api-flux) you can describe workflows, and using the [`tux.*` API](api/#api-tux) you can send tasks, or groups of tasks, into panes on a TUI.
 
@@ -1081,13 +1081,13 @@ By default, the compose file shares the working directory with containers it's u
 
 Unfortunately, there's not a good way to convince `make` to just proxy arguments without parsing them.  **For example `./k8s.mk kubectl apply -f` looks convenient, but it won't work.**  (It will instead parse `apply -f` as arguments to make.)  
 
-The simplest workaround is to just use `cmd="apply ..." ./k8s.mk kubectl`.  However if [supervisors and signals](#supervisors-and-signals) are supported, then you can use the special form ' -- ', as in "./k8s.mk kubectl -- version --client".  See also [the smoke-tests](tests/Makefile.smoke-test-k8s.mk).
+The simplest workaround is to just use `cmd="apply ..." ./k8s.mk kubectl`.  However if [supervisors and signals](#supervisors-and-signals) are supported, then you can use the special form ' -- ', as in "./k8s.mk kubectl -- version --client".  See also [the smoke-tests]({{github.repo_url}}/tree/master/tests/Makefile.smoke-test-k8s.mk).
 
 #### Docker and File Permissions 
 
 The usual problem with root-user-in-containers vs normal-user on host and file permissions.  The alpine base is a container using root, as are many other things.  And there is a long-standing [known bug in the compose spec](https://github.com/compose-spec/compose-go/pull/299) that makes fixing this from the compose file hard.  
 
-Invoking compose exclusively from a Makefile actually helps with this though.  By default with [compose.mk](#composemk), `DOCKER_UID | DOCKER_GID| DOCKER_UGNAME` variables are set and available for use in [k8s-tools.yml](k8s-tools.yml).  This works slightly differently for Linux and MacOS, based on what messes things up the least, but YMMV.  With Linux, it looks something like this:
+Invoking compose exclusively from a Makefile actually helps with this though.  By default with [compose.mk](/compose.mk), `DOCKER_UID | DOCKER_GID| DOCKER_UGNAME` variables are set and available for use in [k8s-tools.yml](k8s-tools.yml).  This works slightly differently for Linux and MacOS, based on what messes things up the least, but YMMV.  With Linux, it looks something like this:
 
 ```Makefile
 export DOCKER_UID?=$(shell id -u)
