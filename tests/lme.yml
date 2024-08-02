@@ -1,0 +1,32 @@
+##
+# tests/lme.yml: 
+#  See ...
+##
+services:
+  logging: &base
+    hostname: logging
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM debian
+        RUN apt-get update && apt-get install -y make procps jq
+    entrypoint: bash
+    working_dir: /workspace
+    volumes:
+      - ${PWD}:/workspace
+  
+  metrics: 
+    hostname: metrics
+    <<: *base
+
+  events: 
+    hostname: events
+    <<: *base
+
+  terraform: 
+    hostname: terraform
+    <<: *base
+  
+  ansible:
+    hostname: ansible
+    <<: *base
