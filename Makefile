@@ -138,8 +138,8 @@ mad/%:; set -x && make test-suite/mad-science/${*}
 ## BEGIN: Documentation related targets
 ##
 docs.deploy:
-	[ `git rev-parse --abbrev-ref HEAD` == "docs" ] || (echo this isnt docs branch; exit 1) \
-	&& mkdocs gh-deploy --config-file mkdocs.yml --remote-branch docs
+	#[ `git rev-parse --abbrev-ref HEAD` == "docs" ] || (echo this isnt docs branch; exit 1) \
+	mkdocs gh-deploy --config-file mkdocs.yml --remote-branch docs
 
 docs.jinja:
 	@#

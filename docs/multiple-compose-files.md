@@ -4,6 +4,7 @@
 This can be easily adapted for working with *multiple* compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:
 
 ```Makefile
+
 # Makefile (Make sure you have real tabs, not spaces!)
 
 # Load 1st compose file under paralleogram namespace,

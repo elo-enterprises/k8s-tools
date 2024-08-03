@@ -1,6 +1,6 @@
-## Demo: Platform Setup
+# Demo: Platform Setup
 
-### Basic Platforming 
+## Basic Platforming 
 
 Consider this hypothetical snippet:
 
@@ -23,7 +23,7 @@ It's powerful, concise, expressive, and already orchestrating tasks across two c
 
 Typically app-setup and infra-setup might further split into stages, but you get the idea.  And the infrastructure/app split always comes up, but it might look different.. for example your setup might replace `terraform` with `eksctl`, and `ansible` with `helm`.
 
-### Extension with LME
+## Extension with LME
 
 Let's consider an extension of this.  Suppose output from `platform.setup` needs to be used separately by the next bootstrap processes.  For example, sending the platform output to different backends for `logging`, `metrics`, and `events`, respectively.  
 
@@ -60,11 +60,11 @@ Above, the builtin [flux.dmux target](/api#fluxdmux) is used to send platform-se
 
 This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
 
-<p align="center"><a href="/img/example-platform-1.png"><img width="90%" src="/img/example-platform-1.png"></a></p>
+<p align="center"><a href="/k8s-tools/img/example-platform-1.png"><img width="90%" src="/k8s-tools/img/example-platform-1.png"></a></p>
 
 Whew.  We know what happens next is probably *more* platforms, more tools/containers, and more data flows.  Not to belabor the point but let's watch how it blows up with just one more platform:
 
-<p align="center"><a href="/img/example-platform-2.png"><img width="90%" src="/img/example-platform-2.png"></a></p>
+<p align="center"><a href="/k8s-tools/img/example-platform-2.png"><img width="90%" src="/k8s-tools/img/example-platform-2.png"></a></p>
 
 The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weighs in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
 

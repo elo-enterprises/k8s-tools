@@ -3124,6 +3124,7 @@ endef
 
 ##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ## BEGIN: Default TUI Keybindings
+##
 ## | Shortcut         | Purpose                                                |
 ## | ---------------- | ------------------------------------------------------ |
 ## | Escape           | *Exit TUI*                                             |
@@ -3142,6 +3143,7 @@ endef
 ## | Alt-2            | *Select pane 2*                                        |
 ## | ...              | *...*                                                  |
 ## | Alt-N            | *Select pane N*                                        |
+##
 ##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 define _TUI_TMUXP_PROFILE
@@ -3201,14 +3203,6 @@ ${compose_file_stem}.dispatch/%:
 	entrypoint=make \
 	cmd="${MAKE_FLAGS} -f ${MAKEFILE} `printf $${*}|cut -d/ -f2-`" \
 	${make} $${compose_file_stem}/`printf $${*}|cut -d/ -f1`
-
-# ${compose_file_stem}.qdispatch/%:
-# 	@# Quiet target-dispatch for the named target inside the named service.
-# 	@#
-# 	@# USAGE:
-# 	@#   ./compose.mk ${compose_file_stem}/qdispatch/<svc>/<target>
-# 	@#
-# 	CMK_DEBUG=0 make $${compose_file_stem}.dispatch/$${*}
 
 ${compose_file_stem}/$(compose_service_name)/get_shell:
 	@# Detects the best shell to use with the `$(compose_service_name)` container @ ${compose_file}

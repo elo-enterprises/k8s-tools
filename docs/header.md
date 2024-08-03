@@ -1,16 +1,8 @@
-
 {% set img_base =  img_base | default('img/') %}
 {% import 'macros.j2' as macros -%}
 {% set subtitle = subtitle | default("") %}
 {% set subtitle = subtitle and "&nbsp; // &nbsp; <strong>" + subtitle + "</strong>" %}
 
-{% set project_summary="Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more."%}
-{% set mkdocs =  mkdocs | default(false) %}
-{% set img_base =  img_base | default('img/') %}
-{%if mkdocs %}
-{% set img_base =  '/img' %}
-{{project_summary}}
-{%else%}
 <table align=center style="width:100%">
   <tr>
     <td colspan=2><strong>k8s-tools {{subtitle}}</strong>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -32,7 +24,5 @@
     </td>
   </tr>
 </table><center><span align=center>
-  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+  {% include "summary.md" %}
 </span></center>
-{%endif%}
-

@@ -1,5 +1,3 @@
-
-
 ## Overview
 
 **This repository aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file as [k8s-tools.yml](#versioned-toolkit).**  It's useful for CI/CD pipelines or general development, and can be [embedded alongside your existing project](/integration), which helps to fix the problem of different project developers using different local versions of things like `helm`, `kubectl`, etc.
@@ -24,13 +22,13 @@ This reference focuses on a few use-cases in particular:
 
 There's a lot of hate for `make` (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for [container dispatch](#container-dispatch) feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, *the build-bots themselves will be happy to run your automation,* and the output is easy to parse.  See the [this repo's github actions](https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster), which bootstrap and exercise a cluster as part of the [end to end tests](/demos#demo-cluster-automation).
 
-**Working with [compose.mk](/composemk) and [k8s.mk](/k8s.mk) makes `make` hit different.**  
+**Working with [compose.mk](/compose.mk) and [k8s.mk](/k8s.mk) makes `make` hit different.**  
 
 Beyond addressing the issues above, these tools add new capabilities to `make` itself, including some support for [quickly building custom TUIs](#embedded-tui) from dockerized components.
 
-<p align="center"><a href="/img/tui-6.gif"><img width="90%" src="/img/tui-6.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/tui-6.gif"><img width="90%" src="/k8s-tools/img/tui-6.gif"></a></p>
 
 With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Help not only *works,* it also goes beyond mere target-listing to actually include namespace and per-target documentation, rendered via a dockerized version of [charmbracelete/glow](https://github.com/charmbracelet/glow).
 
-<p align="center"><a href="/img/tui-7.gif"><img width="90%" src="/img/tui-7.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/tui-7.gif"><img width="90%" src="/k8s-tools/img/tui-7.gif"></a></p>
 

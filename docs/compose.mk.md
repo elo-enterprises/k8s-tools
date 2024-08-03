@@ -351,7 +351,7 @@ $ docker compose -f docker-compose.yml \
     run --entrypoint bash alpine -c "make self.demo"
 ```
 
-**This simple pattern for dispatching targets in containers is the main feature of `compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to [this section](/demos/#cluster-automation-demo).
+**This simple pattern for dispatching targets in containers is the main feature of `compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to [this section](#cluster-automation-demo).
 
 Container-dispatch with `compose.mk` can also autodetect what shell to use with the container (via the [`<svc_name>/get_shell` target](#target-svc_namespecial)).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See [docs for `make --reconn`](https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html) to learn more about dry-runs).  If you are thoughtful about the ways that you're using volumes and file state, you can also consider using [`make --jobs` for parallel execution](https://www.gnu.org/software/make/manual/make.html#Parallel-Execution).
 
@@ -393,7 +393,7 @@ services:
 
 ```
 
-The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
+The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/).
 
 ## Macro Arguments
 
@@ -415,6 +415,7 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  
 
 ```Makefile
+
 # A target that runs stuff inside the `debian` container, runs from host using `make demo`
 demo: ▰/debian/self.demo
 
@@ -441,6 +442,7 @@ Under the hood, dispatch is implemented by building on the [default targets that
 This can be easily adapted for working with *multiple* compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:
 
 ```Makefile
+
 # Makefile (Make sure you have real tabs, not spaces!)
 
 # Load 1st compose file under paralleogram namespace,
@@ -466,17 +468,18 @@ Confused about what targets are available after using `compose.import`?  See the
 
 For the simplest use-cases where you have a compose-file, and want some of the compose.mk features, but don't have a project makefile, it's possible to skip some of the steps in the [usual integration](#embedding-tools-with-makefiles) by letting `loadf` generate integration for you just in time.
 
-```bash 
+```bash
+
 $ ./compose.mk loadf <path_to_compose_file> <other_instructions>
 ```
 
 Since `make` can't modify available targets from inside recipes, this basically works by creating temporary files that use the [compose.import macro](#macro-arguments) on the given compose file, then proxying subsequent CLI arguments over to *that* automation.  When no other instructions are provided, the default is to [open container shells in the TUI](#embedded-tui).
 
-<a href=img/tui-3.gif><img src=img/tui-3.gif></a>
+<p align="center"><a href="/k8s-tools/img/tui-3.gif"><img width="90%" src="/k8s-tools/img/tui-3.gif"></a></p>
 
 Actually any type of instructions you pass will get the compose-file context, so you can use any of the other targets documented as [part of the bridge](#make-compose-bridge) or the [static targets](/api#api-compose.mk).  For example:
 
-<a href=img/tui-4.gif><img src=img/tui-4.gif></a>
+<p align="center"><a href="/k8s-tools/img/tui-4.gif"><img width="90%" src="/k8s-tools/img/tui-4.gif"></a></p>
 
 Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the [Embedded TUI](#embedded-tui) docs for other examples that are using `loadf`.
 
@@ -484,33 +487,33 @@ Despite all the output this is pipe-safe, in case the commands involved might re
 
 <table align=center width=95%>
     <tr>
-        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-4.gif"><img width="200px" src="img/tui-4.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-6.gif"><img width="200px" src="img/tui-6.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="200px" src="/k8s-tools/img/tui-1.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-4.gif"><img width="200px" src="/k8s-tools/img/tui-4.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-6.gif"><img width="200px" src="/k8s-tools/img/tui-6.gif"></a></p></td>
     </tr>
     <tr>
-        <td><p align="center"><a href="img/tui-2.gif"><img width="200px" src="img/tui-2.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-3.gif"><img width="200px" src="img/tui-3.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-5.gif"><img width="200px" src="img/tui-5.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-2.gif"><img width="200px" src="/k8s-tools/img/tui-2.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-3.gif"><img width="200px" src="/k8s-tools/img/tui-3.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-5.gif"><img width="200px" src="/k8s-tools/img/tui-5.gif"></a></p></td>
     </tr>
 </table>
 
 The basic components of the TUI are things like [tmux](https://github.com/tmux/tmux) for core drawing and geometry, [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and overridable defaults for [tmux themes](https://github.com/jimeh/tmux-themepack/), [plugins](https://github.com/tmux-plugins/tpm), [keybindings](#tui-keybindings), etc.  These elements (plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/)) are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
 
-<img src=img/tui-5.gif>
-
+<p align="center"><a href="/k8s-tools/img/tui-5.gif"><img width="90%" src="/k8s-tools/img/tui-5.gif"></a></p>
 How does this work?  The behaviour above relies on a few things.  First, the `compose.mk:tux` container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  
 
 Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the [`loadf` target,](#loading-compose-files) you can leverage existing compose files but skip [the usual integration with a project Makefile](/integration).
 
-<img src=img/tui-1.gif>
+<p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="90%" src="/k8s-tools/img/tui-1.gif"></a></p>
 
 One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.
 
-<img src=img/tui-2.gif>
+<p align="center"><a href="/k8s-tools/img/tui-2.gif"><img width="90%" src="/k8s-tools/img/tui-2.gif"></a></p>
 
 #### TUI Keybindings
 
+| Shortcut         | Purpose                                                |
 | ---------------- | ------------------------------------------------------ |
 | Escape           | *Exit TUI*                                             |
 | Ctrl b |         | *Split pane vertically*                                |
@@ -527,6 +530,7 @@ One way to look at the TUI is that it's just a way of mapping make-targets into 
 | Alt-1            | *Select pane 1*                                        |
 | Alt-2            | *Select pane 2*                                        |
 | ...              | *...*                                                  |
+| Alt-N            | *Select pane N*                                        |
 
 
 ## Signals and Supervisors
