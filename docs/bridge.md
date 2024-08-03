@@ -1,3 +1,5 @@
+{% import 'macros.j2' as macros -%}
+
 ## Make/Compose Bridge
 
 *`compose.mk`* provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.  
@@ -58,8 +60,7 @@ $ make debian/shell
 $ make alpine/shell
 ```
 
-<img src="img/demo-bridge-shell.gif">
-
+{{macros.img_link("demo-bridge-shell.gif"}}
 
 ----------------------------------------------------
 
@@ -78,7 +79,7 @@ $ echo uname -n -v | make debian/pipe
 echo echo echo hello-world | make alpine/pipe | make debian/pipe
 ```
 
-<img src="img/demo-bridge-stream.gif">
+{{macros.img_link("demo-bridge-stream.gif"}}
 
 ----------------------------------------------------
 

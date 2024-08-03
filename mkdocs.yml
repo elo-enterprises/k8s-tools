@@ -20,7 +20,6 @@ theme:
   #   admonition:
   #     note: material/arrow-expand-down
 extra_css: ["extra.css"]
-repo_url: "https://github.com/elo-enterprises/k8s-tools/"
 site_url: https://elo-enterprises.github.io/k8s-tools/
 site_description: >-
   Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
@@ -46,6 +45,7 @@ nav:
     - 'Project Source': 'https://github.com/elo-enterprises/k8s-tools/'
 plugins:
   - search
+  - autolinks 
   # - mkdocstrings:
   #     handlers:
   #       # See: https://mkdocstrings.github.io/python/usage/

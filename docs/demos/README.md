@@ -18,23 +18,29 @@ MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL=help
 .SUFFIXES:
+
 # Override k8s-tools.yml service-defaults, 
 # explicitly setting the k3d version used
 export K3D_VERSION:=v5.6.3
+
 # Cluster details that will be used by k3d.
 export CLUSTER_NAME:=k8s-tools-e2e
+
 # Ensure local KUBECONFIG exists & ignore anything from environment
 export KUBECONFIG:=./fake.profile.yaml
 export _:=$(shell umask 066;touch ${KUBECONFIG})
+
 # Chart & Pod details that we'll use later during deploy
 export HELM_REPO:=https://helm.github.io/examples
 export HELM_CHART:=examples/hello-world
 export POD_NAME?=test-harness
 export POD_NAMESPACE?=default
+
 # Include and invoke the `compose.import` macro 
 # so we have targets for k8s-tools.yml services
 include k8s.mk
 $(eval $(call compose.import, ▰, TRUE, k8s-tools.yml))
+
 # Default target should do everything, end to end.
 all: clean create deploy test
 
@@ -53,12 +59,15 @@ Next we organize some targets for cluster-operations.  Below you can see there a
 
 # Top level public targets for cluster operations, 
 # plus (optional) convenience-aliases and stage-labels.
+
 # These run private subtargets inside the named  tool containers (i.e. `k3d`).
 clean cluster.clean: flux.stage/ClusterClean ▰/k3d/self.cluster.clean
 create cluster.create: flux.stage/ClusterCreate ▰/k3d/self.cluster.create
 teardown: flux.stage/ClusterTeardown cluster.teardown
+
 # Plus a convenience alias to wait for all pods in all namespaces.
 wait cluster.wait: k8s.cluster.wait
+
 # Private targets for low-level cluster-ops.
 # Host has no `k3d` command, so these targets
 # run inside the `k3d` service from k8s-tools.yml
@@ -68,6 +77,7 @@ self.cluster.create:
 			--servers 3 --agents 3 \
 			--api-port 6551 --port '8080:80@loadbalancer' \
 			--volume $$(pwd)/:/$${CLUSTER_NAME}@all --wait )
+	
 self.cluster.clean:
 	set -x && k3d cluster delete $${CLUSTER_NAME}
 
@@ -113,6 +123,7 @@ fwd.grafana:
 	$(call log, ${GLYPH_DOCKER} looking up grafana password) 
 	grafana_password=`kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}"|base64 --decode` \
 	&& printf "http://admin:$${grafana_password}@grafana:8081\n"
+	
 deploy.grafana:
 	printf "\
 		wait=yes \
@@ -124,8 +135,10 @@ deploy.grafana:
 		chart_repo_url=https://grafana.github.io/helm-charts" \
 	| make jb \
 	| make ansible.helm
+	
 deploy.helm: ▰/helm/self.cluster.deploy_helm_example io.time.wait/5
 deploy.test_harness: ▰/k8s/self.test_harness.deploy
+
 # Private targets with the low-level details for what to do in tool containers. 
 # You can expand this to include usage of `kustomize`, etc. Volumes are already setup,
 # so you can `kubectl apply` from the filesystem.  You can also call anything documented 
@@ -138,6 +151,7 @@ self.cluster.deploy_helm_example:
 	set -x \
 	&& (helm repo list 2>/dev/null | grep examples || helm repo add examples ${HELM_REPO} ) \
 	&& (helm list | grep hello-world || helm install ahoy ${HELM_CHART})
+
 # We stood up the test-harness with the 'k8s.test_harness' target,
 # and stood up nginx with plain kubectl.  Let's tear down with 
 # ansible to mix it up.
@@ -153,6 +167,7 @@ cluster.teardown:
 		release_namespace=default" \
 	| make jb \
 	| make ansible.helm 
+
 # Prerequisites up top create & activate the `default` namespace 
 # and then deploy a pod named `test-harness` into it, using a default image.
 # In the body, we'll use kubectl directly to deploy a simple service into the default namespace.
@@ -191,13 +206,16 @@ test.cluster cluster.test: flux.stage/test ▰/k8s/k8s.cluster.wait
 	make k8s.graph.tui/kube-system/pod
 	label="Previewing topology for prometheus namespace" make charm.gum.style 
 	make k8s.graph.tui/prometheus/pod
+
 test.contexts: 
 	@# Helpers for displaying platform info 
 	label="Demo pod connectivity" make charm.gum.style 
 	make get.compose.ctx get.pod.ctx 
+
 get.compose.ctx:
 	@# Runs on the container defined by compose service
 	echo uname -n | make k8s-tools/k8s/shell/pipe
+
 get.pod.ctx:
 	@# Runs inside the kubernetes cluster
 	echo uname -n | make k8s.shell/default/test-harness/pipe
@@ -224,6 +242,7 @@ What if you want to inspect or interact with things though?  The next block of t
 # Interactive shell for the test-harness pod 
 # (See the 'deploy' steps for the setup of same)
 cluster.shell: k8s.shell/${POD_NAMESPACE}/${POD_NAME}
+
 # TUI for browsing the cluster 
 cluster.show: k3d.commander
 
@@ -403,7 +422,8 @@ Most of the demonstrations here are frankly nuts, and most likely no one will th
 
 ## Working with Foreign Languages
 
-```Makefile 
+```Makefile
+
 # tests/Makefile.mad-science.mk
 
 # Minimal boilerplate for working with elixir-lang.  
@@ -429,7 +449,8 @@ endef
 
 ## Inlined Docker Files
 
-```Makefile 
+```Makefile
+
 # tests/Makefile.mad-science.mk
 
 ## Inlined Docker Files
@@ -473,7 +494,8 @@ self.demo.dockerfile:
 
 Inlined containers can actually be extended with other inlines, but notice again the 'compose.mk' prefix which is used as a "repository".
 
-```Makefile 
+```Makefile
+
 # tests/Makefile.mad-science.mk
 
 ## Extending Inlined Docker Files
@@ -513,7 +535,8 @@ self.demo.container.extension:
 
 ## Local Interpretters, Without a Container
 
-```Makefile 
+```Makefile
+
 # tests/Makefile.mad-science.mk
 
 ## Local Interpretters, Without a Container
@@ -536,7 +559,8 @@ demo.python:
 
 ## Exotic Targets & Pipes
 
-```Makefile 
+```Makefile
+
 # tests/Makefile.mad-science.mk
 
 ## Exotic Targets & Pipes
@@ -568,7 +592,8 @@ So far we've seen examples of passing code, but of course the process is much th
 
 Let's embed a playbook, then run it with the `ansible` container defined in `k8s-tools.yml`.
 
-```Makefile 
+```Makefile
+
 # tests/Makefile.mad-science.mk
 
 ### Passing Data Structures to Externally Managed Containers

@@ -3127,22 +3127,22 @@ endef
 ##
 ## | Shortcut         | Purpose                                                |
 ## | ---------------- | ------------------------------------------------------ |
-## | Escape           | *Exit TUI*                                             |
-## | Ctrl b |         | *Split pane vertically*                                |
-## | Ctrl b -         | *Split pane horizontally*                              |
-## | Alt t            | *Shuffle pane layout*                                  |
-## | Alt ^            | *Grow pane up*                                         |
-## | Alt v            | *Grow pane down*                                       |
-## | Alt <            | *Grow pane left*                                       |
-## | Alt >            | *Grow pane right*                                      |
-## | Alt <left>       | *Grow pane left*                                       |
-## | Alt <right>      | *Grow pane right*                                      |
-## | Alt <up>         | *Grow pane up*                                         |
-## | Alt <down>       | *Grow pane down*                                       |
-## | Alt-1            | *Select pane 1*                                        |
-## | Alt-2            | *Select pane 2*                                        |
+## | `Escape`           | *Exit TUI*                                             |
+## | `Ctrl b |`         | *Split pane vertically*                                |
+## | `Ctrl b -`         | *Split pane horizontally*                              |
+## | `Alt t`            | *Shuffle pane layout*                                  |
+## | `Alt ^`            | *Grow pane up*                                         |
+## | `Alt v`            | *Grow pane down*                                       |
+## | `Alt <`            | *Grow pane left*                                       |
+## | `Alt >`            | *Grow pane right*                                      |
+## | `Alt <left>`       | *Grow pane left*                                       |
+## | Alt <right>`      | *Grow pane right*                                      |
+## | Alt <up>`         | *Grow pane up*                                         |
+## | Alt <down>`       | *Grow pane down*                                       |
+## | `Alt-1`            | *Select pane 1*                                        |
+## | `Alt-2`            | *Select pane 2*                                        |
 ## | ...              | *...*                                                  |
-## | Alt-N            | *Select pane N*                                        |
+## | `Alt-N`            | *Select pane N*                                        |
 ##
 ##░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 

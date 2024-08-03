@@ -31,7 +31,7 @@ all: #tux.require #docker-compose.build.quiet #k8s-tools.build.quiet/k8s k8s-too
 	&& make \
 		test.mk \
 		flux.stage/core-compose \
-		demo demo-double-dispatch \
+		demo demo.double.dispatch \
 		test.dispatch \
 		test.dispatch.retvals \
 		test.compose.pipes \
@@ -85,7 +85,7 @@ test.ticker:
 self.demo:
 	. /etc/os-release && printf "$${PRETTY_NAME}\n"
 	uname -n -v
-demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.double.dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 test.containerized.tty.output: 
 	cmd='sleep 2' label='testing gum spinner inside container' make charm.gum.spin
