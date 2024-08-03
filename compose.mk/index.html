@@ -5,16 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/compose.mk/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>compose.mk - k8s-tools</title>
+    <title>Compose.mk - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "compose.mk";
+        var mkdocs_page_name = "Compose.mk";
         var mkdocs_page_input_path = "compose.mk.md";
         var mkdocs_page_url = "/k8s-tools/compose.mk/";
       </script>
@@ -23,6 +22,10 @@
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,16 +45,18 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                  </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
-                </li>
-              </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">compose.mk</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Compose.mk</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#library-mode">Library Mode</a>
     </li>
@@ -104,27 +109,34 @@
         </ul>
     </li>
     </ul>
-                </li>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -140,9 +152,9 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">compose.mk</li>
+          <li class="breadcrumb-item">Core Components</li>
+      <li class="breadcrumb-item active">Compose.mk</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/compose.mk.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -389,7 +401,7 @@ include compose.mk
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 # User-facing top-level target, with two dependencies
-demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.double.dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 # Displays platform info to show where target is running.
 # Since this target is intended to be private, we will 
@@ -399,10 +411,10 @@ self.demo:
     uname -n -v
 </code></pre>
 <p>The <em><code>self</code></em> prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:</p>
-<p><img src="/img/demo-double-dispatch.gif"></p>
+<p><img src="/img/demo.double.dispatch.gif"></p>
 <p>Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.</p>
 <pre><code class="language-bash"># pithy invocation with compose.mk
-$ make demo-double-dispatch 
+$ make demo.double.dispatch 
 
 # verbose, fragile alternative
 $ docker compose -f docker-compose.yml \
@@ -410,7 +422,7 @@ $ docker compose -f docker-compose.yml \
   &amp;&amp; docker compose -f docker-compose.yml \
     run --entrypoint bash alpine -c &quot;make self.demo&quot;
 </code></pre>
-<p><strong>This simple pattern for dispatching targets in containers is the main feature of <code>compose.mk</code> as a library, and it's surprisingly powerful.</strong>  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to <a href="/demos/#cluster-automation-demo">this section</a>.</p>
+<p><strong>This simple pattern for dispatching targets in containers is the main feature of <code>compose.mk</code> as a library, and it's surprisingly powerful.</strong>  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to <a href="#cluster-automation-demo">this section</a>.</p>
 <p>Container-dispatch with <code>compose.mk</code> can also autodetect what shell to use with the container (via the <a href="#target-svc_namespecial"><code>&lt;svc_name&gt;/get_shell</code> target</a>).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See <a href="https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html">docs for <code>make --reconn</code></a> to learn more about dry-runs).  If you are thoughtful about the ways that you're using volumes and file state, you can also consider using <a href="https://www.gnu.org/software/make/manual/make.html#Parallel-Execution"><code>make --jobs</code> for parallel execution</a>.</p>
 <p><strong>To make this work as expected though, we do have to add more stuff to the compose file.</strong>  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, <strong>if the subtarget is going to run on the container, the container needs to at least have:</strong>  <code>make</code>, <code>bash</code> (or whatever shell the Makefile uses), and a volume mount to read the <code>Makefile</code>.  </p>
 <pre><code class="language-yaml">##
@@ -447,7 +459,7 @@ services:
         RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng
 
 </code></pre>
-<p>The debian/alpine compose file above and most of the interfaces described so far are all exercised inside <a href="tests/">this repo's test suite</a>.</p>
+<p>The debian/alpine compose file above and most of the interfaces described so far are all exercised inside <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/">this repo's test suite</a>.</p>
 <h2 id="macro-arguments">Macro Arguments</h2>
 <p>Make isn't big on named-arguments, so let's unpack the typical <code>compose.import</code> macro invocation.</p>
 <pre><code class="language-Makefile">include compose.mk
@@ -458,7 +470,8 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 <p><strong>The last argument for <code>compose.import</code> is the compose-file to load services from.</strong>  It will be tempting to quote this and the other arguments, but that won't work, so resist the urge!</p>
 <h2 id="container-dispatch-syntaxsemantics">Container Dispatch Syntax/Semantics</h2>
 <p>Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  </p>
-<pre><code class="language-Makefile"># A target that runs stuff inside the `debian` container, runs from host using `make demo`
+<pre><code class="language-Makefile">
+# A target that runs stuff inside the `debian` container, runs from host using `make demo`
 demo: ▰/debian/self.demo
 
 # Dispatching 1 target to 2 containers looks like this
@@ -475,7 +488,8 @@ self.demo:
 <p>Under the hood, dispatch is implemented by building on the <a href="#makecompose-bridge">default targets that are provided by the bridge</a>.</p>
 <h2 id="multiple-compose-files">Multiple Compose Files</h2>
 <p>This can be easily adapted for working with <em>multiple</em> compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:</p>
-<pre><code class="language-Makefile"># Makefile (Make sure you have real tabs, not spaces!)
+<pre><code class="language-Makefile">
+# Makefile (Make sure you have real tabs, not spaces!)
 
 # Load 1st compose file under paralleogram namespace,
 # Load 2nd compose file under triangle namespace
@@ -495,51 +509,114 @@ build.code:
 <p>Confused about what targets are available after using <code>compose.import</code>?  See the <a href="#target-compose_stemcmd"><code>&lt;compose_stem&gt;.services</code></a> for list services, and check out the <code>make help</code> output.</p>
 <h2 id="loading-compose-files">Loading Compose Files</h2>
 <p>For the simplest use-cases where you have a compose-file, and want some of the compose.mk features, but don't have a project makefile, it's possible to skip some of the steps in the <a href="#embedding-tools-with-makefiles">usual integration</a> by letting <code>loadf</code> generate integration for you just in time.</p>
-<pre><code class="language-bash">$ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
+<pre><code class="language-bash">
+$ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
 </code></pre>
 <p>Since <code>make</code> can't modify available targets from inside recipes, this basically works by creating temporary files that use the <a href="#macro-arguments">compose.import macro</a> on the given compose file, then proxying subsequent CLI arguments over to <em>that</em> automation.  When no other instructions are provided, the default is to <a href="#embedded-tui">open container shells in the TUI</a>.</p>
-<p><a href=img/tui-3.gif><img src=img/tui-3.gif></a></p>
+<p align="center"><a href="/k8s-tools/img/tui-3.gif"><img width="90%" src="/k8s-tools/img/tui-3.gif"></a></p>
+
 <p>Actually any type of instructions you pass will get the compose-file context, so you can use any of the other targets documented as <a href="#make-compose-bridge">part of the bridge</a> or the <a href="/api#api-compose.mk">static targets</a>.  For example:</p>
-<p><a href=img/tui-4.gif><img src=img/tui-4.gif></a></p>
+<p align="center"><a href="/k8s-tools/img/tui-4.gif"><img width="90%" src="/k8s-tools/img/tui-4.gif"></a></p>
+
 <p>Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the <a href="#embedded-tui">Embedded TUI</a> docs for other examples that are using <code>loadf</code>.</p>
 <h2 id="embedded-tui">Embedded TUI</h2>
 <table align=center width=95%>
     <tr>
-        <td><p align="center"><a href="img/tui-1.gif"><img width="200px" src="img/tui-1.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-4.gif"><img width="200px" src="img/tui-4.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-6.gif"><img width="200px" src="img/tui-6.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="200px" src="/k8s-tools/img/tui-1.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-4.gif"><img width="200px" src="/k8s-tools/img/tui-4.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-6.gif"><img width="200px" src="/k8s-tools/img/tui-6.gif"></a></p></td>
     </tr>
     <tr>
-        <td><p align="center"><a href="img/tui-2.gif"><img width="200px" src="img/tui-2.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-3.gif"><img width="200px" src="img/tui-3.gif"></a></p></td>
-        <td><p align="center"><a href="img/tui-5.gif"><img width="200px" src="img/tui-5.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-2.gif"><img width="200px" src="/k8s-tools/img/tui-2.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-3.gif"><img width="200px" src="/k8s-tools/img/tui-3.gif"></a></p></td>
+        <td><p align="center"><a href="/k8s-tools/img/tui-5.gif"><img width="200px" src="/k8s-tools/img/tui-5.gif"></a></p></td>
     </tr>
 </table>
 
 <p>The basic components of the TUI are things like <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements (plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>) are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
-<p><img src=img/tui-5.gif></p>
+<p align="center"><a href="/k8s-tools/img/tui-5.gif"><img width="90%" src="/k8s-tools/img/tui-5.gif"></a></p>
 <p>How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
 <p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="/integration">the usual integration with a project Makefile</a>.</p>
-<p><img src=img/tui-1.gif></p>
+<p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="90%" src="/k8s-tools/img/tui-1.gif"></a></p>
+
 <p>One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.</p>
-<p><img src=img/tui-2.gif></p>
+<p align="center"><a href="/k8s-tools/img/tui-2.gif"><img width="90%" src="/k8s-tools/img/tui-2.gif"></a></p>
+
 <h4 id="tui-keybindings">TUI Keybindings</h4>
-<p>| ---------------- | ------------------------------------------------------ |
-| Escape           | <em>Exit TUI</em>                                             |
-| Ctrl b |         | <em>Split pane vertically</em>                                |
-| Ctrl b -         | <em>Split pane horizontally</em>                              |
-| Alt t            | <em>Shuffle pane layout</em>                                  |
-| Alt ^            | <em>Grow pane up</em>                                         |
-| Alt v            | <em>Grow pane down</em>                                       |
-| Alt &lt;            | <em>Grow pane left</em>                                       |
-| Alt &gt;            | <em>Grow pane right</em>                                      |
-| Alt <left>       | <em>Grow pane left</em>                                       |
-| Alt <right>      | <em>Grow pane right</em>                                      |
-| Alt <up>         | <em>Grow pane up</em>                                         |
-| Alt <down>       | <em>Grow pane down</em>                                       |
-| Alt-1            | <em>Select pane 1</em>                                        |
-| Alt-2            | <em>Select pane 2</em>                                        |
-| ...              | <em>...</em>                                                  |</p>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Escape</td>
+<td><em>Exit TUI</em></td>
+</tr>
+<tr>
+<td>Ctrl b</td>
+<td></td>
+</tr>
+<tr>
+<td>Ctrl b -</td>
+<td><em>Split pane horizontally</em></td>
+</tr>
+<tr>
+<td>Alt t</td>
+<td><em>Shuffle pane layout</em></td>
+</tr>
+<tr>
+<td>Alt ^</td>
+<td><em>Grow pane up</em></td>
+</tr>
+<tr>
+<td>Alt v</td>
+<td><em>Grow pane down</em></td>
+</tr>
+<tr>
+<td>Alt &lt;</td>
+<td><em>Grow pane left</em></td>
+</tr>
+<tr>
+<td>Alt &gt;</td>
+<td><em>Grow pane right</em></td>
+</tr>
+<tr>
+<td>Alt <left></td>
+<td><em>Grow pane left</em></td>
+</tr>
+<tr>
+<td>Alt <right></td>
+<td><em>Grow pane right</em></td>
+</tr>
+<tr>
+<td>Alt <up></td>
+<td><em>Grow pane up</em></td>
+</tr>
+<tr>
+<td>Alt <down></td>
+<td><em>Grow pane down</em></td>
+</tr>
+<tr>
+<td>Alt-1</td>
+<td><em>Select pane 1</em></td>
+</tr>
+<tr>
+<td>Alt-2</td>
+<td><em>Select pane 2</em></td>
+</tr>
+<tr>
+<td>...</td>
+<td><em>...</em></td>
+</tr>
+<tr>
+<td>Alt-N</td>
+<td><em>Select pane N</em></td>
+</tr>
+</tbody>
+</table>
 <h2 id="signals-and-supervisors">Signals and Supervisors</h2>
 <p>### Motivation </p>
 <p>Without <a href="https://remake.readthedocs.io/en/latest/">forking make</a>, there's no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people <a href="https://www.gnu.org/software/make/manual/html_node/Interrupts.html">it's about cleanup</a>, but <code>compose.mk</code> doesn't exactly look like traditional use-cases.</p>
@@ -567,7 +644,7 @@ build.code:
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href="../integration/" class="btn btn-neutral float-left" title="Integration"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../k8s.mk/" class="btn btn-neutral float-right" title="k8s.mk">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../k8s.mk/" class="btn btn-neutral float-right" title="K8s.mk">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -588,10 +665,6 @@ build.code:
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-    
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
     
     
       <span><a href="../integration/" style="color: #fcfcfc">&laquo; Previous</a></span>

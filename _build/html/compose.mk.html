@@ -307,7 +307,7 @@ $<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> <
 <span class="k">$(</span><span class="nv">eval</span> <span class="k">$(</span><span class="nv">call</span> <span class="nv">compose.import</span>, ▰, <span class="nv">TRUE</span>, <span class="nv">docker-compose.yml</span><span class="k">))</span>
 
 <span class="c"># User-facing top-level target, with two dependencies</span>
-<span class="nf">demo-double-dispatch</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span> ▰/<span class="n">alpine</span>/<span class="n">self</span>.<span class="n">demo</span>
+<span class="nf">demo.double.dispatch</span><span class="o">:</span><span class="w"> </span>▰/<span class="n">debian</span>/<span class="n">self</span>.<span class="n">demo</span> ▰/<span class="n">alpine</span>/<span class="n">self</span>.<span class="n">demo</span>
 
 <span class="c"># Displays platform info to show where target is running.</span>
 <span class="c"># Since this target is intended to be private, we will </span>
@@ -318,10 +318,10 @@ $<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> <
 </pre></div>
 </div>
 <p>The <em><code class="docutils literal notranslate"><span class="pre">self</span></code></em> prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:</p>
-<img src="img/demo-double-dispatch.gif">
+<img src="img/demo.double.dispatch.gif">
 <p>Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># pithy invocation with compose.mk</span>
-$<span class="w"> </span>make<span class="w"> </span>demo-double-dispatch<span class="w"> </span>
+$<span class="w"> </span>make<span class="w"> </span>demo.double.dispatch<span class="w"> </span>
 
 <span class="c1"># verbose, fragile alternative</span>
 $<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span><span class="se">\</span>

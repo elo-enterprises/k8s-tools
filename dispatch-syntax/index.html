@@ -8,8 +8,7 @@
     <title>Dispatch syntax - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../extra.css" rel="stylesheet" />
     
       <script>
@@ -23,6 +22,10 @@
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,37 +45,46 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -90,7 +102,6 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Dispatch syntax</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/dispatch-syntax.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -100,20 +111,30 @@
               
                 <h2 id="container-dispatch-syntaxsemantics">Container Dispatch Syntax/Semantics</h2>
 <p>Let's look at the container-dispatch example in more detail.  This isn't a programming language you've never seen before, it's just a (legal) Makefile that uses unicode symbols in some of the targets.  </p>
-<pre><code class="language-Makefile"># A target that runs stuff inside the `debian` container, runs from host using `make demo`
+<pre><code class="language-Makefile">
+# A target that runs stuff inside the `debian` container, runs from host using `make demo`
 demo: ▰/debian/self.demo
 
 # Dispatching 1 target to 2 containers looks like this
-demo-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.both: ▰/debian/self.demo ▰/alpine/self.demo
 
 # Displays platform info to show where target is running.
 self.demo:
     source /etc/os-release &amp;&amp; printf &quot;$${PRETTY_NAME}\n&quot;
     uname -n -v
 </code></pre>
-<p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the <em><code>self</code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code>self</code></em> hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except <code>make demo</code>.  For people reading the code, the visual hints make it easy to understand what's at the top-level.</p>
+<p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the <em><code>self</code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  </p>
+<p>This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code>self</code></em> hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except <code>make demo</code>.  For people reading the code, the visual hints make it easy to understand what's at the top-level.  Tightening it up can help to make it clear that this is sort of a block:</p>
+<pre><code class="language-Makefile">
+# Two top-level &quot;public&quot; targets, dispatching 1 &quot;private&quot; target into groups of 1 or more containers
+demo: ▰/debian/self.demo
+demo.both: ▰/debian/self.demo ▰/alpine/self.demo
+self.demo:
+    source /etc/os-release &amp;&amp; printf &quot;$${PRETTY_NAME}\n&quot;
+    uname -n -v
+</code></pre>
 <p>But what about the semantics?  In this example, the user-facing <code>demo</code> target depends on <code>▰/debian/demo</code>, which isn't really a target as much as a declaration.  The declaration means the <em>private</em> target <code>self.demo</code>, will be executed inside the <code>debian</code> container that the compose file defines.  <em>Crucially, the <code>self.demo</code> target can use tools the host doesn't have, stuff that's only available in the tool container.</em>  </p>
-<p>Look, no <code>docker run ..</code> clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)</p>
+<p>Look, no <code>docker run ..</code> clutter littered everywhere!  So yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple, it's agnostic about your CI backend, and there's clean separation between automation / container specifications.</p>
 <p>Under the hood, dispatch is implemented by building on the <a href="#makecompose-bridge">default targets that are provided by the bridge</a>.</p>
               
             </div>
@@ -137,10 +158,6 @@ self.demo:
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-    
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
     
     
     

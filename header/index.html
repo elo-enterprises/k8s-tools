@@ -8,8 +8,7 @@
     <title>Header - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../extra.css" rel="stylesheet" />
     
       <script>
@@ -23,6 +22,10 @@
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,37 +45,46 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -90,7 +102,6 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Header</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/header.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -102,13 +113,6 @@
 {% import 'macros.j2' as macros -%}
 {% set subtitle = subtitle | default("") %}
 {% set subtitle = subtitle and "&nbsp; // &nbsp; <strong>" + subtitle + "</strong>" %}</p>
-<p>{% set project_summary="Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more."%}
-{% set mkdocs =  mkdocs | default(false) %}
-{% set img_base =  img_base | default('img/') %}
-{%if mkdocs %}
-{% set img_base =  '/img' %}
-{{project_summary}}
-{%else%}</p>
 <table align=center style="width:100%">
   <tr>
     <td colspan=2><strong>k8s-tools {{subtitle}}</strong>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -131,9 +135,8 @@
   </tr>
 </table>
 <p><center><span align=center>
-  Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
-</span></center>
-{%endif%}</p>
+  {% include "summary.md" %}
+</span></center></p>
               
             </div>
           </div><footer>
@@ -156,10 +159,6 @@
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-    
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
     
     
     

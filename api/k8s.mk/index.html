@@ -8,8 +8,7 @@
     <title>K8s.mk - k8s-tools</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../../extra.css" rel="stylesheet" />
     
       <script>
@@ -23,6 +22,10 @@
       <script src="../../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,37 +45,328 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../integration/">Integration</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../integration/">Integration</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">compose.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">k8s.mk</a>
-                </li>
+              <p class="caption"><span class="caption-text">API</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">K8s.mk</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#k8smk-dynamic-targets">k8s.mk: (Dynamic Targets)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#k8smk-static-targets">k8s.mk: (Static Targets)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#api-k8s">API: k8s</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sansible">k8s.ansible</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sclusterready">k8s.cluster.ready</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sclusterwait">k8s.cluster.wait</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8scommander">k8s.commander</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8scommanderarg">k8s.commander/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgetarg">k8s.get/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgraph">k8s.graph</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgraphtui">k8s.graph.tui</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgraphtuiarg">k8s.graph.tui/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgraphtuiallpods">k8s.graph.tui/all/pods</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgrapharg">k8s.graph/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sgraphallpods">k8s.graph/all/pods</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8shelp">k8s.help</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8skubenscreatearg">k8s.kubens.create/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8skubensarg">k8s.kubens/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacecreatearg">k8s.namespace.create/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacefwdarg">k8s.namespace.fwd/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacelabelarg">k8s.namespace.label/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacelist">k8s.namespace.list</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacepurgebyprefixarg">k8s.namespace.purge.by.prefix/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacepurgearg">k8s.namespace.purge/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacewaitarg">k8s.namespace.wait/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacewaitall">k8s.namespace.wait/all</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8snamespacearg">k8s.namespace/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sready">k8s.ready</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sshellarg">k8s.shell/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstat">k8s.stat</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstatauth">k8s.stat.auth</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstatcluster">k8s.stat.cluster</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstatctx">k8s.stat.ctx</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstatenv">k8s.stat.env</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstatnode_info">k8s.stat.node_info</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8sstatns">k8s.stat.ns</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8stest_harnessrandom">k8s.test_harness.random</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8stest_harnessarg">k8s.test_harness/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k8swait">k8s.wait</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#api-ansible">API: ansible</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#ansible">ansible</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleadhocarg">ansible.adhoc/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleadhocblockinfile">ansible.adhoc/blockinfile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleadhockubernetescorehelm">ansible.adhoc/kubernetes.core.helm</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleadhockubernetescorek8s">ansible.adhoc/kubernetes.core.k8s</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleblockinfile">ansible.blockinfile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblehelm">ansible.helm</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblek8s">ansible.k8s</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblekubernetescorek8s">ansible.kubernetes.core.k8s</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblerun">ansible.run</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblerunarg">ansible.run/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblebuild">ansible/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleclean">ansible/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibledispatcharg">ansible/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleget_shell">ansible/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansiblepipe">ansible/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleshell">ansible/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ansibleshellpipe">ansible/shell/pipe</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#api-k3d">API k3d</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#k3d">k3d</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dclusterdeletearg">k3d.cluster.delete/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dclusterlist">k3d.cluster.list</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dcommander">k3d.commander</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dcommanderarg">k3d.commander/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dhelp">k3d.help</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dlist">k3d.list</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dpanic">k3d.panic</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dps">k3d.ps</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dstat">k3d.stat</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dbuild">k3d/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dclean">k3d/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3ddispatcharg">k3d/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dget_shell">k3d/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dpipe">k3d/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dshell">k3d/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k3dshellpipe">k3d/shell/pipe</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#api-kubefwd">API: kubefwd</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwd">kubefwd</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdhelp">kubefwd.help</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdpanic">kubefwd.panic</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdps">kubefwd.ps</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdstartarg">kubefwd.start/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdstat">kubefwd.stat</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdstoparg">kubefwd.stop/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdbuild">kubefwd/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdclean">kubefwd/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwddispatcharg">kubefwd/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdget_shell">kubefwd/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdpipe">kubefwd/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdshell">kubefwd/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubefwdshellpipe">kubefwd/shell/pipe</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#api-helm">API: helm</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#helm">helm</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diff">helm-diff</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffbuild">helm-diff/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffclean">helm-diff/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffdispatcharg">helm-diff/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffget_shell">helm-diff/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffpipe">helm-diff/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffshell">helm-diff/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-diffshellpipe">helm-diff/shell/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-push">helm-push</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushbuild">helm-push/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushclean">helm-push/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushdispatcharg">helm-push/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushget_shell">helm-push/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushpipe">helm-push/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushshell">helm-push/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-pushshellpipe">helm-push/shell/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittest">helm-unittest</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestbuild">helm-unittest/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestclean">helm-unittest/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestdispatcharg">helm-unittest/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestget_shell">helm-unittest/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestpipe">helm-unittest/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestshell">helm-unittest/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helm-unittestshellpipe">helm-unittest/shell/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmchartinstallarg">helm.chart.install/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmrepoaddarg">helm.repo.add/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmbuild">helm/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmclean">helm/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmdispatcharg">helm/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmget_shell">helm/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmpipe">helm/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmshell">helm/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmshellpipe">helm/shell/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmify">helmify</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifybuild">helmify/build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifyclean">helmify/clean</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifydispatcharg">helmify/dispatch/&lt;arg&gt;</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifyget_shell">helmify/get_shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifypipe">helmify/pipe</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifyshell">helmify/shell</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#helmifyshellpipe">helmify/shell/pipe</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../demos/">Demos</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../">API</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -88,9 +382,9 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API</li>
       <li class="breadcrumb-item active">K8s.mk</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/api/k8s.mk.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -102,7 +396,6 @@
 <hr />
 <h3 id="k8smk-dynamic-targets">k8s.mk: (Dynamic Targets)</h3>
 <p>The autogenerated section of the API (i.e. what's created by <em>compose.import</em>'ing k8s-tools.yml) is documented below.</p>
-<h1 id="_1">}</h1>
 <p><strong>File-level Operations:</strong></p>
 <ul>
 <li>k8s-tools.build </li>
@@ -113,7 +406,6 @@
 <li>k8s-tools.stop </li>
 <li>k8s-tools.up </li>
 </ul>
-<h1 id="_2">}</h1>
 <p><strong>Top-level container aliases:</strong></p>
 <ul>
 <li>ansible </li>
@@ -151,7 +443,6 @@
 <li>vals </li>
 <li>yq </li>
 </ul>
-<h1 id="_3">}</h1>
 <p><strong>Complete list:</strong></p>
 <ul>
 <li>k8s-tools/ansible/get_shell </li>
@@ -1042,6 +1333,10 @@
               
             </div>
           </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../compose.mk/" class="btn btn-neutral float-left" title="Compose.mk"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../limitations/" class="btn btn-neutral float-right" title="Known Limitations and Issues">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
 
   <hr/>
 
@@ -1062,11 +1357,11 @@
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
+    
+      <span><a href="../compose.mk/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
+      <span><a href="../../limitations/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

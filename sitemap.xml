@@ -2,152 +2,157 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/badges/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/bonus/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/bridge/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/but-why/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/compose.mk/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/container-dispatch/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/contributing/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/dispatch-syntax/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/embedded-tui/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/env-vars/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/features/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/header/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/integration/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/k8s.mk/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/limitations/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/loadf/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/macro-arguments/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/mini-toc/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/multiple-compose-files/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/overview/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/quickstart/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/signals/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://elo-enterprises.github.io/k8s-tools/summary/</loc>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/api/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/api/compose.mk/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/api/k8s.mk/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/demos/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/demos/cluster/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/demos/mad-science/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://elo-enterprises.github.io/k8s-tools/demos/platform/</loc>
-         <lastmod>2024-08-02</lastmod>
+         <lastmod>2024-08-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

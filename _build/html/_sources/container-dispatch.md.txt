@@ -45,7 +45,7 @@ include compose.mk
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 # User-facing top-level target, with two dependencies
-demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.double.dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 # Displays platform info to show where target is running.
 # Since this target is intended to be private, we will 
@@ -57,14 +57,14 @@ self.demo:
 
 The *`self`* prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:
 
-<img src="img/demo-double-dispatch.gif">
+<img src="img/demo.double.dispatch.gif">
 
 
 Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.
 
 ```bash
 # pithy invocation with compose.mk
-$ make demo-double-dispatch 
+$ make demo.double.dispatch 
 
 # verbose, fragile alternative
 $ docker compose -f docker-compose.yml \

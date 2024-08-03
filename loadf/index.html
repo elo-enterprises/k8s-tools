@@ -8,8 +8,7 @@
     <title>Loadf - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../extra.css" rel="stylesheet" />
     
       <script>
@@ -23,6 +22,10 @@
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,37 +45,46 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -90,7 +102,6 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Loadf</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/loadf.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -100,12 +111,13 @@
               
                 <h2 id="loading-compose-files">Loading Compose Files</h2>
 <p>For the simplest use-cases where you have a compose-file, and want some of the compose.mk features, but don't have a project makefile, it's possible to skip some of the steps in the <a href="#embedding-tools-with-makefiles">usual integration</a> by letting <code>loadf</code> generate integration for you just in time.</p>
-<pre><code class="language-bash">$ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
+<pre><code class="language-bash">
+$ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
 </code></pre>
 <p>Since <code>make</code> can't modify available targets from inside recipes, this basically works by creating temporary files that use the <a href="#macro-arguments">compose.import macro</a> on the given compose file, then proxying subsequent CLI arguments over to <em>that</em> automation.  When no other instructions are provided, the default is to <a href="#embedded-tui">open container shells in the TUI</a>.</p>
-<p><a href=img/tui-3.gif><img src=img/tui-3.gif></a></p>
+<p>{{macros.img_link("tui-3.gif", mkdocs)}}</p>
 <p>Actually any type of instructions you pass will get the compose-file context, so you can use any of the other targets documented as <a href="#make-compose-bridge">part of the bridge</a> or the <a href="/api#api-compose.mk">static targets</a>.  For example:</p>
-<p><a href=img/tui-4.gif><img src=img/tui-4.gif></a></p>
+<p>{{macros.img_link("tui-4.gif", mkdocs)}}</p>
 <p>Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the <a href="#embedded-tui">Embedded TUI</a> docs for other examples that are using <code>loadf</code>.</p>
               
             </div>
@@ -129,10 +141,6 @@
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-    
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
     
     
     

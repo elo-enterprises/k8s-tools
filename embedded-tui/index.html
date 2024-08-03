@@ -8,8 +8,7 @@
     <title>Embedded tui - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../extra.css" rel="stylesheet" />
     
       <script>
@@ -23,6 +22,10 @@
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,37 +45,46 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../api/k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../api/">API</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -90,7 +102,6 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Embedded tui</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/embedded-tui.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -102,24 +113,24 @@
 <h2 id="embedded-tui">Embedded TUI</h2>
 <table align=center width=95%>
     <tr>
-        <td>{{macros.img_link("img/tui-1.gif", "200px")}}</td>
-        <td>{{macros.img_link("img/tui-4.gif", "200px")}}</td>
-        <td>{{macros.img_link("img/tui-6.gif", "200px")}}</td>
+        <td>{{macros.img_link("tui-1.gif",mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-4.gif",mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-6.gif",mkdocs, "200px")}}</td>
     </tr>
     <tr>
-        <td>{{macros.img_link("img/tui-2.gif", "200px")}}</td>
-        <td>{{macros.img_link("img/tui-3.gif", "200px")}}</td>
-        <td>{{macros.img_link("img/tui-5.gif", "200px")}}</td>
+        <td>{{macros.img_link("tui-2.gif",mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-3.gif",mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-5.gif",mkdocs, "200px")}}</td>
     </tr>
 </table>
 
 <p>The basic components of the TUI are things like <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements (plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>) are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
-<p><img src=img/tui-5.gif></p>
-<p>How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
+<p>{{macros.img_link("tui-5.gif",mkdocs)}}
+How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
 <p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="/integration">the usual integration with a project Makefile</a>.</p>
-<p><img src=img/tui-1.gif></p>
+<p>{{macros.img_link("tui-1.gif",mkdocs)}}</p>
 <p>One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.</p>
-<p><img src=img/tui-2.gif></p>
+<p>{{macros.img_link("tui-2.gif",mkdocs)}}</p>
 <h4 id="tui-keybindings">TUI Keybindings</h4>
 <p>{{bash("pattern='<em>Keybindings</em>' make mk.parse.block/compose.mk")}}</p>
               
@@ -144,10 +155,6 @@
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-    
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
     
     
     

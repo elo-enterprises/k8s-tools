@@ -5,16 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/api/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>API - k8s-tools</title>
+    <title>API / CLI Documentation - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
-        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
         <link href="../extra.css" rel="stylesheet" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "API";
+        var mkdocs_page_name = "API / CLI Documentation";
         var mkdocs_page_input_path = "api/README.md";
         var mkdocs_page_url = "/k8s-tools/api/";
       </script>
@@ -23,6 +22,10 @@
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/makefile.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
       <script>hljs.highlightAll();</script> 
 </head>
 
@@ -42,453 +45,46 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Overview</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../integration/">Integration</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Demos</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">compose.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/cluster/">Demo: Cluster Automation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/platform/">Demo: Platform Setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../demos/mad-science/">Demo: Mad Science</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">API</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">k8s.mk</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="compose.mk/">Compose.mk</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="k8s.mk/">K8s.mk</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../demos/">Demos</a>
-                </li>
-              </ul>
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">API</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#composemk-dynamic-targets">compose.mk: (Dynamic Targets)</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#composemk-static-targets">compose.mk: (Static Targets)</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#api-tux">API: tux</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxcommander">tux.commander</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxcommanderarg">tux.commander/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdemo">tux.demo</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdispatchsh">tux.dispatch.sh</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdispatcharg">tux.dispatch/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxhelp">tux.help</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxmuxcountarg">tux.mux.count/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxmuxdetacharg">tux.mux.detach/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxmuxgenericarg">tux.mux.generic/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxmuxsvcarg">tux.mux.svc/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxmuxarg">tux.mux/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanearg">tux.pane/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanic">tux.panic</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxps">tux.ps</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxrequire">tux.require</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetticker">tux.widget.ticker</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxshell">tux/shell</a>
-    </li>
-        </ul>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#api-io">API: io</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#iobash">io.bash</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenv">io.env</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenvfilterprefixarg">io.env.filter.prefix/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenvpretty">io.env.pretty</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenvprettyarg">io.env.pretty/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenvarg">io.env/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenvp">io.envp</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioenvparg">io.envp/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iofilepreviewarg">io.file.preview/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iofilepygmentizearg">io.file.pygmentize/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iohelp">io.help</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioprintdiv">io.print.div</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioprintdivarg">io.print.div/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioquietstderrsh">io.quiet.stderr.sh</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#ioquietstderrarg">io.quiet.stderr/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iostackpoparg">io.stack.pop/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iostackpusharg">io.stack.push/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iostackarg">io.stack/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iotailarg">io.tail/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iotimewait">io.time.wait</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iotimewaitarg">io.time.wait/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iotimewait1">io.time.wait/1</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iowait">io.wait</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#iowaitarg">io.wait/&lt;arg&gt;</a>
-    </li>
-        </ul>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#api-docker">API: docker</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerbuilddefarg">docker.build.def/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerbuildmaybearg">docker.build.maybe/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerbuildquietarg">docker.build.quiet/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerbuildarg">docker.build/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerclean">docker.clean</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockercommander">docker.commander</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockercontext">docker.context</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockercontextarg">docker.context/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerfromdefarg">docker.from.def/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerfromfilearg">docker.from.file/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerfromgithubarg">docker.from.github/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerfromrepo">docker.from.repo</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerfromurlarg">docker.from.url/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerhelp">docker.help</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerimages">docker.images</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerimagesall">docker.images.all</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerinit">docker.init</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerinitcompose">docker.init.compose</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockernetworkpanic">docker.network.panic</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerpanic">docker.panic</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerprune">docker.prune</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerps">docker.ps</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerrundef">docker.run.def</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerrundefarg">docker.run.def/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerrunimagearg">docker.run.image/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerrunsh">docker.run.sh</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerrunarg">docker.run/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockersocket">docker.socket</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerstart">docker.start</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerstartarg">docker.start/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerstat">docker.stat</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerstop">docker.stop</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockerstopall">docker.stop.all</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockersystemprune">docker.system.prune</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockertagsbyrepoarg">docker.tags.by.repo/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dockervolumepanic">docker.volume.panic</a>
-    </li>
-        </ul>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#api-flux">API: flux</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxalwaysarg">flux.always/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxandarg">flux.and/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxapplylatersharg">flux.apply.later.sh/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxapplylaterarg">flux.apply.later/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxapplyarg">flux.apply/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxdelayarg">flux.delay/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxdmux">flux.dmux</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxdmuxarg">flux.dmux/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxdounlessarg">flux.do.unless/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxdowhenarg">flux.do.when/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxeacharg">flux.each/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxfail">flux.fail</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxfinallyarg">flux.finally/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxhelp">flux.help</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxifthenarg">flux.if.then/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxindentsh">flux.indent.sh</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxindentarg">flux.indent/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxjoin">flux.join</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxloopuntilarg">flux.loop.until/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxloopwatcharg">flux.loop.watch/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxlooparg">flux.loop/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxloopfarg">flux.loopf/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxloopfqarg">flux.loopfq/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxmaparg">flux.map/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxmux">flux.mux</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxmuxarg">flux.mux/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxnegatearg">flux.negate/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxnoop">flux.noop</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxok">flux.ok</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxorarg">flux.or/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxretryarg">flux.retry/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxshtee">flux.sh.tee</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxsplit">flux.split</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxsplitarg">flux.split/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstage">flux.stage</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstageclean">flux.stage.clean</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagecleanarg">flux.stage.clean/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagefilearg">flux.stage.file/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagepoparg">flux.stage.pop/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagepush">flux.stage.push</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagepusharg">flux.stage.push/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagestack">flux.stage.stack</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxstagearg">flux.stage/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxtimeoutsh">flux.timeout.sh</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxtimeoutarg">flux.timeout/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxtimerarg">flux.timer/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxtryexceptfinallyarg">flux.try.except.finally/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fluxwraparg">flux.wrap/&lt;arg&gt;</a>
-    </li>
-        </ul>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#api-gum">API: gum</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#api-stream">API: stream</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#streamcommatojson">stream.comma.to.json</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamcommatonl">stream.comma.to.nl</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamcommatospace">stream.comma.to.space</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamcsvpygmentize">stream.csv.pygmentize</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamdim">stream.dim</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamdimindent">stream.dim.indent</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamdimindentstderr">stream.dim.indent.stderr</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamecho">stream.echo</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamglow">stream.glow</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamhelp">stream.help</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamindent">stream.indent</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamindenttostderr">stream.indent.to.stderr</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streaminipygmentize">stream.ini.pygmentize</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamjb">stream.jb</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamjsonappend">stream.json.append</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamjsonarrayappend">stream.json.array.append</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamjsonobjectappend">stream.json.object.append</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamjsonpygmentize">stream.json.pygmentize</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamlstrip">stream.lstrip</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamnlenum">stream.nl.enum</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamnltojsonarray">stream.nl.to.json.array</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamnltospace">stream.nl.to.space</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streampeek">stream.peek</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streampreview">stream.preview</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streampygmentize">stream.pygmentize</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streampygmentizearg">stream.pygmentize/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamspaceenum">stream.space.enum</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamstrip">stream.strip</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#streamtostderr">stream.to.stderr</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tui-private-api">TUI Private API</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxattach">.tux.attach</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxcommanderlayout">.tux.commander.layout</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdemolayout">.tux.demo.layout</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdwindlearg">.tux.dwindle/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdwindleh">.tux.dwindle/h</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxdwindles">.tux.dwindle/s</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxgeoget">.tux.geo.get</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxgeoset">.tux.geo.set</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuximgdisplayarg">.tux.img.display/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxinit">.tux.init</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxinitbind_keys">.tux.init.bind_keys</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxinitbuttons">.tux.init.buttons</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxinitpanes">.tux.init.panes</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxinitstatus_bar">.tux.init.status_bar</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxinittheme">.tux.init.theme</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxlayoutdwindlearg">.tux.layout.dwindle/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxlayouthorizontal">.tux.layout.horizontal</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxlayoutshuffle">.tux.layout.shuffle</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxlayoutspiral">.tux.layout.spiral</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxlayoutarg">.tux.layout/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxmsg">.tux.msg</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanefocusarg">.tux.pane.focus/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanesharg">.tux.pane.sh/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanetitlearg">.tux.pane.title/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanearg_1">.tux.pane/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanesarg">.tux.panes/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxpanic_1">.tux.panic</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxquit">.tux.quit</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxtheme">.tux.theme</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxthemesetarg">.tux.theme.set/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetenv">.tux.widget.env</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetenvarg">.tux.widget.env/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetimg">.tux.widget.img</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetimgvararg">.tux.widget.img.var/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetlazydocker">.tux.widget.lazydocker</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetlazydockerarg">.tux.widget.lazydocker/&lt;arg&gt;</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetlazydocker0">.tux.widget.lazydocker/0</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#tuxwidgetticker_1">.tux.widget.ticker</a>
-    </li>
-        </ul>
-    </li>
-        </ul>
-    </li>
-    </ul>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="" href="https://elo-enterprises.github.io/k8s-tools/">Source</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="https://github.com/elo-enterprises/k8s-tools/">Project Source</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -504,9 +100,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">API</li>
+      <li class="breadcrumb-item active">API / CLI Documentation</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/elo-enterprises/k8s-tools/edit/master/docs/api/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -514,7 +109,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <hr />
+                <h1 id="api-cli-documentation">API / CLI Documentation</h1>
+<p>As discussed <a href="#">elsewhere</a>, one major advantage of <code>make</code> is that the programmatic interface <em>is</em> the command-line interface, and vice versa.</p>
+<p>As such, all the documentation here is doing double duty, and technically any of these targets can be used as a <a href="#">prerequisite for other targets</a> or as a command-line entrypoint.  </p>
+<p>Your milage may vary though; for example entrypoints for TUI interfaces are better thought of as "commands" and internals like <a href="#flux-api"><code>flux.*</code></a> or <a href="#mk-api"><code>mk.*</code> targets</a> are normally just used in a scripting context.</p>
+<hr />
 <h2 id="api-composemk">API: compose.mk</h2>
 <hr />
 <h3 id="composemk-dynamic-targets">compose.mk: (Dynamic Targets)</h3>
@@ -1848,7 +1447,6 @@
 <hr />
 <h3 id="k8smk-dynamic-targets">k8s.mk: (Dynamic Targets)</h3>
 <p>The autogenerated section of the API (i.e. what's created by <em>compose.import</em>'ing k8s-tools.yml) is documented below.</p>
-<h1 id="_1">}</h1>
 <p><strong>File-level Operations:</strong></p>
 <ul>
 <li>k8s-tools.build </li>
@@ -1859,7 +1457,6 @@
 <li>k8s-tools.stop </li>
 <li>k8s-tools.up </li>
 </ul>
-<h1 id="_2">}</h1>
 <p><strong>Top-level container aliases:</strong></p>
 <ul>
 <li>ansible </li>
@@ -1897,7 +1494,6 @@
 <li>vals </li>
 <li>yq </li>
 </ul>
-<h1 id="_3">}</h1>
 <p><strong>Complete list:</strong></p>
 <ul>
 <li>k8s-tools/ansible/get_shell </li>
@@ -2788,10 +2384,6 @@
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../demos/" class="btn btn-neutral float-left" title="Demos"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../limitations/" class="btn btn-neutral float-right" title="Known Limitations and Issues">Next <span class="icon icon-circle-arrow-right"></span></a>
-    </div>
 
   <hr/>
 
@@ -2812,15 +2404,7 @@
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
-        <span>
-          <a href="https://github.com/elo-enterprises/k8s-tools/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
-        </span>
     
-    
-      <span><a href="../demos/" style="color: #fcfcfc">&laquo; Previous</a></span>
-    
-    
-      <span><a href="../limitations/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
