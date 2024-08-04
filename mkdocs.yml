@@ -30,6 +30,7 @@ nav:
     - Features: 'features.md'
     - Integration: 'integration.md'
   - Core Components:
+    - 'K8s-tools.ymls': 'k8s-tools.yml.md'
     - 'Compose.mk': 'compose.mk.md'
     - 'K8s.mk': 'k8s.mk.md'
   - Demos:
@@ -40,6 +41,7 @@ nav:
     - api/compose.mk.md
     - api/k8s.mk.md
   - Other:
+    - 'Configuration / Env Vars': config.md
     - limitations.md
     - contributing.md
     - 'Project Source': 'https://github.com/elo-enterprises/k8s-tools/'
