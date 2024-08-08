@@ -626,5 +626,7 @@ But of course the playbook above could just as easily be an `eksctl` config or `
 
 ## How it Works 
 
-Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/api#api-mk) and [*`docker.*`*](/api#api-docker) for more details.  Note also that the [*`mk.def.*`* targets](/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P
+Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/k8s-tools//api#api-mk) and [*`docker.*`*](/k8s-tools//api#api-docker) for more details.  
+
+Note also that the [*`mk.def.*`* targets](/k8s-tools//api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like `$` are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even more dangerous idea than the rest of this is, and so it is left as an exercise to the reader. =P
 

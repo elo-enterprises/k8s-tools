@@ -1,1 +1,2 @@
-Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it. Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
+Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.<br/>
+Project-local clusters, cluster lifecycle automation, customizable TUIs, and more.
