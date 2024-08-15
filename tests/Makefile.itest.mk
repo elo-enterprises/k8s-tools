@@ -8,20 +8,27 @@
 #   # from project root
 #   $ make etest
 ##
-SHELL := bash
-MAKEFLAGS=-s -S --warn-undefined-variables
-.SHELLFLAGS := -eu -c
 
+# Standard boilerplate for make itself, nothing to see here.
+SHELL := bash
+MAKEFLAGS=-sS --warn-undefined-variables
+.DEFAULT_GOAL=help
+.SHELLFLAGS := -euo pipefail -c
+.SUFFIXES:
+
+# Set a default for KUBECONFIG so that user doesn't need to provide it. 
+# We create this file if it doesn't exist 
 export KUBECONFIG:=./fake.profile.yaml
 export _:=$(shell umask 066;touch ${KUBECONFIG})
 
-# testing the compose integration
+# Include compose.mk so we can use `compose.import` macro, and
+# otherwise exercise base-targets that are provided by the lib
 include compose.mk
 
-# Load 1 compose file, *not* into the root namespace.
+# Load all services from 1 compose file, *not* into the root namespace.
 $(eval $(call compose.import, ▰, FALSE, cm-tools.yml))
 
-# Load all services from two files into 1 namespace.
+# Load all services from 2 compose files into 1 namespace.
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 $(eval $(call compose.import, ▰, FALSE, k8s-tools.yml))
 

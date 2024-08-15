@@ -569,7 +569,7 @@ These are configurable of course, since there's no way guarantee that such defau
 
 You can think of `compose.mk` as a long list of egregious hacks that can only be redeemed by a *'but look what you can do with this!'* moment.  On that list, **signals and supervisors** is perhaps the most absurd thing of all.
 
-### Motivation
+### Signals and Supervisors: Motivation
 
 Without [forking make](https://remake.readthedocs.io/en/latest/), there's no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people [it's about cleanup](https://www.gnu.org/software/make/manual/html_node/Interrupts.html), but `compose.mk` doesn't exactly look like traditional use-cases.
 
@@ -586,7 +586,7 @@ Sometimes we want individual targets to essentially be able to consume the rest 
  
 The [wrapper for jb](/k8s-tools/api#jb) is another example of an invocation that requires reading the whole command-line.  And for targets created with [`compose.import`](/k8s-tools/compose.mk#makecompose-bridge), the [special form with '--'] (#special-form) also requires this kind of short-circuiting.
 
-### Implementation
+### Signals and Supervisors: Implementation
 
 Since the last section describes the goal, you might be wondering how this kind of semi-magical behavior can be achieved.   And since the answer to that question is frankly kind of ridiculous, this should probably be considered experimental :)  With that sternly worded warning out of the way... 
 
@@ -600,13 +600,13 @@ All targets related to signals/supervisors can be found under the `mk.interrupt`
 
 
  
-* [mk.supervisor.enter/<arg>](docs/api#mk.supervisor.enterarg) 
-* [mk.supervisor.exit/<arg>](docs/api#mk.supervisor.exitarg) 
-* [mk.supervisor.interrupt](docs/api#mk.supervisor.interrupt) 
-* [mk.supervisor.interrupt/<arg>](docs/api#mk.supervisor.interruptarg) 
-* [mk.supervisor.pid](docs/api#mk.supervisor.pid) 
-* [mk.supervisor.trap/<arg>](docs/api#mk.supervisor.traparg) 
-* [mk.interrupt](docs/api#mk.interrupt) 
-* [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
-* [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
+* [`mk.supervisor.enter/<arg>`](docs/api#mk.supervisor.enterarg) 
+* [`mk.supervisor.exit/<arg>`](docs/api#mk.supervisor.exitarg) 
+* [`mk.supervisor.interrupt`](docs/api#mk.supervisor.interrupt) 
+* [`mk.supervisor.interrupt/<arg>`](docs/api#mk.supervisor.interruptarg) 
+* [`mk.supervisor.pid`](docs/api#mk.supervisor.pid) 
+* [`mk.supervisor.trap/<arg>`](docs/api#mk.supervisor.traparg) 
+* [`mk.interrupt`](docs/api#mk.interrupt) 
+* [`mk.interrupt/<arg>`](docs/api#mk.interruptarg) 
+* [`mk.interrupt/SIGINT`](docs/api#mk.interruptSIGINT) 
 

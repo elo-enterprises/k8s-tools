@@ -5,9 +5,11 @@
 {% set div="\n###############################################################################\n" %}
 {% set sections = open('tests/Makefile.e2e.mk','r').read().split(div) %}
 
-This section is a walk-through of the [end-to-end test]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk) included in the test-suite.  
+This section is a walk-through of the [end-to-end test]({{github.repo_url}}/tree/master/tests/Makefile.e2e.mk) included in the test-suite, demonstrating how you might use `k8s.mk` to put together a simple script for managing lifecycle aspects of a kubernetes cluster.
 
-## Cluster Automation: Boilerplate, Overrides, & Overview
+## Boilerplate, Overview & Overrides
+
+Let's jump right into the obligatory boilerplate, some examples of version-overrides, and a high level overview of the automation that we expect to cover.
 
 ```Makefile 
 # tests/Makefile.e2e.mk
@@ -15,7 +17,7 @@ This section is a walk-through of the [end-to-end test]({{github.repo_url}}/tree
 {% for line in sections[0].strip().split('\n') %}{%if not line.lstrip().startswith('##')%}{{line+'\n'}}{% endif %}{% endfor %}
 ```
 
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines]({{mkdocs.site_relative_url}}/config#k8s-toolsyml), and it's a convenient way to test upgrades.
+The `K3D_VERSION` part above is an example of overriding defaults from `k8s-tools.yml`, and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines]({{mkdocs.site_relative_url}}/config#k8s-toolsyml), and it's a convenient way to test upgrades.
 
 The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
 
@@ -39,7 +41,7 @@ Running `make init` looks like this when it's setting up the cluster:
 
 {{macros.img_link("e2e-init.gif", mkdocs, "90%")}}
 
-## Cluster Automation: Deployment
+## Deployment
 
 The next section of the Makefile covers cluster provisioning.  Here we just want to install a helm chart, and to add a special "test-harness" pod to the default namespace.  
 
@@ -64,7 +66,7 @@ The other part of our provisioning is bootstrapping the test-harness pod.  This 
 
 {{macros.img_link("e2e-provision-test-harness.gif", mkdocs, "90%")}}
 
-## Cluster Automation: Testing
+## Testing
 
 With the test-harness in place, there's a block of target definitions for a miniature test-suite that checks properties of the cluster.
 
@@ -82,7 +84,7 @@ Running `make test` looks like this:
 
 {{macros.img_link("e2e-test.gif", mkdocs, "90%")}}
 
-## Cluster Automation: Debugging
+## Debugging
 
 The tests are not a bad start for exercising the cluster, and instead of displaying platform info you can imagine tests that check service availability.  Since we blocked on pods or whole-namespaces being ready, we also know that nothing is stuck in crash loop or container-pull.  And we know that there were not errors with the helm charts, and that we can communicate with the test-harness pod.  
 
@@ -106,7 +108,7 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 {{macros.img_link("e2e-interactive-tui.gif", mkdocs, "90%")}}
 
-## Cluster Automation: Development
+## Development
 
 For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
@@ -116,7 +118,7 @@ The [**`kubefwd.start/<namespace>`** target]({{mkdocs.site_relative_url}}/api#ku
 
 Note the weird DNS in the test above, where `nginx-service` resolves as expected, even from the host.  The `kubefwd` tool makes this work smoothly because `k8s-tools.yml` mounts `/etc/hosts` as a volume.
 
-## Cluster Automation: Alternate Deployment
+## Alternate Deployment
 
 Really, a static or "project-local" kubernetes backend isn't required.  Since the automation separates platforming and application deployment from cluster-bootstrap, we can easily ignore k3d and use any existing cluster pretty easily.  To do this just export another value for `KUBECONFIG`.
 
@@ -128,7 +130,7 @@ $ rdctl shell sudo k3s kubectl config view --raw > rancher-desktop.yml
 $ KUBECONFIG=rancher-desktop.yml make deploy test
 ```
 
-## Cluster Automation: Next Steps
+## Next Steps
 
 From here you'll probably want to get something real done.  Most likely you are either trying to prototype something that you want to eventually productionize, or you already have a different production environment, and you are trying to get something from there to run more smoothly locally.  Either way, here's a few ideas for getting started.
 
@@ -139,7 +141,7 @@ From here you'll probably want to get something real done.  Most likely you are 
 1. **Experimenting with private registries** might start with [compose-managed tags](https://docs.docker.com/reference/cli/docker/compose/push/) and a [local caching docker registry](https://docs.docker.com/docker-hub/mirror/)**, or you can push to a [k3d registry](https://k3d.io/v5.2.0/usage/registries/).  To use private, locally built images without a registry, see [`k3d image import`](https://k3d.io/v5.3.0/usage/commands/k3d_image_import/), or the equivalent [kind load](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
 1. **Extending the make/compose technique to completely different automation tasks is straightforward,** as long as you stick to the layout.  For example substituing `k8s-tools.yml` for a new `iac-tools.yml` compose file that bundles together containers that package different versions of terraform, cloudformation, google/azure/databricks CLIs, etc.  Then `compose.mk` and `compose.import` generate targets as usual.  If necessary a new file `Makefile.iac.mk` can add a minimal interface for working with those containers.  These things together are basically an automation library, and it's up to individual projects to decide how to combine and drive the pieces.  
 
-## Cluster Automation: Conclusion
+## Conclusion
 
 So that's how less than 100 lines of mostly-aliases-and-documentation Makefile is enough to describe a simple cluster lifecycle, and can give access to ~20 versioned platforming tools, all with no host dependencies except docker + make.  It's simple, structured, portable, and lightweight.  If you don't care about partial excutions and exposing step-wise entrypoints to the CLI, then you can cut this line-count roughly in half.  Good automation will be self-documenting, but even if you're code-golfing with this approach, the result will probably *still* be organized/maintainable/durable than the equivalent shell-script or ansible.
 

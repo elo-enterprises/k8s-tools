@@ -3,20 +3,25 @@
 
 
 
-This section is a walk-through of the [end-to-end test](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk) included in the test-suite.  
+This section is a walk-through of the [end-to-end test](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk) included in the test-suite, demonstrating how you might use `k8s.mk` to put together a simple script for managing lifecycle aspects of a kubernetes cluster.
 
-## Boilerplate, Overrides, Clean & Init
+## Boilerplate, Overview & Overrides
+
+Let's jump right into the obligatory boilerplate, some examples of version-overrides, and a high level overview of the automation that we expect to cover.
 
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-# k8s-tools.git End-to-end tests
+# k8s-tools.git: End-to-end tests
+#
 # Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services 
-# to create & interact  with a small k3d cluster.
+# to create & interact with a small k3d cluster.
+
+# Standard boilerplate for make itself, nothing to see here.
 SHELL := bash
 MAKEFLAGS=-sS --warn-undefined-variables
-.SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL=help
+.SHELLFLAGS := -euo pipefail -c
 .SUFFIXES:
 
 # Override k8s-tools.yml service-defaults, 
@@ -46,7 +51,7 @@ all: clean create deploy test
 
 ```
 
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/k8s-tools/config#k8s-toolsyml), and it's a convenient way to test upgrades.
+The `K3D_VERSION` part above is an example of overriding defaults from `k8s-tools.yml`, and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/k8s-tools/config#k8s-toolsyml), and it's a convenient way to test upgrades.
 
 The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
 

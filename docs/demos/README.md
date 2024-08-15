@@ -1,22 +1,29 @@
+This is a growing collection of hands-on demonstrations of what the k8s-tools suite can do.
+
 # Demo: Cluster Automation
 
 
 
 
-This section is a walk-through of the [end-to-end test](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk) included in the test-suite.  
+This section is a walk-through of the [end-to-end test](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk) included in the test-suite, demonstrating how you might use `k8s.mk` to put together a simple script for managing lifecycle aspects of a kubernetes cluster.
 
-## Boilerplate, Overrides, Clean & Init
+## Boilerplate, Overview & Overrides
+
+Let's jump right into the obligatory boilerplate, some examples of version-overrides, and a high level overview of the automation that we expect to cover.
 
 ```Makefile 
 # tests/Makefile.e2e.mk
 
-# k8s-tools.git End-to-end tests
+# k8s-tools.git: End-to-end tests
+#
 # Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services 
-# to create & interact  with a small k3d cluster.
+# to create & interact with a small k3d cluster.
+
+# Standard boilerplate for make itself, nothing to see here.
 SHELL := bash
 MAKEFLAGS=-sS --warn-undefined-variables
-.SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL=help
+.SHELLFLAGS := -euo pipefail -c
 .SUFFIXES:
 
 # Override k8s-tools.yml service-defaults, 
@@ -46,7 +53,7 @@ all: clean create deploy test
 
 ```
 
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](//env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
+The `K3D_VERSION` part above is an example of overriding defaults from `k8s-tools.yml`, and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/k8s-tools/config#k8s-toolsyml), and it's a convenient way to test upgrades.
 
 The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
 
@@ -85,13 +92,13 @@ self.cluster.clean:
 
 Running `make clean` looks like this when it's tearing down the cluster:
 
-<p align="center"><a href="/k8s-toolsimg/e2e-clean.gif"><img width="90%" src="/k8s-toolsimg/e2e-clean.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-clean.gif"><img width="90%" src="/k8s-tools/img/e2e-clean.gif"></a></p>
 
 The `list` part makes the create target idempotent in the way you'd expect.  Here we're using CLI arguments for most of the cluster spec, but depending on your version, k3d supports most of this in external config yaml.
 
 Running `make init` looks like this when it's setting up the cluster:
 
-<p align="center"><a href="/k8s-toolsimg/e2e-init.gif"><img width="90%" src="/k8s-toolsimg/e2e-init.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-init.gif"><img width="90%" src="/k8s-tools/img/e2e-init.gif"></a></p>
 
 ## Deployment
 
@@ -176,18 +183,18 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
 
 ```
 
-Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/api/#api-k8smk)) do all of the heavy lifting.  
+Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/k8s-tools/api/#api-k8smk)) do all of the heavy lifting.  
 
 Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.
 
-<p align="center"><a href="/k8s-toolsimg/e2e-provision-helm.gif"><img width="90%" src="/k8s-toolsimg/e2e-provision-helm.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-provision-helm.gif"><img width="90%" src="/k8s-tools/img/e2e-provision-helm.gif"></a></p>
 
 
 Helm is just an example.  Volumes for file-sharing with the container are also already setup, so you can `kustomize` or `kubectl apply` referencing the file system directly.
 
 The other part of our provisioning is bootstrapping the test-harness pod.  This pod is nothing very special, but we can use it later to inspect the cluster.  Setting it up looks like this:
 
-<p align="center"><a href="/k8s-toolsimg/e2e-provision-test-harness.gif"><img width="90%" src="/k8s-toolsimg/e2e-provision-test-harness.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-provision-test-harness.gif"><img width="90%" src="/k8s-tools/img/e2e-provision-test-harness.gif"></a></p>
 
 ## Testing
 
@@ -228,7 +235,7 @@ You can use this to assert things about the application pods you've deployed (ba
 
 Running `make test` looks like this:
 
-<p align="center"><a href="/k8s-toolsimg/e2e-test.gif"><img width="90%" src="/k8s-toolsimg/e2e-test.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-test.gif"><img width="90%" src="/k8s-tools/img/e2e-test.gif"></a></p>
 
 ## Debugging
 
@@ -250,23 +257,23 @@ cluster.show: k3d.commander
 
 Again, no target bodies because `k8s.*` targets for stuff like this already exist, and we just need to pass in the parameters for our setup.  
 
-Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if k8s.mk is included, but now there's an even-easier alias that makes our project more self-documenting.  
+Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if k8s.mk is used as an include, but now there's an even-easier alias that makes our project more self-documenting.  
 
-<p align="center"><a href="/k8s-toolsimg/e2e-interactive-shell.gif"><img width="90%" src="/k8s-toolsimg/e2e-interactive-shell.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-interactive-shell.gif"><img width="90%" src="/k8s-tools/img/e2e-interactive-shell.gif"></a></p>
 
 The `*k8s.shell/<namespace>/<pod_name>*` target used above is interactive, but there's also a streaming version that we used earlier in the cluster testing (`*k8s.shell/<namespace>/<pod_name>/pipe*`).
 
 Since k3d is using docker for nodes, debugging problems sometimes involves inspecting host stats at the same time as a view of the cluster context.  Here's a side-by-side view of the kubernetes namespace (visualized with `ktop`), and the local docker containers (via `lazydocker`):
 
-<p align="center"><a href="/k8s-toolsimg/e2e-interactive-tui.gif"><img width="90%" src="/k8s-toolsimg/e2e-interactive-tui.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-interactive-tui.gif"><img width="90%" src="/k8s-tools/img/e2e-interactive-tui.gif"></a></p>
 
 ## Development
 
 For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
-The [**`kubefwd.start/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
+The [**`kubefwd.start/<namespace>`** target](/k8s-tools/api#kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
 
-<p align="center"><a href="/k8s-toolsimg/e2e-kubefwd.gif"><img width="90%" src="/k8s-toolsimg/e2e-kubefwd.gif"></a></p>
+<p align="center"><a href="/k8s-tools/img/e2e-kubefwd.gif"><img width="90%" src="/k8s-tools/img/e2e-kubefwd.gif"></a></p>
 
 Note the weird DNS in the test above, where `nginx-service` resolves as expected, even from the host.  The `kubefwd` tool makes this work smoothly because `k8s-tools.yml` mounts `/etc/hosts` as a volume.
 
@@ -364,15 +371,15 @@ bootstrap:
     make platform1.setup | make flux.dmux/logging,metrics,events
 ```
 
-Above, the builtin [flux.dmux target](/api#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
+Above, the builtin [flux.dmux target](/k8s-tools/api#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
 
 This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
 
-<p align="center"><a href="/k8s-toolsimg/example-platform-1.png"><img width="90%" src="/k8s-toolsimg/example-platform-1.png"></a></p>
+<p align="center"><a href="/k8s-tools/img/example-platform-1.png"><img width="90%" src="/k8s-tools/img/example-platform-1.png"></a></p>
 
 Whew.  We know what happens next is probably *more* platforms, more tools/containers, and more data flows.  Not to belabor the point but let's watch how it blows up with just one more platform:
 
-<p align="center"><a href="/k8s-toolsimg/example-platform-2.png"><img width="90%" src="/k8s-toolsimg/example-platform-2.png"></a></p>
+<p align="center"><a href="/k8s-tools/img/example-platform-2.png"><img width="90%" src="/k8s-tools/img/example-platform-2.png"></a></p>
 
 The stripped-down and combined automation is included below. It feels pretty organized and maintainable, and weighs in at only ~20 lines.  That's almost exactly the same number of lines in the [mermaid source-code for the diagram](docs/example-platform-1.mmd), which is kind of remarkable, because usually implementations are usually *orders of magnitude larger* than the diagrams that describe them!  Zeroing in on a minimum viable description length?
 
@@ -399,13 +406,13 @@ self.events:
     cat /dev/stdin | jq .event
 ```
 
-There are many other `flux.*` targets ([see the API docs](/api#api-flux)), and while it's not recommended to go crazy with this stuff, when you need it you need it.
+There are many other `flux.*` targets ([see the API docs](/k8s-tools/api#api-flux)), and while it's not recommended to go crazy with this stuff, when you need it you need it.
 
 This tight expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF users.  *But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless!*  It neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔
 
 It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but of course it's not *really* made for ETLs.  Flux is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
 
-This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](/api#jb) or [`stream.json.object.append`](/api#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk)).
+This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually builtin's for working with [`jb`](/k8s-tools/api#jb) or [`stream.json.object.append`](/k8s-tools/api#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](/k8s-tools/compose.mk#container-dispatch) (which runs as part of [integration tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/k8s-tools/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk)).
 
 For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and app phases.
 
@@ -453,7 +460,6 @@ endef
 
 # tests/Makefile.mad-science.mk
 
-## Inlined Docker Files
 
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
@@ -498,7 +504,6 @@ Inlined containers can actually be extended with other inlines, but notice again
 
 # tests/Makefile.mad-science.mk
 
-## Extending Inlined Docker Files
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
 # but let's have the minimal stuff required for target dispatch.
@@ -539,7 +544,6 @@ self.demo.container.extension:
 
 # tests/Makefile.mad-science.mk
 
-## Local Interpretters, Without a Container
 
 # Look, here's a simple python script 
 define Python.demo
@@ -563,7 +567,6 @@ demo.python:
 
 # tests/Makefile.mad-science.mk
 
-## Exotic Targets & Pipes
 
 # A more complex python script, 
 # testing comments, indention, & using pipes
@@ -596,7 +599,6 @@ Let's embed a playbook, then run it with the `ansible` container defined in `k8s
 
 # tests/Makefile.mad-science.mk
 
-### Passing Data Structures to Externally Managed Containers
 
 # Look, it's a simple ansible playbook 
 define Ansible.example_playbook
@@ -620,11 +622,13 @@ demo.ansible.playbook:
 
 ```
 
-This is just an example, and anyway you may prefer to work with the [ansible.adhoc](/api#ansibleadhocarg) tooling which is better for simple use-cases.  
+This is just an example, and anyway you may prefer to work with the [ansible.adhoc](/k8s-tools/api#ansibleadhocarg) tooling which is better for simple use-cases.  
 
 But of course the playbook above could just as easily be an `eksctl` config or `kubectl` manifest.
 
 ## How it Works 
 
-Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/api#api-mk) and [*`docker.*`*](/api#api-docker) for more details.  Note also that the [*`mk.def.*`* targets](/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P
+Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/k8s-tools/api#api-mk) and [*`docker.*`*](/k8s-tools/api#api-docker) for more details.  
+
+Note also that the [*`mk.def.*`* targets](/k8s-tools/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like `$` are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even more dangerous idea than the rest of this is, and so it is left as an exercise to the reader. =P
 

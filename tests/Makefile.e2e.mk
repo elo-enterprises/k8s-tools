@@ -1,10 +1,13 @@
-# k8s-tools.git End-to-end tests
+# k8s-tools.git: End-to-end tests
+#
 # Exercising compose.mk, k8s.mk, plus the k8s-tools.yml services 
-# to create & interact  with a small k3d cluster.
+# to create & interact with a small k3d cluster.
+
+# Standard boilerplate for make itself, nothing to see here.
 SHELL := bash
 MAKEFLAGS=-sS --warn-undefined-variables
-.SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL=help
+.SHELLFLAGS := -euo pipefail -c
 .SUFFIXES:
 
 # Override k8s-tools.yml service-defaults, 

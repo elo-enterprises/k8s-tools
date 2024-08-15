@@ -1,10 +1,14 @@
 # Configuration
 
-## Environment Variables 
+For many simple use-cases, the k8s-tools suite only wants the familiar environment variables that your tools require, and in particular things like `KUBECONFIG`, `AWS_PROFILE` are inherited as usual from the calling environment.  
 
-Details about environment variables used with each of k8s-tools.yml, k8s.mk, and compose.mk.
+Although in practice most things have defaults, each component of the k8s-tools suite supports some kind of configuration injection that might be needed for advanced use-cases.  Below you can find sections for each of   [k8s-tools.yml](#k8s-tools.yml), [k8s.mk](#k8s.mk), and [compose.mk](#compose.mk) that describe the relevant environment variables.
+
+In a few cases and hopefully for good reasons, **configuration might sometimes involve editing some part of the k8s-tools suite in-place.**  For example,  `k8s-tools.yml` needs to specify file volumes, and while it does share `KUBECONFIG` by default, sharing directories like `~/.aws` and `~/.ssh` are commented by default, and users must explicitly opt-in.  As another example, editing the particulars of [the embedded TUI](/k8s-tools/compose.mk#embedded-tui) should not be necessary, but is easily done if you're willing to reach into [`compose.mk` source](https://github.com/elo-enterprises/k8s-tools/tree/master/compose.mk).  See also [this discussion of forking](/k8s-tools/integration#forking) included as part of the [integration docs](/k8s-tools/integration)
 
 ### k8s-tools.yml
+
+There are two main ways to configure the compose file that defines tool containers: you can [override tool versions](#versions), or you can [set defaults for docker](#docker)
 
 #### Versions 
 
@@ -33,7 +37,20 @@ HELM_CLI_VERSION=v3.14.4
 
 ```
 
-See [the source](#) for more details.
+#### Docker
+
+**If you're using `compose.mk` or `k8s.mk` directly or as an `include`,** these variables are set for you automatically from a best-guess when they are not provided.
+
+**If you're using `./k8s-tools.yml ..` directly or via `docker compose -f k8s-tools.yml`**, defaults assume values compatible with Linux, and may or may not work with MacOS!
+
+```ini 
+DOCKER_GID
+DOCKER_HOST_WORKSPACE
+DOCKER_SOCKET
+DOCKER_UGNAME
+DOCKER_UID
+
+```
 
 ------------------------------------------------------------------------------
 

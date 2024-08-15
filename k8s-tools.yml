@@ -27,6 +27,7 @@ services:
   k8s: &base
     hostname: k8s-base
     environment: &base_environment
+      AWS_PROFILE: ${AWS_PROFILE:-}
       KUBECONFIG: /home/${DOCKER_UGNAME:-root}/.kube/config
       DOCKER_UID: ${DOCKER_UID:-1000}
       DOCKER_GID: ${DOCKER_GID:-1000}
