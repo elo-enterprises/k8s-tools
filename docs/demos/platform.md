@@ -56,7 +56,7 @@ bootstrap:
     make platform1.setup | make flux.dmux/logging,metrics,events
 ```
 
-Above, the builtin [flux.dmux target](/api#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
+Above, the builtin [flux.dmux target](/k8s-tools/api#fluxdmux) is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The `bootstrap` entrypoint kicks everything off.  
 
 This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:
 
@@ -91,12 +91,12 @@ self.events:
     cat /dev/stdin | jq .event
 ```
 
-There are many other `flux.*` targets ([see the API docs](/api#api-flux)), and while it's not recommended to go crazy with this stuff, when you need it you need it.
+There are many other `flux.*` targets ([see the API docs](/k8s-tools/api#api-flux)), and while it's not recommended to go crazy with this stuff, when you need it you need it.
 
 This tight expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF users.  *But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless!*  It neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔
 
 It's a neat party trick that `compose.mk` has some features that look like Luigi or Airflow if you squint, but of course it's not *really* made for ETLs.  Flux is similar in spirit to things like [declarative pipelines in Jenkins](https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
 
-This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually [`jb`](/api#jb) or [`stream.json.object.append`](/api#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](#container-dispatch) (which runs as part of [integration tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk)).
+This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually builtin's for working with [`jb`](/k8s-tools/api#jb) or [`stream.json.object.append`](/k8s-tools/api#api-stream) can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the [simple dispatch demo](/k8s-tools/compose.mk#container-dispatch) (which runs as part of [integration tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.itest.mk)), or check out the [cluster lifecycle demo](/k8s-tools/demos#demo-cluster-automation) (which is just a walk-through of the [end-to-end tests](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk)).
 
 For a full blown project, check out [k3d-faas.git](https://github.com/elo-enterprises/k3d-faas), which also breaks down automation into platforms, infrastructure, and app phases.

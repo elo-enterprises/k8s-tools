@@ -40,7 +40,6 @@ endef
 
 # tests/Makefile.mad-science.mk
 
-## Inlined Docker Files
 
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
@@ -85,7 +84,6 @@ Inlined containers can actually be extended with other inlines, but notice again
 
 # tests/Makefile.mad-science.mk
 
-## Extending Inlined Docker Files
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
 # but let's have the minimal stuff required for target dispatch.
@@ -126,7 +124,6 @@ self.demo.container.extension:
 
 # tests/Makefile.mad-science.mk
 
-## Local Interpretters, Without a Container
 
 # Look, here's a simple python script 
 define Python.demo
@@ -150,7 +147,6 @@ demo.python:
 
 # tests/Makefile.mad-science.mk
 
-## Exotic Targets & Pipes
 
 # A more complex python script, 
 # testing comments, indention, & using pipes
@@ -183,7 +179,6 @@ Let's embed a playbook, then run it with the `ansible` container defined in `k8s
 
 # tests/Makefile.mad-science.mk
 
-### Passing Data Structures to Externally Managed Containers
 
 # Look, it's a simple ansible playbook 
 define Ansible.example_playbook
@@ -207,13 +202,13 @@ demo.ansible.playbook:
 
 ```
 
-This is just an example, and anyway you may prefer to work with the [ansible.adhoc](/api#ansibleadhocarg) tooling which is better for simple use-cases.  
+This is just an example, and anyway you may prefer to work with the [ansible.adhoc](/k8s-tools/api#ansibleadhocarg) tooling which is better for simple use-cases.  
 
 But of course the playbook above could just as easily be an `eksctl` config or `kubectl` manifest.
 
 ## How it Works 
 
-Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/k8s-tools//api#api-mk) and [*`docker.*`*](/k8s-tools//api#api-docker) for more details.  
+Most of this stuff hinges on multi-line defines, plus the ability of `compose.mk` to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for [*`mk.*`*](/k8s-tools/api#api-mk) and [*`docker.*`*](/k8s-tools/api#api-docker) for more details.  
 
-Note also that the [*`mk.def.*`* targets](/k8s-tools//api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like `$` are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even more dangerous idea than the rest of this is, and so it is left as an exercise to the reader. =P
+Note also that the [*`mk.def.*`* targets](/k8s-tools/api#api-mk) leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like `$` are always left alone.  This also means the **content is fairly static**, and not typically amenable to pre-execution templating.  It *is* possible to work around this, but that's an even more dangerous idea than the rest of this is, and so it is left as an exercise to the reader. =P
 

@@ -30,14 +30,14 @@ nav:
     - Features: 'features.md'
     - Integration: 'integration.md'
   - Core Components:
-    - 'K8s-tools.ymls': 'k8s-tools.yml.md'
+    - 'K8s-tools.yml': 'k8s-tools.yml.md'
     - 'Compose.mk': 'compose.mk.md'
     - 'K8s.mk': 'k8s.mk.md'
   - Demos:
     - demos/cluster.md
     - demos/platform.md
     - demos/mad-science.md
-  - API: #api/README.md
+  - API:
     - api/compose.mk.md
     - api/k8s.mk.md
   - Other:

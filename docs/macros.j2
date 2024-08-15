@@ -15,7 +15,7 @@ Jinja macros used in building docs (not make macros :)
 {%macro badge_from_val(val, label)%}<a href="env-vars.md"><img alt="{{label}}:{{val}}" src="https://img.shields.io/badge/{{url_quote((label and (label + ':')) + val)}}-blue"></a>{%- endmacro -%}
 
 {% macro img_link(fname, mkdocs, width="90%") -%}
-<p align="center"><a href="{{mkdocs.site_relative_url}}{{img_base}}/{{fname}}"><img width="{{width}}" src="{{mkdocs.site_relative_url}}{{img_base}}/{{fname}}"></a></p>
+<p align="center"><a href="{{mkdocs.site_relative_url}}/{{img_base}}/{{fname}}"><img width="{{width}}" src="{{mkdocs.site_relative_url}}/{{img_base}}/{{fname}}"></a></p>
 {%- endmacro -%}
 
 {% macro search_link(fname, term, github={}) -%}
@@ -32,7 +32,6 @@ Jinja macros used in building docs (not make macros :)
 {% endfor %}
 
 <hr style="width:80%;border-bottom: 5px dashed black;background: #efefef;">
-
 {%- endmacro -%}
 
 {% macro parse_help(fname, namespace, include_private=False) -%}

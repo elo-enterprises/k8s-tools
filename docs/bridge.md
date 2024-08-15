@@ -60,7 +60,7 @@ $ make debian/shell
 $ make alpine/shell
 ```
 
-{{macros.img_link("demo-bridge-shell.gif"}}
+{{macros.img_link("demo-bridge-shell.gif", mkdocs)}}
 
 ----------------------------------------------------
 
@@ -79,7 +79,7 @@ $ echo uname -n -v | make debian/pipe
 echo echo echo hello-world | make alpine/pipe | make debian/pipe
 ```
 
-{{macros.img_link("demo-bridge-stream.gif"}}
+{{macros.img_link("demo-bridge-stream.gif", mkdocs)}}
 
 ----------------------------------------------------
 

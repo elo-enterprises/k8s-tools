@@ -128,8 +128,7 @@ $ make debian/shell
 $ make alpine/shell
 ```
 
-<img src="img/demo-bridge-shell.gif">
-
+<p align="center"><a href="/k8s-tools/img/demo-bridge-shell.gif"><img width="90%" src="/k8s-tools/img/demo-bridge-shell.gif"></a></p>
 
 ----------------------------------------------------
 
@@ -148,7 +147,7 @@ $ echo uname -n -v | make debian/pipe
 echo echo echo hello-world | make alpine/pipe | make debian/pipe
 ```
 
-<img src="img/demo-bridge-stream.gif">
+<p align="center"><a href="/k8s-tools/img/demo-bridge-stream.gif"><img width="90%" src="/k8s-tools/img/demo-bridge-stream.gif"></a></p>
 
 ----------------------------------------------------
 
@@ -420,7 +419,7 @@ Let's look at the container-dispatch example in more detail.  This isn't a progr
 demo: ▰/debian/self.demo
 
 # Dispatching 1 target to 2 containers looks like this
-demo-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.both: ▰/debian/self.demo ▰/alpine/self.demo
 
 # Displays platform info to show where target is running.
 self.demo:
@@ -428,11 +427,23 @@ self.demo:
 	uname -n -v
 ```
 
-The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the *`self`* prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: *`self`* hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.
+The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the *`self`* prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  
+
+This decorator-inspired syntax is also creating a convention similar to the idea of private methods: *`self`* hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except `make demo`.  For people reading the code, the visual hints make it easy to understand what's at the top-level.  Tightening it up can help to make it clear that this is sort of a block:
+
+```Makefile
+
+# Two top-level "public" targets, dispatching 1 "private" target into groups of 1 or more containers
+demo: ▰/debian/self.demo
+demo.both: ▰/debian/self.demo ▰/alpine/self.demo
+self.demo:
+	source /etc/os-release && printf "$${PRETTY_NAME}\n"
+	uname -n -v
+```
 
 But what about the semantics?  In this example, the user-facing `demo` target depends on `▰/debian/demo`, which isn't really a target as much as a declaration.  The declaration means the *private* target `self.demo`, will be executed inside the `debian` container that the compose file defines.  *Crucially, the `self.demo` target can use tools the host doesn't have, stuff that's only available in the tool container.*  
 
-Look, no `docker run ..` clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)
+Look, no `docker run ..` clutter littered everywhere!  So yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple, it's agnostic about your CI backend, and there's clean separation between automation / container specifications.
 
 Under the hood, dispatch is implemented by building on the [default targets that are provided by the bridge](#makecompose-bridge).
 
@@ -485,6 +496,10 @@ Despite all the output this is pipe-safe, in case the commands involved might re
 
 ## Embedded TUI 
 
+### TUI Gallery
+
+For the impatient, here's a small gallery that show-cases the type of stuff you can do with the TUI capabilities that `compose.mk` offers.  
+
 <table align=center width=95%>
     <tr>
         <td><p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="200px" src="/k8s-tools/img/tui-1.gif"></a></p></td>
@@ -498,52 +513,69 @@ Despite all the output this is pipe-safe, in case the commands involved might re
     </tr>
 </table>
 
-The basic components of the TUI are things like [tmux](https://github.com/tmux/tmux) for core drawing and geometry, [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and overridable defaults for [tmux themes](https://github.com/jimeh/tmux-themepack/), [plugins](https://github.com/tmux-plugins/tpm), [keybindings](#tui-keybindings), etc.  These elements (plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/)) are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
+### TUI Overview
+
+It's best to think of the TUI as an interface-builder rather than a specific interface.  One way to look at what the TUI does is that it's just a way of *mapping `make` targets into tmux panes*.  And since [`compose.import`](/k8s-tools/compose.mk) basically allows you to map docker-compose services onto `make` targets, yet another way to think of the TUI is that it allows you to *map containers onto tmux panes*.
+
+Besides leveraging [tmux](https://github.com/tmux/tmux) for core drawing and geometry, the basic components of the TUI are things like [tmuxp](https://github.com/tmux-python/tmuxp) for session management, and overridable defaults for [tmux themes](https://github.com/jimeh/tmux-themepack/), [tmux plugins](https://github.com/tmux-plugins/tpm), [keybindings](#tui-keybindings), etc.  These elements, plus other niceties like [gum](https://github.com/charmbracelet/gum) and [chafa](https://hpjansson.org/chafa/), are all setup in the embedded `compose.mk:tux` container so that there are no host requirements for any of this except docker.
+
+### TUI Implementation
 
 <p align="center"><a href="/k8s-tools/img/tui-5.gif"><img width="90%" src="/k8s-tools/img/tui-5.gif"></a></p>
+
 How does this work?  The behaviour above relies on a few things.  First, the `compose.mk:tux` container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  
 
-Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the [`loadf` target,](#loading-compose-files) you can leverage existing compose files but skip [the usual integration with a project Makefile](/integration).
+Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the [`loadf` target,](/k8s-tools/compose.mk#loading-compose-files) you can leverage existing compose files but skip [the usual integration with a project Makefile](/k8s-tools/integration).
 
 <p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="90%" src="/k8s-tools/img/tui-1.gif"></a></p>
 
-One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.
+As mentioned in the section above, at the most basic level the TUI just maps make-targets into tmux-panes, so there's no explicit requirement that you need to use targets that are related to containers.
 
 <p align="center"><a href="/k8s-tools/img/tui-2.gif"><img width="90%" src="/k8s-tools/img/tui-2.gif"></a></p>
 
-#### TUI Keybindings
+### TUI Customization
+
+Beyond the simple examples of customization mentioned in the last section, more advanced use-cases are also supported.  In general, this is usually accomplished by creating custom targets for different parts of the TUI's bootstrap process, then [overriding an appropriate environment variable](/k8s-tools/config#tui-environment-variables) to use the new target.
+
+Documentation for this process isn't great right now, but for a start, have a look at the differences between targets like [docker.commander](/k8s-tools/api#dockercommander) vs the similar-but-different [k3d.commander](/k8s-tools/api#k3dcommander).
+
+### TUI Keybindings
+
+The TUI ships with some default keybindings that are aimed at keeping things pretty user-friendly even for those who are not already familiar with tmux.  
 
 | Shortcut         | Purpose                                                |
 | ---------------- | ------------------------------------------------------ |
-| Escape           | *Exit TUI*                                             |
-| Ctrl b |         | *Split pane vertically*                                |
-| Ctrl b -         | *Split pane horizontally*                              |
-| Alt t            | *Shuffle pane layout*                                  |
-| Alt ^            | *Grow pane up*                                         |
-| Alt v            | *Grow pane down*                                       |
-| Alt <            | *Grow pane left*                                       |
-| Alt >            | *Grow pane right*                                      |
-| Alt <left>       | *Grow pane left*                                       |
-| Alt <right>      | *Grow pane right*                                      |
-| Alt <up>         | *Grow pane up*                                         |
-| Alt <down>       | *Grow pane down*                                       |
-| Alt-1            | *Select pane 1*                                        |
-| Alt-2            | *Select pane 2*                                        |
+| `Escape`           | *Exit TUI*                                             |
+| `Ctrl b |`         | *Split pane vertically*                                |
+| `Ctrl b -`         | *Split pane horizontally*                              |
+| `Alt t`            | *Shuffle pane layout*                                  |
+| `Alt ^`            | *Grow pane up*                                         |
+| `Alt v`            | *Grow pane down*                                       |
+| `Alt <`            | *Grow pane left*                                       |
+| `Alt >`            | *Grow pane right*                                      |
+| `Alt <left>`       | *Grow pane left*                                       |
+| Alt <right>`      | *Grow pane right*                                      |
+| Alt <up>`         | *Grow pane up*                                         |
+| Alt <down>`       | *Grow pane down*                                       |
+| `Alt-1`            | *Select pane 1*                                        |
+| `Alt-2`            | *Select pane 2*                                        |
 | ...              | *...*                                                  |
-| Alt-N            | *Select pane N*                                        |
+| `Alt-N`            | *Select pane N*                                        |
 
+
+These are configurable of course, since there's no way guarantee that such defaults won't collide with whatever existing applications you're trying to stitch together.  See the previous section for more details.
 
 ## Signals and Supervisors
 
+You can think of `compose.mk` as a long list of egregious hacks that can only be redeemed by a *'but look what you can do with this!'* moment.  On that list, **signals and supervisors** is perhaps the most absurd thing of all.
 
- 
- ### Motivation 
- 
- Without [forking make](https://remake.readthedocs.io/en/latest/), there's no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people [it's about cleanup](https://www.gnu.org/software/make/manual/html_node/Interrupts.html), but `compose.mk` doesn't exactly look like traditional use-cases.
- 
+### Motivation
+
+Without [forking make](https://remake.readthedocs.io/en/latest/), there's no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people [it's about cleanup](https://www.gnu.org/software/make/manual/html_node/Interrupts.html), but `compose.mk` doesn't exactly look like traditional use-cases.
+
 The main reason to care is that short-circuiting make's default CLI option parsing is *really useful*.  Especially since `compose.mk` allows us to "wrap" lots of containerized tools, we want to be able to proxy arguments over to those tools without `make` being greedy about parsing everything.
 
-The [`loadf` command](#loading-compose-file) is a typical example: the 2nd argument, a filename, must not be parsed as a Makefile target:
+The [`loadf` command](#loading-compose-files) is a typical example: the 2nd argument, a filename, must not be parsed as a Makefile target:
 
 ```bash
 # Opens all shells for each service in the given file inside the TUI
@@ -552,11 +584,17 @@ The [`loadf` command](#loading-compose-file) is a typical example: the 2nd argum
  
 Sometimes we want individual targets to essentially be able to consume the rest of the command line.  In this case, the filename is best understood as an argument to the first target, and not a target itself.
  
-The [wrapper for jb](docs/api/#jb) is another example of an invocation that requires reading the whole command-line.  And for targets created with [`compose.import`](#makecompose-bridge), the [special form with '--'] (#special-form) also requires this kind of short-circuiting.
+The [wrapper for jb](/k8s-tools/api#jb) is another example of an invocation that requires reading the whole command-line.  And for targets created with [`compose.import`](/k8s-tools/compose.mk#makecompose-bridge), the [special form with '--'] (#special-form) also requires this kind of short-circuiting.
 
 ### Implementation
 
+Since the last section describes the goal, you might be wondering how this kind of semi-magical behavior can be achieved.   And since the answer to that question is frankly kind of ridiculous, this should probably be considered experimental :)  With that sternly worded warning out of the way... 
 
+Signals and supervisors are implemented using [shebang hack](https://en.wikipedia.org/wiki/Shebang_(Unix)) and a [polyglot](https://en.wikipedia.org/wiki/Polyglot_(computing)), whereby `compose.mk` is simultaneously a Makefile, a Makefile library, *and* a bash script.  The bash script invokes make, but wraps it to catch signals that are thrown by make.  After throwing a supported signal causes `make` to exit, bash catches, and then passes the code for the caught signal back to another invocation of `make`.  
+
+**As a consequence of this, signals can only be handled when `compose.mk` is invoked directly,** i.e. with `./compose.mk ...`.  Since `k8s.mk` also includes the same polyglot/shebang-hack, it also supports the same capabilities, but **note that project Makefile's that are using `include compose.mk` or `include k8s.mk` cannot inherit this ability!**
+
+All targets related to signals/supervisors can be found under the `mk.interrupt` and `mk.super` namespaces, respectively.
 
 
 
@@ -571,5 +609,4 @@ The [wrapper for jb](docs/api/#jb) is another example of an invocation that requ
 * [mk.interrupt](docs/api#mk.interrupt) 
 * [mk.interrupt/<arg>](docs/api#mk.interruptarg) 
 * [mk.interrupt/SIGINT](docs/api#mk.interruptSIGINT) 
-
 

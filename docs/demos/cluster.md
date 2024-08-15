@@ -46,7 +46,7 @@ all: clean create deploy test
 
 ```
 
-Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](//env-vars.md##k8s-toolsyml), and it's a convenient way to test upgrades.
+Note that the `K3D_VERSION` part above is overriding defaults [in k8s-tools.yml](k8s-tools.yml), and effectively allows you to **pin tool versions inside scripts that use them, without editing with the compose file.**  Several of the compose-services [support explicit overrides along these lines](/k8s-tools/config#k8s-toolsyml), and it's a convenient way to test upgrades.
 
 The `KREW_PLUGINS` variable holds a space-delimited list of [krew plugin names](https://krew.sigs.k8s.io/plugins/) that should be installed in the base k8s container.  These plugins are always installed: [kubens](https://github.com/ahmetb/kubectx), [kubectx](https://github.com/ahmetb/kubectx), [whoami](https://github.com/rajatjindal/kubectl-whoami), and [sick-pods plugin](https://github.com/alecjacobs5401/kubectl-sick-pods), but here you can specify any extras.
 
@@ -176,7 +176,7 @@ self.test_harness.deploy: k8s.kubens.create/${POD_NAMESPACE} k8s.test_harness/${
 
 ```
 
-Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/api/#api-k8smk)) do all of the heavy lifting.  
+Note that the `test_harness.provision` target above doesn't actually have a body!  The `k8s.*` targets coming from k8s.mk (documented [here](/k8s-tools/api/#api-k8smk)) do all of the heavy lifting.  
 
 Meanwhile the helm provisioning target does have a body, which uses helm, and which runs inside the helm container.
 
@@ -250,7 +250,7 @@ cluster.show: k3d.commander
 
 Again, no target bodies because `k8s.*` targets for stuff like this already exist, and we just need to pass in the parameters for our setup.  
 
-Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if k8s.mk is included, but now there's an even-easier alias that makes our project more self-documenting.  
+Shelling into a pod is easy.  Actually `make k8s.shell/<namespace>/<pod_name>` was *always* easy if k8s.mk is used as an include, but now there's an even-easier alias that makes our project more self-documenting.  
 
 <p align="center"><a href="/k8s-tools/img/e2e-interactive-shell.gif"><img width="90%" src="/k8s-tools/img/e2e-interactive-shell.gif"></a></p>
 
@@ -264,7 +264,7 @@ Since k3d is using docker for nodes, debugging problems sometimes involves inspe
 
 For doing real application development, you'll probably want to get into some port-forwarding.  Using the `k8s.shell/<namespace>/<pod>/pipe` target, we could use `curl` to test things, but that's only meaningful *inside* the cluster, which is awkward.  
 
-The [**`kubefwd.start/<namespace>`** target](#target-kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
+The [**`kubefwd.start/<namespace>`** target](/k8s-tools/api#kubefwdnamespacearg) makes it easy to forward ports/DNS for an entire namespace to the host:
 
 <p align="center"><a href="/k8s-tools/img/e2e-kubefwd.gif"><img width="90%" src="/k8s-tools/img/e2e-kubefwd.gif"></a></p>
 
