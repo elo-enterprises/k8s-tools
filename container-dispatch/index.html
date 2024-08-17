@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
@@ -79,6 +81,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -129,7 +133,8 @@ self.demo:
     uname -n -v
 </code></pre>
 <p>The example above demonstrates another automatically generated target that uses some special syntax: <code>▰/&lt;svc_name&gt;/&lt;target_to_dispatch&gt;</code>.  This is just syntactic sugar that says that running <code>make demo</code> on the host runs <code>make self.demo</code> on the debian container.  Calling the top-level target looks like this:</p>
-<p><img src="/img/demo-dispatch.gif"></p>
+<p align="center"><a href="/k8s-tools/img/demo-dispatch.gif"><img width="90%" src="/k8s-tools/img/demo-dispatch.gif"></a></p>
+
 <p>What just happend?  If we unpack the syntactic sugar even more, you could say that the following are roughly equivalent:</p>
 <pre><code class="language-bash"># pithy invocation with compose.mk
 $ make demo
@@ -155,7 +160,8 @@ self.demo:
     uname -n -v
 </code></pre>
 <p>The <em><code>self</code></em> prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:</p>
-<p><img src="/img/demo.double.dispatch.gif"></p>
+<p align="center"><a href="/k8s-tools/img/demo.double.dispatch.gif"><img width="90%" src="/k8s-tools/img/demo.double.dispatch.gif"></a></p>
+
 <p>Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.</p>
 <pre><code class="language-bash"># pithy invocation with compose.mk
 $ make demo.double.dispatch 
@@ -214,7 +220,6 @@ services:
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

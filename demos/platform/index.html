@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">K8s.mk</a>
@@ -85,6 +87,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../contributing/">Contributing</a>
@@ -162,7 +166,7 @@ bootstrap:
     # pipes all the platform.setup output into a handler-target for each LME backend
     make platform1.setup | make flux.dmux/logging,metrics,events
 </code></pre>
-<p>Above, the builtin <a href="/api#fluxdmux">flux.dmux target</a> is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The <code>bootstrap</code> entrypoint kicks everything off.  </p>
+<p>Above, the builtin <a href="/k8s-tools/api#fluxdmux">flux.dmux target</a> is used to send platform-setup's output into the three backend handlers.  This is just syntactic sugar for a 1-to-many pipe (aka a demultiplexer, or "dmux").  Each handler pulls out the piece of the input that it cares about, simulating further setup using that info.  The <code>bootstrap</code> entrypoint kicks everything off.  </p>
 <p>This is actually a lot of control and data-flow that's been expressed.  Ignoring ordering, graphing it would look something like this:</p>
 <p align="center"><a href="/k8s-tools/img/example-platform-1.png"><img width="90%" src="/k8s-tools/img/example-platform-1.png"></a></p>
 
@@ -191,10 +195,10 @@ self.metrics:
 self.events:
     cat /dev/stdin | jq .event
 </code></pre>
-<p>There are many other <code>flux.*</code> targets (<a href="/api#api-flux">see the API docs</a>), and while it's not recommended to go crazy with this stuff, when you need it you need it.</p>
+<p>There are many other <code>flux.*</code> targets (<a href="/k8s-tools/api#api-flux">see the API docs</a>), and while it's not recommended to go crazy with this stuff, when you need it you need it.</p>
 <p>This tight expression of complex flow will already be familiar to lots of people: whether they are bash wizards, functional programming nerds, or the Airflow/MLFlow/ArgoWF users.  <em>But this example pipes data between 5 containers, with no dependencies, and in remarkably direct way that feels pretty seamless!</em>  It neatly separates the automation itself from the context that it runs in, all with no platform lock-in.  Plus.. compared to the alternatives, doesn't it feel more like working with a programming language and less like jamming bash into yaml? 🤔</p>
 <p>It's a neat party trick that <code>compose.mk</code> has some features that look like Luigi or Airflow if you squint, but of course it's not <em>really</em> made for ETLs.  Flux is similar in spirit to things like <a href="https://www.jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline">declarative pipelines in Jenkins</a>.</p>
-<p>This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually <a href="/api#jb"><code>jb</code></a> or <a href="/api#api-stream"><code>stream.json.object.append</code></a> can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the <a href="#container-dispatch">simple dispatch demo</a> (which runs as part of <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.itest.mk">integration tests</a>), or check out the <a href="/demos#demo-cluster-automation">cluster lifecycle demo</a> (which is just a walk-through of the <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk">end-to-end tests</a>).</p>
+<p>This example mostly runs as written, but properly escaping the JSON properly is awkward, etc. (Actually builtin's for working with <a href="/k8s-tools/api#jb"><code>jb</code></a> or <a href="/k8s-tools/api#api-stream"><code>stream.json.object.append</code></a> can help with this, but it tends to obfuscate the example.)  If you want to see something that actually runs, check out the <a href="/k8s-tools/compose.mk#container-dispatch">simple dispatch demo</a> (which runs as part of <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.itest.mk">integration tests</a>), or check out the <a href="/k8s-tools/demos#demo-cluster-automation">cluster lifecycle demo</a> (which is just a walk-through of the <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/tests/Makefile.e2e.mk">end-to-end tests</a>).</p>
 <p>For a full blown project, check out <a href="https://github.com/elo-enterprises/k3d-faas">k3d-faas.git</a>, which also breaks down automation into platforms, infrastructure, and app phases.</p>
               
             </div>
@@ -210,7 +214,6 @@ self.events:
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul class="current">
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="./">K8s.mk</a>
@@ -85,6 +87,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -117,24 +121,24 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="k8smk">k8s.mk</h2>
-<p><code>k8s.mk</code> exists to create automation APIs over the tool-containers that are described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with <a href="/compose.mk">compose.mk</a> and <a href="#features">k8s-tools.yml</a>, but in many cases that isn't strictly required if things like <code>kubectl</code> are already available on your host.  </p>
+<p><code>k8s.mk</code> exists to create automation APIs over the tool-containers that are described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with <a href="/compose.mk">compose.mk</a> and <a href="/k8s-tools/features">k8s-tools.yml</a>, but in many cases that isn't strictly required if things like <code>kubectl</code> are already available on your host.  </p>
 <p>The focus is on simplifying a few categories of frequent challenges:</p>
 <ol>
-<li><strong>Reusable implementations for common cluster automation tasks,</strong> like <a href="/api#k8s.wait">waiting for pods to get ready</a></li>
-<li><strong>Context-management tasks,</strong> (like <a href="/api#k8snamespacearg">setting the currently active namespace</a>)</li>
-<li><strong>Interactive debugging tasks,</strong> (like <a href="/api#k8sshellarg">shelling into a new or existing pod inside some namespace</a>)</li>
+<li><strong>Reusable implementations for common cluster automation tasks,</strong> like <a href="/k8s-tools/api#k8s.wait">waiting for pods to get ready</a></li>
+<li><strong>Context-management tasks,</strong> (like <a href="/k8s-tools/api#k8snamespacearg">setting the currently active namespace</a>)</li>
+<li><strong>Interactive debugging tasks,</strong> (like <a href="/k8s-tools/api#k8sshellarg">shelling into a new or existing pod inside some namespace</a>)</li>
 </ol>
-<p>The full API is <a href="/api/#api-k8smk">here</a>, and the <a href="/demos#demo-cluster-automation">Cluster Lifecycle Demo</a> includes a walk-through of using it from your own project automation.  </p>
-<p>By combining these tools with compose.mk's <a href="/api#api-flux"><code>flux.*</code> API</a> you can describe workflows, and using the <a href="/api#api-tux"><code>tux.*</code> API</a> you can send tasks, or groups of tasks, into panes on a TUI.</p>
+<p>The full API is <a href="/k8s-tools/api/#api-k8smk">here</a>, and the <a href="/k8s-tools/demos#demo-cluster-automation">Cluster Lifecycle Demo</a> includes a walk-through of using it from your own project automation.  </p>
+<p>By combining these tools with compose.mk's <a href="/k8s-tools/api#api-flux"><code>flux.*</code> API</a> you can describe workflows, and using the <a href="/k8s-tools/api#api-tux"><code>tux.*</code> API</a> you can send tasks, or groups of tasks, into panes on a TUI.</p>
 <h3 id="automation-apis-over-tool-containers">Automation APIs over Tool Containers</h3>
-<p>What <em>is</em> an automation API over a tool container anyway?  As an example, let's consider the <a href="/api/#k8sget"><code>k8s.get</code> target</a>, which you might use like this:</p>
+<p>What <em>is</em> an automation API over a tool container anyway?  As an example, let's consider the <a href="/k8s-tools/api/#k8sget"><code>k8s.get</code> target</a>, which you might use like this:</p>
 <pre><code class="language-bash"># Usage: k8s.get/&lt;namespace&gt;/&lt;kind&gt;/&lt;name&gt;/&lt;filter&gt;
 $ KUBECONFIG=.. ./k8s.mk k8s.get/argo-events/svc/webhook-eventsource-svc/.spec.clusterIP
 
 # roughly equivalent to:
 $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot;
 </code></pre>
-<p>The first command has no host requirements for <code>kubectl</code> or <code>jq</code>, but uses both via docker.  Similarly, the <a href="/api#helm.install"><code>helm.install</code> target</a> works as you'd expect but does not require <code>helm</code> ( and plus it's a little more idempotent than using <code>helm</code> directly).  Meanwhile <code>k8s.mk k9s/&lt;namespace&gt;</code> works like <code>k9s --namespace</code> does, but doesn't require k9s.</p>
+<p>The first command has no host requirements for <code>kubectl</code> or <code>jq</code>, but uses both via docker.  Similarly, the <a href="/k8s-tools/api#helm.install"><code>helm.install</code> target</a> works as you'd expect but does not require <code>helm</code> (and plus it's a little more idempotent than using <code>helm</code> directly).  Meanwhile <code>k8s.mk k9s/&lt;namespace&gt;</code> works like <code>k9s --namespace</code> does, but doesn't require k9s.</p>
 <p>Many of these targets are fairly simple wrappers, but just declaring them accomplishes several things at once.</p>
 <p>The typical <code>k8s.mk</code> entrypoint is:</p>
 <ol>
@@ -145,7 +149,7 @@ $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot
 <li>Context-agnostic, generally using tools directly if available or falling back to docker when necessary.</li>
 </ol>
 <p>Some targets like <a href="/api/#k8sshell"><code>k8s.shell</code></a> or <a href="/api/#kubefwd"><code>kubefwd.[start|stop|restart]</code></a> are more composite than simple wrappers, and achieve more complex behaviour by orchestrating 1 or more commands across 1 or more containers.  See also the <a href="/api#api-ansible">ansible wrapper</a>, which exposes a subset of <code>ansible</code> without all the overhead of inventories &amp; config.</p>
-<p>If you want you can always to stream arbitrary commands or scripts into these containers more directly, via <a href="#makecompose-bridge">the Make/Compose bridge</a>, or write your own targets that run inside those containers.  But the point of <code>k8s.mk</code> is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, adds a label to it, launches a pod there, and shells into it:</p>
+<p>If you want you can always to stream arbitrary commands or scripts into these containers more directly, via <a href="/k8s-tools/compose.mk#makecompose-bridge">the Make/Compose bridge</a>, or write your own targets that run inside those containers.  But the point of <code>k8s.mk</code> is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, adds a label to it, launches a pod there, and shells into it:</p>
 <pre><code class="language-bash">$ pod=`uuidgen` \
 &amp;&amp; namespace=testing \
 &amp;&amp; ./k8s.mk \
@@ -164,7 +168,7 @@ $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot
 <li>Ansible/Terraform are great, but they have a lot of baggage, aren't necessarily a great fit for this type of problem, and they also have to be versioned.  </li>
 </ul>
 <p><code>k8s.mk</code>, especially combined with <code>k8s-tools.yml</code> and <code>compose.mk</code>, is aimed at fixing this stuff.  </p>
-<p>If you're interested in the gory details of a longer-format answer, see <a href="docs/but-why.md">the Design Philosophy docs</a>.</p>
+<p>If you're interested in the gory details of a longer-format answer, see <a href="/k8s-tools/but-why.md">the Design Philosophy docs</a>.</p>
               
             </div>
           </div><footer>
@@ -179,7 +183,6 @@ $ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}&quot
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

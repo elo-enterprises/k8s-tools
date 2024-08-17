@@ -61,11 +61,15 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#stand-alone-tools">Stand Alone Tools</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#forks-versioning-the-versioner">Forks &amp; Versioning the Versioner</a>
+    </li>
     </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
@@ -89,6 +93,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -121,9 +127,9 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="integration-with-your-project">Integration With Your Project</h2>
-<p>The k8s-tools suite can be integrated with your project in a few ways, either with some kind of global compose file and global aliases (<em>not recommended</em>), or with a more project-based approach.  But first, you might like to check out the compatibility notes.</p>
+<p>The k8s-tools suite can be integrated with your project in a few ways, either with some kind of <a href="#tools-via-simple-aliases">global compose file and global aliases</a> (<em>not recommended</em>), or with <a href="#embedding-tools-with-makefiles">a more project-based approach</a>.  But first, you might like to check out the <a href="#compatibility-notes">compatibility notes</a>.  </p>
 <h3 id="compatibility-notes">Compatibility Notes</h3>
-<p>Platforms used in development include modern docker (say <code>25+</code>), make (<code>3.8+</code>), and bash <code>(~5</code>) on both Linux and MacOS, but testing in github-actions only uses Linux and won't try every possible combination of versions.  </p>
+<p>Platforms used in development include modern docker (say <code>25+</code>), make (<code>3.8+</code>), and bash <code>(~5</code>) on both Linux and MacOS. Testing in github-actions only uses Linux, and won't try every possible combination of versions.  </p>
 <p>In general, <em>the goal is to support most things you'll encounter in the wild</em>, including OSX, out of the box.  But you may see some of the usual problems with certain arguments to non-posix OSX default <code>sed</code> / <code>ps</code> / <code>xargs</code>, etc.  Please report issues!</p>
 <h3 id="tools-via-simple-aliases">Tools Via Simple Aliases</h3>
 <p>The simplest and most global way to use k8s-tools.yml is to just download it and setup shell aliases, ignoring <code>compose.mk</code> and <code>k8s.mk</code>.  Not generally recommended, since this is the least project-based, least portable thing you can do. </p>
@@ -136,9 +142,9 @@ $ alias helm=docker compose -f myproject/k8s-tools.yml run helm
 
 $ helm ....
 </code></pre>
-<p>Not bad for experiments, but <em>don't write scripts based on this an expect to ship them to coworkers or build bots!</em>  Aliases are convenient but rather fragile.  (For example, obviously this will break if you move your <code>myproject</code> folder around).  <strong>See the next sections for something that is a more durable and flexible.</strong></p>
+<p>It's not bad for experiments, but <em>don't write scripts based on this an expect to ship them to coworkers or build bots!</em>  Aliases need their own install-script or install instructions, and tend to be fragile, for example the above approach will break if you move your <code>myproject</code> folder around.  <strong>See the next sections for something that is both more flexible and more durable.</strong></p>
 <h3 id="embedding-tools-with-makefiles">Embedding Tools With Makefiles</h3>
-<p>You'll probably want to read over the <a href="/compose.mk">compose.mk</a> section to understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.</p>
+<p>You'll probably want to read over the <a href="/k8s-tools/compose.mk">compose.mk</a> section to really understand what's going on here.  In case you've already seen it though, here's the quick start with the copy/paste stuff.</p>
 <p>First, copy the files from this repo into your project:</p>
 <pre><code class="language-bash">$ cd myproject 
 
@@ -171,7 +177,7 @@ $ ./compose.mk ...
 $ ./k8s-tools.yml run ...
 </code></pre>
 <p>That's all the setup you'll need just for using tools directly.  See the next section for more information/examples re: stand-alone mode.</p>
-<p>If you're interested in tighter integration like setting up the <a href="#makecompose-bridge">Make/Compose bridge</a> or preparing for <a href="#container-dispatch">Container Dispatch</a>, here's an example of what your project Makefile should look like:</p>
+<p>If you're interested in tighter integration like setting up the <a href="/k8s-tools/compose.mk#makecompose-bridge">Make/Compose bridge</a> or preparing for <a href="/k8s-tools/compose.mk#container-dispatch">Container Dispatch</a>, here's a quick example of what your project Makefile should look like:</p>
 <pre><code class="language-Makefile"># myproject/Makefile (Make sure you have real tabs, not spaces!)
 
 # Include/invoke the target-building macros 
@@ -188,7 +194,21 @@ self.test:
   echo hello world from `uname -n -v`
 </code></pre>
 <h3 id="stand-alone-tools">Stand Alone Tools</h3>
-<p>If you're not interested in custom automation that requires project-Makefile integration, some features of <code>compose.mk</code> and <code>k8s.mk</code> can be used without that.  See the <a href="#loading-compose-files">Loading Compose Files</a> docs, plus the <a href="/api">full CLI docs</a> for more details.</p>
+<p>If you're not interested in custom automation that requires project-Makefile integration, some features of <code>compose.mk</code> and <code>k8s.mk</code> can be used without that.  See for example the <a href="/k8s-tools/compose.mk#loading-compose-files">Loading Compose Files</a> docs, plus the <a href="/k8s-tools/api">full CLI docs</a> for more details.</p>
+<h3 id="forks-versioning-the-versioner">Forks &amp; Versioning the Versioner</h3>
+<p>Given the advice above to simply copy components that interest you directly into your project repositories, some people might be reading this and thinking <strong>what if k8s-tools.yml, compose.mk, or k8s.mk change upstream?</strong>  </p>
+<p>If you're really worried about this, you can always setup <code>k8s-tools.git</code> (or your fork of it) as a git submodule inside your project folder.. but hopefully that's not necessary, because files aren't expected to change often.  There's a few reasons for this:</p>
+<ul>
+<li>
+<p><a href="/k8s-tools/config">Most config won't require edits</a>.  If it <em>does</em> require edits, then it's probably the type of thing that's small, permanent, and only useful locally so you wouldn't want to commit it upstream anyway.  </p>
+</li>
+<li>
+<p>Default versions of <code>k8s-tools.yml</code> tool-containers might get bumped occassionally, but projects should pin their own defaults/overrides anyway, so it's not the type of thing you probably want a project subscribed to.  Otherwise, the base feels "complete" enough that it's unlikely grow towards lots of totally new tools.</p>
+</li>
+<li>
+<p>The API for both <code>compose.mk</code> and <code>k8s.mk</code> is also approaching "frozen".</p>
+</li>
+</ul>
               
             </div>
           </div><footer>
@@ -203,7 +223,6 @@ self.test:
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

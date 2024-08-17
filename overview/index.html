@@ -58,6 +58,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
@@ -81,6 +83,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -113,10 +117,13 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="overview">Overview</h2>
-<p><strong>This repository aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file as <a href="#versioned-toolkit">k8s-tools.yml</a>.</strong>  It's useful for CI/CD pipelines or general development, and can be <a href="/integration">embedded alongside your existing project</a>, which helps to fix the problem of different project developers using different local versions of things like <code>helm</code>, <code>kubectl</code>, etc.</p>
-<p>Containers defined here aren't built from scratch, and official sources are used where possible.  Low-level tools (<em>like <code>kubectl</code>, <code>helm</code>, etc</em>) mostly come from <a href="https://hub.docker.com/r/alpine/k8s">alpine/k8s</a> but <a href="#features">many other tools</a> (<em>like <code>argo</code>, <code>knative</code>, <code>cdk</code>, <code>k9s</code>, <code>k3d</code>, etc) are also included.  However, </em>this isn't an attempt to build an omnibus "do-everything" container..* it's more a response to the fact that there are a lot of diverse tools that really can't be unified, so it's better to just learn how to work with that.  Tools containers are versioned independently, and pulled only when they are used.</p>
-<hr />
-<p><strong>Besides bundling some tooling, this repository is a reference implementation</strong> for a pattern that <a href="#makecompose-bridge">bridges compose services and Makefile targets</a>, creating a "minimum viable automation framework" for things like <a href="#container-dispatch">orchestrating tasks across tool containers</a>.  It's expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It's incredibly useful for lots of things, and whether it is a tool, a library, or a framework  depends on how you decide to use it.  There's 3 pieces to this, and the full triple of <em>k8s.mk</em>, <em>compose.mk</em>, and <em>k8s-tools.yml</em> is sometimes called <strong>the k8s-tools suite.</strong> </p>
+<p><strong><a href="/k8s-tools/features">k8s-tools.yml</a> aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file.</strong>  It's useful for CI/CD pipelines or general development, and can be <a href="/integration">embedded alongside your existing project</a>, which helps to fix the problem of different project developers using different local versions of things like <code>helm</code>, <code>kubectl</code>, etc.</p>
+<p>Containers defined here aren't built from scratch, and official sources are used where possible.  Low-level tools (<em>like <code>kubectl</code>, <code>helm</code>, etc</em>) mostly come from <a href="https://hub.docker.com/r/alpine/k8s">alpine/k8s</a> but <a href="/k8s-tools/features">many other tools</a> (<em>like <code>argo</code>, <code>knative</code>, <code>cdk</code>, <code>k9s</code>, <code>k3d</code>, <code>ansible</code>, etc</em>) are also included.  </p>
+<p>However, <em>this isn't an attempt to build an omnibus "do-everything" container..</em> it's more a response to the fact that there are a lot of diverse tools that really can't be unified, so it's better to just learn how to work with that.  Tools containers are versioned independently, using defaults but allowing overrides, and are pulled only when they are used.</p>
+<p>Besides bundling some tooling in k8s-tools.yml, there are 2 other components that can help to build automation.Meet <strong><code>compose.mk</code>,</strong> which describes core support for docker, docker-compose, and other extensions for <code>make</code>, and <strong><code>k8s.mk</code>,</strong> which uses <code>compose.mk</code> to build automation APIs over the <code>k8s-tools.yml</code> containers.</p>
+<p><strong>The full triple of <em>k8s.mk</em>, <em>compose.mk</em>, and <em>k8s-tools.yml</em> is called the k8s-tools suite.</strong> </p>
+<p>All components of the suite can work independently to a certain extent, but they are most powerful when used together.  These tools are mostly intended to be embedded inside existing projects, not installed globally.  </p>
+<p>You can also think of this project as a reference implementation for a pattern that <a href="/k8s-tools/compose.mk#makecompose-bridge">bridges compose services and Makefile targets</a>, creating a "minimum viable automation framework" for things like <a href="/k8s-tools/compose.mk/#container-dispatch">orchestrating tasks across tool containers</a>.  It's expressive and flexible, yet also focused on minimizing both conceptual overhead and software dependencies.  It's incredibly useful for lots of things, and whether it is a tool, a library, or a framework depends on how you decide to use it.  </p>
 <p>This reference focuses on a few use-cases in particular:</p>
 <ol>
 <li>Cluster lifecycle / development / debugging workflows in general.</li>
@@ -125,11 +132,11 @@
 <li>Proper separation of automation tasks from specifications for runtime / container context.</li>
 <li>Less shell code in general, but where we need it: it <u>shouldn't</u> be embedded in YAML, Jenkinsfiles, etc.</li>
 <li>Per-project tool-versioning, providing defaults but allowing overrides, and ensuring versions match everywhere.</li>
-<li>Generally modernizing &amp; extending <code>make</code> for containers, colors, &amp; concurrency, making it ready for the 21st Century.</li>
+<li>Generally modernizing &amp; extending <code>make</code> for containers, colors, &amp; concurrency</li>
 </ol>
-<p>There's a lot of hate for <code>make</code> (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for <a href="#container-dispatch">container dispatch</a> feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, <em>the build-bots themselves will be happy to run your automation,</em> and the output is easy to parse.  See the <a href="https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster">this repo's github actions</a>, which bootstrap and exercise a cluster as part of the <a href="/demos#demo-cluster-automation">end to end tests</a>.</p>
-<p><strong>Working with <a href="/compose.mk">compose.mk</a> and <a href="/k8s.mk">k8s.mk</a> makes <code>make</code> hit different.</strong>  </p>
-<p>Beyond addressing the issues above, these tools add new capabilities to <code>make</code> itself, including some support for <a href="#embedded-tui">quickly building custom TUIs</a> from dockerized components.</p>
+<p>There's a lot of hate for <code>make</code> (especially for "creative" usage of it!), but you'll find that these are not the Makefile's of your ancestors.  Support for <a href="/k8s-tools/compose.mk#container-dispatch">container dispatch</a> feels like a tiny, unobtrusive DSL on top of tech you already know, and you can run it anywhere you are.  Less time spent negotiating with bolted-on plugin-frameworks, hook systems, and build-bots, more time for the problems you care about.  And yes, <em>the build-bots themselves will be happy to run your automation,</em> and the output is easy to parse.  See the <a href="https://github.com/elo-enterprises/k8s-tools/actions?query=branch%3Amaster">this repo's github actions</a>, which bootstrap and exercise a cluster as part of the <a href="/k8s-tools/demos#demo-cluster-automation">end to end tests</a>.</p>
+<p><strong>Working with <a href="/k8s-tools/compose.mk">compose.mk</a> and <a href="/k8s-tools/k8s.mk">k8s.mk</a> makes <code>make</code> hit different.</strong>  </p>
+<p>Beyond addressing the issues above, these tools add new capabilities to <code>make</code> itself, including some support for <a href="/k8s-tools/compose.mk#embedded-tui">quickly building custom TUIs</a> from dockerized components.</p>
 <p align="center"><a href="/k8s-tools/img/tui-6.gif"><img width="90%" src="/k8s-tools/img/tui-6.gif"></a></p>
 
 <p>With or without the TUI, all output is carefully curated and logged to appropriate output streams, aiming to be readable and human-friendly on stderr, while still remaining machine-friendly for downstream processing on stdout.  Help not only <em>works,</em> it also goes beyond mere target-listing to actually include namespace and per-target documentation, rendered via a dockerized version of <a href="https://github.com/charmbracelet/glow">charmbracelete/glow</a>.</p>
@@ -147,7 +154,6 @@
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

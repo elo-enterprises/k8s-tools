@@ -71,7 +71,7 @@ msgstr ""
 
 #: mkdocs/themes/readthedocs/footer.html:25
 #, python-format
-msgid "Built with %(mkdocs_link)s using a %(sphinx_link)s provided by %(rtd_link)s."
+msgid ""
 msgstr ""
 
 #: mkdocs/themes/readthedocs/footer.html:25

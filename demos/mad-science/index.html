@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../k8s.mk/">K8s.mk</a>
@@ -95,6 +97,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../contributing/">Contributing</a>
@@ -157,7 +161,6 @@ endef
 <pre><code class="language-Makefile">
 # tests/Makefile.mad-science.mk
 
-## Inlined Docker Files
 
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
@@ -198,7 +201,6 @@ self.demo.dockerfile:
 <pre><code class="language-Makefile">
 # tests/Makefile.mad-science.mk
 
-## Extending Inlined Docker Files
 # Minimal inlined dockerfile.  
 # You can install anything or nothing here, 
 # but let's have the minimal stuff required for target dispatch.
@@ -236,7 +238,6 @@ self.demo.container.extension:
 <pre><code class="language-Makefile">
 # tests/Makefile.mad-science.mk
 
-## Local Interpretters, Without a Container
 
 # Look, here's a simple python script 
 define Python.demo
@@ -257,7 +258,6 @@ demo.python:
 <pre><code class="language-Makefile">
 # tests/Makefile.mad-science.mk
 
-## Exotic Targets &amp; Pipes
 
 # A more complex python script, 
 # testing comments, indention, &amp; using pipes
@@ -285,7 +285,6 @@ demo.python.pipes:
 <pre><code class="language-Makefile">
 # tests/Makefile.mad-science.mk
 
-### Passing Data Structures to Externally Managed Containers
 
 # Look, it's a simple ansible playbook 
 define Ansible.example_playbook
@@ -308,10 +307,11 @@ demo.ansible.playbook:
             make k8s-tools/ansible
 
 </code></pre>
-<p>This is just an example, and anyway you may prefer to work with the <a href="/api#ansibleadhocarg">ansible.adhoc</a> tooling which is better for simple use-cases.  </p>
+<p>This is just an example, and anyway you may prefer to work with the <a href="/k8s-tools/api#ansibleadhocarg">ansible.adhoc</a> tooling which is better for simple use-cases.  </p>
 <p>But of course the playbook above could just as easily be an <code>eksctl</code> config or <code>kubectl</code> manifest.</p>
 <h2 id="how-it-works">How it Works</h2>
-<p>Most of this stuff hinges on multi-line defines, plus the ability of <code>compose.mk</code> to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for <a href="/api#api-mk"><em><code>mk.*</code></em></a> and <a href="/api#api-docker"><em><code>docker.*</code></em></a> for more details.  Note also that the <a href="/api#api-mk"><em><code>mk.def.*</code></em> targets</a> leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like '$' are always left alone.  This also means the <strong>content is fairly static</strong>, and not typically amenable to pre-execution templating.  It <em>is</em> possible to work around this, but that's an even worse idea than the rest of this is, and so left as an exercise to the reader. =P</p>
+<p>Most of this stuff hinges on multi-line defines, plus the ability of <code>compose.mk</code> to handle reflection, which is possible because it has some ability to parse its own contents.  See the API for <a href="/k8s-tools/api#api-mk"><em><code>mk.*</code></em></a> and <a href="/k8s-tools/api#api-docker"><em><code>docker.*</code></em></a> for more details.  </p>
+<p>Note also that the <a href="/k8s-tools/api#api-mk"><em><code>mk.def.*</code></em> targets</a> leave the data inside the defs completely unmolested, which means that there's no requirement for escaping the contents, and things like <code>$</code> are always left alone.  This also means the <strong>content is fairly static</strong>, and not typically amenable to pre-execution templating.  It <em>is</em> possible to work around this, but that's an even more dangerous idea than the rest of this is, and so it is left as an exercise to the reader. =P</p>
               
             </div>
           </div><footer>
@@ -326,7 +326,6 @@ demo.ansible.playbook:
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

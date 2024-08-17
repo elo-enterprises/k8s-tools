@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/env-vars/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://elo-enterprises.github.io/k8s-tools/config/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Env vars - k8s-tools</title>
+    <title>Configuration / Env Vars - k8s-tools</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/night-owl.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Env vars";
-        var mkdocs_page_input_path = "env-vars.md";
-        var mkdocs_page_url = "/k8s-tools/env-vars/";
+        var mkdocs_page_name = "Configuration / Env Vars";
+        var mkdocs_page_input_path = "config.md";
+        var mkdocs_page_url = "/k8s-tools/config/";
       </script>
     
     <!--[if lt IE 9]>
@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
@@ -78,7 +80,29 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
-              <ul>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Configuration / Env Vars</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#k8s-toolsyml">k8s-tools.yml</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#versions">Versions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#docker">Docker</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#composemk">compose.mk</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#general-environment-variables">General Environment Variables</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tui-environment-variables">TUI Environment Variables</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#k8smk">k8s.mk</a>
+    </li>
+    </ul>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -100,7 +124,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Env vars</li>
+          <li class="breadcrumb-item">Other</li>
+      <li class="breadcrumb-item active">Configuration / Env Vars</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -109,65 +134,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <table style="width:100%">
-  <tr>
-    <td colspan=2><strong>
-    k8s-tools
-      </strong>&nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-  </tr>
-  <tr>
-    <td width=10%>
-      <center>
-        <img src=../img/docker.png style="width:75px"><br/>
-        <img src=../img/kubernetes.png style="width:75px"><br/>
-        <img src=../img/make.png style="width:75px"><br/>
-      </center>
-    </td>
-    <td>
-      Completely dockerized version of a kubernetes toolchain, plus a zero-dependency automation framework for extending and interacting it.
-      <br/>
-      <p align="center">
-        <table width="100%" border=1><tr>
-          <td><a href=/README.md#overview>Overview</a></td>
-          <td><a href=/README.md#features>Features</a></td>
-          <td><a href=/README.md#integration>Integration</a></td>
-          <td><a href=/README.md#composemk>compose.mk</a></td>
-          <td><a href=/README.md#k8smk>k8s.mk</a></td>
-          <td><a href=/docs/api/>API</a></td>
-          <td><a href=/docs/demos.md>Demos</a></td>
-        </tr>
-        <tr><td colspan="100%">
-          <a href="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml"><img src="https://github.com/elo-enterprises/k8s-tools/actions/workflows/docker-test.yml/badge.svg"></a>
-        </td></tr></table>
-      </p><br/>
-    </td>
-  </tr>
-</table>
-
-<hr />
-<div class="toc">
-<ul>
-<li><a href="#environment-variables">Environment Variables</a><ul>
-<li><a href="#k8s-toolsyml">k8s-tools.yml</a><ul>
-<li><a href="#versions">Versions</a></li>
-</ul>
-</li>
-<li><a href="#composemk">compose.mk</a><ul>
-<li><a href="#tui-env-vars">TUI Env Vars</a></li>
-</ul>
-</li>
-<li><a href="#k8smk">k8s.mk</a></li>
-</ul>
-</li>
-</ul>
-</div>
-
-<h1 id="environment-variables">Environment Variables</h1>
-<p>Details about environment variables used with each of k8s-tools.yml, k8s.mk, and compose.mk.</p>
-<h2 id="k8s-toolsyml">k8s-tools.yml</h2>
-<h3 id="versions">Versions</h3>
-<p>Here's a list of version defaults in k8s-tools.yml currently:</p>
+                <h1 id="configuration">Configuration</h1>
+<p>For many simple use-cases, the k8s-tools suite only wants the familiar environment variables that your tools require, and in particular things like <code>KUBECONFIG</code>, <code>AWS_PROFILE</code> are inherited as usual from the calling environment.  </p>
+<p>Although in practice most things have defaults, each component of the k8s-tools suite supports some kind of configuration injection that might be needed for advanced use-cases.  Below you can find sections for each of   <a href="#k8s-tools.yml">k8s-tools.yml</a>, <a href="#k8s.mk">k8s.mk</a>, and <a href="#compose.mk">compose.mk</a> that describe the relevant environment variables.</p>
+<p>In a few cases and hopefully for good reasons, <strong>configuration might sometimes involve editing some part of the k8s-tools suite in-place.</strong>  For example,  <code>k8s-tools.yml</code> needs to specify file volumes, and while it does share <code>KUBECONFIG</code> by default, sharing directories like <code>~/.aws</code> and <code>~/.ssh</code> are commented by default, and users must explicitly opt-in.  As another example, editing the particulars of <a href="/k8s-tools/compose.mk#embedded-tui">the embedded TUI</a> should not be necessary, but is easily done if you're willing to reach into <a href="https://github.com/elo-enterprises/k8s-tools/tree/master/compose.mk"><code>compose.mk</code> source</a>.  See also <a href="/k8s-tools/integration#forking">this discussion of forking</a> included as part of the <a href="/k8s-tools/integration">integration docs</a></p>
+<h3 id="k8s-toolsyml">k8s-tools.yml</h3>
+<p>There are two main ways to configure the compose file that defines tool containers: you can <a href="#versions">override tool versions</a>, or you can <a href="#docker">set defaults for docker</a></p>
+<h4 id="versions">Versions</h4>
+<p>Here's a list of version defaults in <code>k8s-tools.yml</code> currently:</p>
 <pre><code class="language-ini">ALPINE_K8S_VERSION=alpine/k8s:1.30.0
 CDK_CLI_VERSION=2.149.0
 KN_CLI_VERSION=v1.14.0
@@ -189,9 +163,19 @@ KUBECTL_CLI_VERSION=v1.30.0
 HELM_CLI_VERSION=v3.14.4
 
 </code></pre>
+<h4 id="docker">Docker</h4>
+<p><strong>If you're using <code>compose.mk</code> or <code>k8s.mk</code> directly or as an <code>include</code>,</strong> these variables are set for you automatically from a best-guess when they are not provided.</p>
+<p><strong>If you're using <code>./k8s-tools.yml ..</code> directly or via <code>docker compose -f k8s-tools.yml</code></strong>, defaults assume values compatible with Linux, and may or may not work with MacOS!</p>
+<pre><code class="language-ini">DOCKER_GID
+DOCKER_HOST_WORKSPACE
+DOCKER_SOCKET
+DOCKER_UGNAME
+DOCKER_UID
+
+</code></pre>
 <hr />
-<h2 id="composemk">compose.mk</h2>
-<h3 id="general-environment-variables">General Environment Variables</h3>
+<h3 id="composemk">compose.mk</h3>
+<h4 id="general-environment-variables">General Environment Variables</h4>
 <table>
 <thead>
 <tr>
@@ -234,7 +218,7 @@ HELM_CLI_VERSION=v3.14.4
 </tr>
 </tbody>
 </table>
-<h3 id="tui-environment-variables">TUI Environment Variables</h3>
+<h4 id="tui-environment-variables">TUI Environment Variables</h4>
 <table>
 <thead>
 <tr>
@@ -290,10 +274,15 @@ TUI_CONTAINER_IMAGE=k8s:tui
 
 </code></pre>
 <hr />
-<h2 id="k8smk">k8s.mk</h2>
+<h3 id="k8smk">k8s.mk</h3>
+<p>The main configuration that's expected with k8s.mk is always <code>KUBECONFIG</code>.</p>
               
             </div>
           </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../api/k8s.mk/" class="btn btn-neutral float-left" title="K8s.mk"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../limitations/" class="btn btn-neutral float-right" title="Known Limitations and Issues">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
 
   <hr/>
 
@@ -301,7 +290,6 @@ TUI_CONTAINER_IMAGE=k8s:tui
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>
@@ -315,6 +303,10 @@ TUI_CONTAINER_IMAGE=k8s:tui
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
+      <span><a href="../api/k8s.mk/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../limitations/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

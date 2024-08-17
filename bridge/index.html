@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
@@ -79,6 +81,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -153,7 +157,7 @@ $ make debian/shell
 # Interactive shell on &quot;alpine&quot; container
 $ make alpine/shell
 </code></pre>
-<p>{{macros.img_link("demo-bridge-shell.gif"}}</p>
+<p>{{macros.img_link("demo-bridge-shell.gif", mkdocs)}}</p>
 <hr />
 <h4 id="svc_nameshellpipe"><strong><code>&lt;svc_name&gt;</code>/shell/pipe</strong></h4>
 <p>The <strong><code>&lt;svc_name&gt;</code>/shell/pipe</strong> target allows streaming data:</p>
@@ -166,7 +170,7 @@ $ echo uname -n -v | make debian/pipe
 # Streams command input / output between containers
 echo echo echo hello-world | make alpine/pipe | make debian/pipe
 </code></pre>
-<p>{{macros.img_link("demo-bridge-stream.gif"}}</p>
+<p>{{macros.img_link("demo-bridge-stream.gif", mkdocs)}}</p>
 <hr />
 <h4 id="svc_name"><strong><code>&lt;svc_name&gt;</code></strong></h4>
 <p>The top-level <strong><code>&lt;svc_name&gt;</code></strong> target is more generic and can be used without arguments, or with optional explicit overrides for the compose-service defaults.  Usually this isn't used directly, but it's sometimes useful to call from automation.  Indirectly, most other targets are implemented using this target.</p>
@@ -236,7 +240,6 @@ k8s-base:/workspace$
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

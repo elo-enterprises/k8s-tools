@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul class="current">
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="./">Compose.mk</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#library-mode">Library Mode</a>
@@ -98,13 +100,23 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#embedded-tui">Embedded TUI</a>
         <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#tui-gallery">TUI Gallery</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tui-overview">TUI Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tui-implementation">TUI Implementation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tui-customization">TUI Customization</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#tui-keybindings">TUI Keybindings</a>
     </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#signals-and-supervisors">Signals and Supervisors</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#implementation">Implementation</a>
+    <li class="toctree-l3"><a class="reference internal" href="#signals-and-supervisors-motivation">Signals and Supervisors: Motivation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#signals-and-supervisors-implementation">Signals and Supervisors: Implementation</a>
     </li>
         </ul>
     </li>
@@ -131,6 +143,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -258,7 +272,8 @@ $ make debian/shell
 # Interactive shell on &quot;alpine&quot; container
 $ make alpine/shell
 </code></pre>
-<p><img src="img/demo-bridge-shell.gif"></p>
+<p align="center"><a href="/k8s-tools/img/demo-bridge-shell.gif"><img width="90%" src="/k8s-tools/img/demo-bridge-shell.gif"></a></p>
+
 <hr />
 <h4 id="svc_nameshellpipe"><strong><code>&lt;svc_name&gt;</code>/shell/pipe</strong></h4>
 <p>The <strong><code>&lt;svc_name&gt;</code>/shell/pipe</strong> target allows streaming data:</p>
@@ -271,7 +286,8 @@ $ echo uname -n -v | make debian/pipe
 # Streams command input / output between containers
 echo echo echo hello-world | make alpine/pipe | make debian/pipe
 </code></pre>
-<p><img src="img/demo-bridge-stream.gif"></p>
+<p align="center"><a href="/k8s-tools/img/demo-bridge-stream.gif"><img width="90%" src="/k8s-tools/img/demo-bridge-stream.gif"></a></p>
+
 <hr />
 <h4 id="svc_name"><strong><code>&lt;svc_name&gt;</code></strong></h4>
 <p>The top-level <strong><code>&lt;svc_name&gt;</code></strong> target is more generic and can be used without arguments, or with optional explicit overrides for the compose-service defaults.  Usually this isn't used directly, but it's sometimes useful to call from automation.  Indirectly, most other targets are implemented using this target.</p>
@@ -475,16 +491,25 @@ $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 demo: ▰/debian/self.demo
 
 # Dispatching 1 target to 2 containers looks like this
-demo-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.both: ▰/debian/self.demo ▰/alpine/self.demo
 
 # Displays platform info to show where target is running.
 self.demo:
     source /etc/os-release &amp;&amp; printf &quot;$${PRETTY_NAME}\n&quot;
     uname -n -v
 </code></pre>
-<p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the <em><code>self</code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code>self</code></em> hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except <code>make demo</code>.  For people reading the code, the visual hints make it easy to understand what's at the top-level.</p>
+<p>The suggested defaults here will annoy some people, but the syntax is configurable, and this hopefully won't collide with existing file paths or targets.  Using the <em><code>self</code></em> prefix is just a convention that you can change, but having some way to guard the target from accidental execution on the host is a good idea.  </p>
+<p>This decorator-inspired syntax is also creating a convention similar to the idea of private methods: <em><code>self</code></em> hopefully implies internal/private, and it's not easy to type the weird characters at the command line.  So users likely won't think to call anything except <code>make demo</code>.  For people reading the code, the visual hints make it easy to understand what's at the top-level.  Tightening it up can help to make it clear that this is sort of a block:</p>
+<pre><code class="language-Makefile">
+# Two top-level &quot;public&quot; targets, dispatching 1 &quot;private&quot; target into groups of 1 or more containers
+demo: ▰/debian/self.demo
+demo.both: ▰/debian/self.demo ▰/alpine/self.demo
+self.demo:
+    source /etc/os-release &amp;&amp; printf &quot;$${PRETTY_NAME}\n&quot;
+    uname -n -v
+</code></pre>
 <p>But what about the semantics?  In this example, the user-facing <code>demo</code> target depends on <code>▰/debian/demo</code>, which isn't really a target as much as a declaration.  The declaration means the <em>private</em> target <code>self.demo</code>, will be executed inside the <code>debian</code> container that the compose file defines.  <em>Crucially, the <code>self.demo</code> target can use tools the host doesn't have, stuff that's only available in the tool container.</em>  </p>
-<p>Look, no <code>docker run ..</code> clutter littered everywhere!  Ok, yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple and it's not locked inside Jenkins or github =)</p>
+<p>Look, no <code>docker run ..</code> clutter littered everywhere!  So yeah, it's still kind of a weird CI/CD DSL, but the conventions are simple, it's agnostic about your CI backend, and there's clean separation between automation / container specifications.</p>
 <p>Under the hood, dispatch is implemented by building on the <a href="#makecompose-bridge">default targets that are provided by the bridge</a>.</p>
 <h2 id="multiple-compose-files">Multiple Compose Files</h2>
 <p>This can be easily adapted for working with <em>multiple</em> compose files, but you'll have to think about service-name collisions between those files.  If you have two compose files with the same service name, you can use multiple target-namespaces like this:</p>
@@ -520,6 +545,8 @@ $ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
 
 <p>Despite all the output this is pipe-safe, in case the commands involved might return JSON for downstream parsing, etc.  See the <a href="#embedded-tui">Embedded TUI</a> docs for other examples that are using <code>loadf</code>.</p>
 <h2 id="embedded-tui">Embedded TUI</h2>
+<h3 id="tui-gallery">TUI Gallery</h3>
+<p>For the impatient, here's a small gallery that show-cases the type of stuff you can do with the TUI capabilities that <code>compose.mk</code> offers.  </p>
 <table align=center width=95%>
     <tr>
         <td><p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="200px" src="/k8s-tools/img/tui-1.gif"></a></p></td>
@@ -533,16 +560,24 @@ $ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
     </tr>
 </table>
 
-<p>The basic components of the TUI are things like <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements (plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>) are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
+<h3 id="tui-overview">TUI Overview</h3>
+<p>It's best to think of the TUI as an interface-builder rather than a specific interface.  One way to look at what the TUI does is that it's just a way of <em>mapping <code>make</code> targets into tmux panes</em>.  And since <a href="/k8s-tools/compose.mk"><code>compose.import</code></a> basically allows you to map docker-compose services onto <code>make</code> targets, yet another way to think of the TUI is that it allows you to <em>map containers onto tmux panes</em>.</p>
+<p>Besides leveraging <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, the basic components of the TUI are things like <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">tmux plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements, plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>, are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
+<h3 id="tui-implementation">TUI Implementation</h3>
 <p align="center"><a href="/k8s-tools/img/tui-5.gif"><img width="90%" src="/k8s-tools/img/tui-5.gif"></a></p>
+
 <p>How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
-<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="/integration">the usual integration with a project Makefile</a>.</p>
+<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="/k8s-tools/compose.mk#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="/k8s-tools/integration">the usual integration with a project Makefile</a>.</p>
 <p align="center"><a href="/k8s-tools/img/tui-1.gif"><img width="90%" src="/k8s-tools/img/tui-1.gif"></a></p>
 
-<p>One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.</p>
+<p>As mentioned in the section above, at the most basic level the TUI just maps make-targets into tmux-panes, so there's no explicit requirement that you need to use targets that are related to containers.</p>
 <p align="center"><a href="/k8s-tools/img/tui-2.gif"><img width="90%" src="/k8s-tools/img/tui-2.gif"></a></p>
 
-<h4 id="tui-keybindings">TUI Keybindings</h4>
+<h3 id="tui-customization">TUI Customization</h3>
+<p>Beyond the simple examples of customization mentioned in the last section, more advanced use-cases are also supported.  In general, this is usually accomplished by creating custom targets for different parts of the TUI's bootstrap process, then <a href="/k8s-tools/config#tui-environment-variables">overriding an appropriate environment variable</a> to use the new target.</p>
+<p>Documentation for this process isn't great right now, but for a start, have a look at the differences between targets like <a href="/k8s-tools/api#dockercommander">docker.commander</a> vs the similar-but-different <a href="/k8s-tools/api#k3dcommander">k3d.commander</a>.</p>
+<h3 id="tui-keybindings">TUI Keybindings</h3>
+<p>The TUI ships with some default keybindings that are aimed at keeping things pretty user-friendly even for those who are not already familiar with tmux.  </p>
 <table>
 <thead>
 <tr>
@@ -552,59 +587,59 @@ $ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
 </thead>
 <tbody>
 <tr>
-<td>Escape</td>
+<td><code>Escape</code></td>
 <td><em>Exit TUI</em></td>
 </tr>
 <tr>
-<td>Ctrl b</td>
-<td></td>
+<td><code>Ctrl b |</code></td>
+<td><em>Split pane vertically</em></td>
 </tr>
 <tr>
-<td>Ctrl b -</td>
+<td><code>Ctrl b -</code></td>
 <td><em>Split pane horizontally</em></td>
 </tr>
 <tr>
-<td>Alt t</td>
+<td><code>Alt t</code></td>
 <td><em>Shuffle pane layout</em></td>
 </tr>
 <tr>
-<td>Alt ^</td>
+<td><code>Alt ^</code></td>
 <td><em>Grow pane up</em></td>
 </tr>
 <tr>
-<td>Alt v</td>
+<td><code>Alt v</code></td>
 <td><em>Grow pane down</em></td>
 </tr>
 <tr>
-<td>Alt &lt;</td>
+<td><code>Alt &lt;</code></td>
 <td><em>Grow pane left</em></td>
 </tr>
 <tr>
-<td>Alt &gt;</td>
+<td><code>Alt &gt;</code></td>
 <td><em>Grow pane right</em></td>
 </tr>
 <tr>
-<td>Alt <left></td>
+<td><code>Alt &lt;left&gt;</code></td>
 <td><em>Grow pane left</em></td>
 </tr>
 <tr>
-<td>Alt <right></td>
+<td>Alt <right>`</td>
 <td><em>Grow pane right</em></td>
 </tr>
 <tr>
-<td>Alt <up></td>
+<td>Alt <up>`</td>
 <td><em>Grow pane up</em></td>
 </tr>
 <tr>
-<td>Alt <down></td>
+<td>Alt <down>`</td>
 <td><em>Grow pane down</em></td>
 </tr>
 <tr>
-<td>Alt-1</td>
+<td><code>Alt-1</code></td>
 <td><em>Select pane 1</em></td>
 </tr>
 <tr>
-<td>Alt-2</td>
+<td><code>Alt-2</code></td>
 <td><em>Select pane 2</em></td>
 </tr>
 <tr>
@@ -612,32 +647,38 @@ $ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
 <td><em>...</em></td>
 </tr>
 <tr>
-<td>Alt-N</td>
+<td><code>Alt-N</code></td>
 <td><em>Select pane N</em></td>
 </tr>
 </tbody>
 </table>
+<p>These are configurable of course, since there's no way guarantee that such defaults won't collide with whatever existing applications you're trying to stitch together.  See the previous section for more details.</p>
 <h2 id="signals-and-supervisors">Signals and Supervisors</h2>
-<p>### Motivation </p>
+<p>You can think of <code>compose.mk</code> as a long list of egregious hacks that can only be redeemed by a <em>'but look what you can do with this!'</em> moment.  On that list, <strong>signals and supervisors</strong> is perhaps the most absurd thing of all.</p>
+<h3 id="signals-and-supervisors-motivation">Signals and Supervisors: Motivation</h3>
 <p>Without <a href="https://remake.readthedocs.io/en/latest/">forking make</a>, there's no simple method to get hooks into the default way that it handles interrupts and signals.  But why would you want to anyway?  Most of the time this occurs to people <a href="https://www.gnu.org/software/make/manual/html_node/Interrupts.html">it's about cleanup</a>, but <code>compose.mk</code> doesn't exactly look like traditional use-cases.</p>
 <p>The main reason to care is that short-circuiting make's default CLI option parsing is <em>really useful</em>.  Especially since <code>compose.mk</code> allows us to "wrap" lots of containerized tools, we want to be able to proxy arguments over to those tools without <code>make</code> being greedy about parsing everything.</p>
-<p>The <a href="#loading-compose-file"><code>loadf</code> command</a> is a typical example: the 2nd argument, a filename, must not be parsed as a Makefile target:</p>
+<p>The <a href="#loading-compose-files"><code>loadf</code> command</a> is a typical example: the 2nd argument, a filename, must not be parsed as a Makefile target:</p>
 <pre><code class="language-bash"># Opens all shells for each service in the given file inside the TUI
 ./compose.mk loadf tests/docker-compose.yml
 </code></pre>
 <p>Sometimes we want individual targets to essentially be able to consume the rest of the command line.  In this case, the filename is best understood as an argument to the first target, and not a target itself.</p>
-<p>The <a href="docs/api/#jb">wrapper for jb</a> is another example of an invocation that requires reading the whole command-line.  And for targets created with <a href="#makecompose-bridge"><code>compose.import</code></a>, the [special form with '--'] (#special-form) also requires this kind of short-circuiting.</p>
-<h3 id="implementation">Implementation</h3>
+<p>The <a href="/k8s-tools/api#jb">wrapper for jb</a> is another example of an invocation that requires reading the whole command-line.  And for targets created with <a href="/k8s-tools/compose.mk#makecompose-bridge"><code>compose.import</code></a>, the [special form with '--'] (#special-form) also requires this kind of short-circuiting.</p>
+<h3 id="signals-and-supervisors-implementation">Signals and Supervisors: Implementation</h3>
+<p>Since the last section describes the goal, you might be wondering how this kind of semi-magical behavior can be achieved.   And since the answer to that question is frankly kind of ridiculous, this should probably be considered experimental :)  With that sternly worded warning out of the way... </p>
+<p>Signals and supervisors are implemented using <a href="https://en.wikipedia.org/wiki/Shebang_(Unix)">shebang hack</a> and a <a href="https://en.wikipedia.org/wiki/Polyglot_(computing)">polyglot</a>, whereby <code>compose.mk</code> is simultaneously a Makefile, a Makefile library, <em>and</em> a bash script.  The bash script invokes make, but wraps it to catch signals that are thrown by make.  After throwing a supported signal causes <code>make</code> to exit, bash catches, and then passes the code for the caught signal back to another invocation of <code>make</code>.  </p>
+<p><strong>As a consequence of this, signals can only be handled when <code>compose.mk</code> is invoked directly,</strong> i.e. with <code>./compose.mk ...</code>.  Since <code>k8s.mk</code> also includes the same polyglot/shebang-hack, it also supports the same capabilities, but <strong>note that project Makefile's that are using <code>include compose.mk</code> or <code>include k8s.mk</code> cannot inherit this ability!</strong></p>
+<p>All targets related to signals/supervisors can be found under the <code>mk.interrupt</code> and <code>mk.super</code> namespaces, respectively.</p>
 <ul>
-<li><a href="docs/api#mk.supervisor.enterarg">mk.supervisor.enter/<arg></a> </li>
-<li><a href="docs/api#mk.supervisor.exitarg">mk.supervisor.exit/<arg></a> </li>
-<li><a href="docs/api#mk.supervisor.interrupt">mk.supervisor.interrupt</a> </li>
-<li><a href="docs/api#mk.supervisor.interruptarg">mk.supervisor.interrupt/<arg></a> </li>
-<li><a href="docs/api#mk.supervisor.pid">mk.supervisor.pid</a> </li>
-<li><a href="docs/api#mk.supervisor.traparg">mk.supervisor.trap/<arg></a> </li>
-<li><a href="docs/api#mk.interrupt">mk.interrupt</a> </li>
-<li><a href="docs/api#mk.interruptarg">mk.interrupt/<arg></a> </li>
-<li><a href="docs/api#mk.interruptSIGINT">mk.interrupt/SIGINT</a> </li>
+<li><a href="docs/api#mk.supervisor.enterarg"><code>mk.supervisor.enter/&lt;arg&gt;</code></a> </li>
+<li><a href="docs/api#mk.supervisor.exitarg"><code>mk.supervisor.exit/&lt;arg&gt;</code></a> </li>
+<li><a href="docs/api#mk.supervisor.interrupt"><code>mk.supervisor.interrupt</code></a> </li>
+<li><a href="docs/api#mk.supervisor.interruptarg"><code>mk.supervisor.interrupt/&lt;arg&gt;</code></a> </li>
+<li><a href="docs/api#mk.supervisor.pid"><code>mk.supervisor.pid</code></a> </li>
+<li><a href="docs/api#mk.supervisor.traparg"><code>mk.supervisor.trap/&lt;arg&gt;</code></a> </li>
+<li><a href="docs/api#mk.interrupt"><code>mk.interrupt</code></a> </li>
+<li><a href="docs/api#mk.interruptarg"><code>mk.interrupt/&lt;arg&gt;</code></a> </li>
+<li><a href="docs/api#mk.interruptSIGINT"><code>mk.interrupt/SIGINT</code></a> </li>
 </ul>
               
             </div>
@@ -653,7 +694,6 @@ $ ./compose.mk loadf &lt;path_to_compose_file&gt; &lt;other_instructions&gt;
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>

@@ -56,6 +56,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Core Components</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="" href="../k8s-tools.yml.md">K8s-tools.yml</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../compose.mk/">Compose.mk</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../k8s.mk/">K8s.mk</a>
@@ -79,6 +81,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration / Env Vars</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../limitations/">Known Limitations and Issues</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
@@ -111,28 +115,38 @@
               
                 <p>{% import 'macros.j2' as macros -%}</p>
 <h2 id="embedded-tui">Embedded TUI</h2>
+<h3 id="tui-gallery">TUI Gallery</h3>
+<p>For the impatient, here's a small gallery that show-cases the type of stuff you can do with the TUI capabilities that <code>compose.mk</code> offers.  </p>
 <table align=center width=95%>
     <tr>
-        <td>{{macros.img_link("tui-1.gif",mkdocs, "200px")}}</td>
-        <td>{{macros.img_link("tui-4.gif",mkdocs, "200px")}}</td>
-        <td>{{macros.img_link("tui-6.gif",mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-1.gif", mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-4.gif", mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-6.gif", mkdocs, "200px")}}</td>
     </tr>
     <tr>
-        <td>{{macros.img_link("tui-2.gif",mkdocs, "200px")}}</td>
-        <td>{{macros.img_link("tui-3.gif",mkdocs, "200px")}}</td>
-        <td>{{macros.img_link("tui-5.gif",mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-2.gif", mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-3.gif", mkdocs, "200px")}}</td>
+        <td>{{macros.img_link("tui-5.gif", mkdocs, "200px")}}</td>
     </tr>
 </table>
 
-<p>The basic components of the TUI are things like <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements (plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>) are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
-<p>{{macros.img_link("tui-5.gif",mkdocs)}}
-How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
-<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="/integration">the usual integration with a project Makefile</a>.</p>
-<p>{{macros.img_link("tui-1.gif",mkdocs)}}</p>
-<p>One way to look at the TUI is that it's just a way of mapping make-targets into tmux panes.  So you don't actually have to use targets that are related to containers.</p>
-<p>{{macros.img_link("tui-2.gif",mkdocs)}}</p>
-<h4 id="tui-keybindings">TUI Keybindings</h4>
+<h3 id="tui-overview">TUI Overview</h3>
+<p>It's best to think of the TUI as an interface-builder rather than a specific interface.  One way to look at what the TUI does is that it's just a way of <em>mapping <code>make</code> targets into tmux panes</em>.  And since <a href="{{mkdocs.site_relative_url}}/compose.mk"><code>compose.import</code></a> basically allows you to map docker-compose services onto <code>make</code> targets, yet another way to think of the TUI is that it allows you to <em>map containers onto tmux panes</em>.</p>
+<p>Besides leveraging <a href="https://github.com/tmux/tmux">tmux</a> for core drawing and geometry, the basic components of the TUI are things like <a href="https://github.com/tmux-python/tmuxp">tmuxp</a> for session management, and overridable defaults for <a href="https://github.com/jimeh/tmux-themepack/">tmux themes</a>, <a href="https://github.com/tmux-plugins/tpm">tmux plugins</a>, <a href="#tui-keybindings">keybindings</a>, etc.  These elements, plus other niceties like <a href="https://github.com/charmbracelet/gum">gum</a> and <a href="https://hpjansson.org/chafa/">chafa</a>, are all setup in the embedded <code>compose.mk:tux</code> container so that there are no host requirements for any of this except docker.</p>
+<h3 id="tui-implementation">TUI Implementation</h3>
+<p>{{macros.img_link("tui-5.gif", mkdocs)}}</p>
+<p>How does this work?  The behaviour above relies on a few things.  First, the <code>compose.mk:tux</code> container supports docker-in-docker style host-socket sharing with zero configuration.  This means that the TUI can generally do all the same container orchestration tasks as the docker host.  </p>
+<p>Without actually writing any custom code, there are many ways to customize the way that the TUI starts and the stuff that's running inside it.  By combining the TUI with the <a href="{{mkdocs.site_relative_url}}/compose.mk#loading-compose-files"><code>loadf</code> target,</a> you can leverage existing compose files but skip <a href="{{mkdocs.site_relative_url}}/integration">the usual integration with a project Makefile</a>.</p>
+<p>{{macros.img_link("tui-1.gif", mkdocs)}}</p>
+<p>As mentioned in the section above, at the most basic level the TUI just maps make-targets into tmux-panes, so there's no explicit requirement that you need to use targets that are related to containers.</p>
+<p>{{macros.img_link("tui-2.gif", mkdocs)}}</p>
+<h3 id="tui-customization">TUI Customization</h3>
+<p>Beyond the simple examples of customization mentioned in the last section, more advanced use-cases are also supported.  In general, this is usually accomplished by creating custom targets for different parts of the TUI's bootstrap process, then <a href="{{mkdocs.site_relative_url}}/config#tui-environment-variables">overriding an appropriate environment variable</a> to use the new target.</p>
+<p>Documentation for this process isn't great right now, but for a start, have a look at the differences between targets like <a href="{{mkdocs.site_relative_url}}/api#dockercommander">docker.commander</a> vs the similar-but-different <a href="{{mkdocs.site_relative_url}}/api#k3dcommander">k3d.commander</a>.</p>
+<h3 id="tui-keybindings">TUI Keybindings</h3>
+<p>The TUI ships with some default keybindings that are aimed at keeping things pretty user-friendly even for those who are not already familiar with tmux.  </p>
 <p>{{bash("pattern='<em>Keybindings</em>' make mk.parse.block/compose.mk")}}</p>
+<p>These are configurable of course, since there's no way guarantee that such defaults won't collide with whatever existing applications you're trying to stitch together.  See the previous section for more details.</p>
               
             </div>
           </div><footer>
@@ -143,7 +157,6 @@ How does this work?  The behaviour above relies on a few things.  First, the <co
     <!-- Copyright etc -->
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
           
         </div>
