@@ -1,9 +1,10 @@
+{% import 'macros.j2' as macros -%}
 
-### Make/Compose Bridge
+## Make/Compose Bridge
 
 *`compose.mk`* provides lots of interfaces (i.e. automatically generated make targets) which are suitable for interactive use.  
 
-Let's forget about the k8s-tools.yml for now and walk through a more minimal example, starting with a hypothetical compose file:
+Let's set aside the tool containers described inside k8s-tools.yml for now and walk through a much more minimal example, starting with a hypothetical compose file:
 
 ```yaml 
 # example docker-compose.yml
@@ -22,7 +23,7 @@ include compose.mk
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 ```
 
-The arguments *`(▰, TRUE)`* above allow for control of namespacing and syntax.  *More on that later in the [Macro Arguments section](#macro-arguments).*
+The arguments *`(▰, TRUE)`* above allow for control of namespacing and syntax.  *(More on that later in the [Macro Arguments section](#macro-arguments).)*  The final argument is just the (unquoted) name of the file you want to import services from.  
 
 That's it for the Make/Compose boilerplate, but we already have lots of interoperability.  
 
@@ -46,7 +47,7 @@ Assuming `compose.import` was used at all:
 
 See the sections below for more concrete examples.
 
-#### Target: **`<svc_name>`/shell** 
+#### **`<svc_name>`/shell** 
 
 The **`<svc_name>`/shell** target drops to a containter shell for the named service, and is usually interactive.
 
@@ -59,12 +60,11 @@ $ make debian/shell
 $ make alpine/shell
 ```
 
-<img src="img/demo-bridge-shell.gif">
-
+{{macros.img_link("demo-bridge-shell.gif", mkdocs)}}
 
 ----------------------------------------------------
 
-#### Target: **`<svc_name>`/shell/pipe** 
+#### **`<svc_name>`/shell/pipe** 
 
 The **`<svc_name>`/shell/pipe** target allows streaming data:
 
@@ -79,11 +79,11 @@ $ echo uname -n -v | make debian/pipe
 echo echo echo hello-world | make alpine/pipe | make debian/pipe
 ```
 
-<img src="img/demo-bridge-stream.gif">
+{{macros.img_link("demo-bridge-stream.gif", mkdocs)}}
 
 ----------------------------------------------------
 
-#### Target: **`<svc_name>`** 
+#### **`<svc_name>`** 
 
 The top-level **`<svc_name>`** target is more generic and can be used without arguments, or with optional explicit overrides for the compose-service defaults.  Usually this isn't used directly, but it's sometimes useful to call from automation.  Indirectly, most other targets are implemented using this target.
 
@@ -97,7 +97,7 @@ $ echo hello world | pipe=yes entrypoint=cat cmd='/dev/stdin' make alpine
 
 ----------------------------------------------------
 
-#### Target: **`<svc_name>`/`<special>`**
+#### **`<svc_name>`/`<special>`**
 
 Besides targets for working *with* services there are targets for answering questions *about* services.
 
@@ -111,7 +111,7 @@ $ make debian/get_shell
 
 ----------------------------------------------------
 
-#### Target: **`<compose_stem>/<svc>`**
+#### **`<compose_stem>/<svc>`**
 
 Namespaced aliases are also available. Due to the file-stem of the compose file we imported, all of the stuff above will work on targets like you see below.
 
@@ -124,7 +124,7 @@ Note that if `compose.import` uses a file name like `k8s-tools.yml` instead, the
 
 ----------------------------------------------------
 
-#### Target: **`<compose_stem>`.`<cmd>`**
+#### **`<compose_stem>`.`<cmd>`**
 
 Besides targets for working with compose-services, some targets work on the compose file itself.  Assuming your compose file is named `docker-compose.yml`, the special targets work like this:
 
@@ -148,8 +148,6 @@ Using the `<compose_stem>.services` target, it's easy to map a command onto ever
 ```bash 
 $ make docker-compose.services | xargs -n1 -I% sh -x -c "echo uname -n |make docker-compose/%/shell/pipe"
 ```
-
-----------------------------------------------------
 
 ### Make/Compose Bridge with k8s-tools.yml
 

@@ -3,7 +3,7 @@
 #   compose file faking a suite of config-management and iac tooling
 ##
 services:
-  ansible: 
+  chef: 
     image: debian 
   terraform:
     image: debian 

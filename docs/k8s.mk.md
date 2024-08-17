@@ -1,15 +1,57 @@
-
 ## k8s.mk
 
-`k8s.mk` includes lots of helper targets for working with kubernetes.  It works best in combination with [compose.mk](#composemk) and [k8s-tools.yml](#), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  There are a small number of macros available, but most of the public interface is static targets.
+`k8s.mk` exists to create automation APIs over the tool-containers that are described in k8s-tools.yml, and includes lots of helper targets for working with Kubernetes.  It works best in combination with [compose.mk](/compose.mk) and [k8s-tools.yml](/k8s-tools/features), but in many cases that isn't strictly required if things like `kubectl` are already available on your host.  
 
-The focus is on simplifying few categories of frequent interactions:
+The focus is on simplifying a few categories of frequent challenges:
 
-1. Reusable implementations for common cluster automation tasks (like waiting for pods to get ready)
-1. Context-management tasks (like setting the currently active namespace)
-1. Interactive debugging tasks (like shelling into a new or existing pod inside some namespace)
+1. **Reusable implementations for common cluster automation tasks,** like [waiting for pods to get ready](/k8s-tools/api#k8s.wait)
+1. **Context-management tasks,** (like [setting the currently active namespace](/k8s-tools/api#k8snamespacearg))
+1. **Interactive debugging tasks,** (like [shelling into a new or existing pod inside some namespace](/k8s-tools/api#k8sshellarg))
 
-----------------------------------------------------
+The full API is [here](/k8s-tools/api/#api-k8smk), and the [Cluster Lifecycle Demo](/k8s-tools/demos#demo-cluster-automation) includes a walk-through of using it from your own project automation.  
+
+By combining these tools with compose.mk's [`flux.*` API](/k8s-tools/api#api-flux) you can describe workflows, and using the [`tux.*` API](/k8s-tools/api#api-tux) you can send tasks, or groups of tasks, into panes on a TUI.
+
+
+### Automation APIs over Tool Containers
+
+What *is* an automation API over a tool container anyway?  As an example, let's consider the [`k8s.get` target](/k8s-tools/api/#k8sget), which you might use like this:
+
+```bash
+# Usage: k8s.get/<namespace>/<kind>/<name>/<filter>
+$ KUBECONFIG=.. ./k8s.mk k8s.get/argo-events/svc/webhook-eventsource-svc/.spec.clusterIP
+
+# roughly equivalent to:
+$ kubectl get $${kind} $${name} -n $${namespace} -o json | jq -r $${filter}"
+```
+
+The first command has no host requirements for `kubectl` or `jq`, but uses both via docker.  Similarly, the [`helm.install` target](/k8s-tools/api#helm.install) works as you'd expect but does not require `helm` (and plus it's a little more idempotent than using `helm` directly).  Meanwhile `k8s.mk k9s/<namespace>` works like `k9s --namespace` does, but doesn't require k9s.
+
+Many of these targets are fairly simple wrappers, but just declaring them accomplishes several things at once.
+
+The typical `k8s.mk` entrypoint is:
+
+1. CLI friendly, for interactive contexts, as above
+1. API friendly, for more programmatic use, as part of the prereqs or the body for other project automation
+1. Workflow friendly, either as part of `make`'s native DAG processing, or via [flux](/api#api-flux).
+1. Potentially a TUI element, via the [embedded TUI](/#embedded-tui) and [tux](/api#tux).
+1. Context-agnostic, generally using tools directly if available or falling back to docker when necessary.
+
+Some targets like [`k8s.shell`](/api/#k8sshell) or [`kubefwd.[start|stop|restart]`](/api/#kubefwd) are more composite than simple wrappers, and achieve more complex behaviour by orchestrating 1 or more commands across 1 or more containers.  See also the [ansible wrapper](/api#api-ansible), which exposes a subset of `ansible` without all the overhead of inventories & config.
+
+If you want you can always to stream arbitrary commands or scripts into these containers more directly, via [the Make/Compose bridge](/k8s-tools/compose.mk#makecompose-bridge), or write your own targets that run inside those containers.  But the point of `k8s.mk` is to ignore more of the low-level details more of the time, and start to compose things.  For example, here's a one-liner that creates a namespace, adds a label to it, launches a pod there, and shells into it:
+
+```bash 
+$ pod=`uuidgen` \
+&& namespace=testing \
+&& ./k8s.mk \
+    k8s.kubens.create/${namespace} \ \
+    k8s.namespace.label/$${namespace}/mylabel/value
+    k8s.test_harness/${namespace}/${pod} \
+    k8s.namespace.wait/${namespace} \
+    k8s.shell/${namespace}/${pod}
+```
+
 
 ### But Why?
 
@@ -20,33 +62,8 @@ There's many reasons why you might want these capabilities if you're working wit
 * Project-local clusters are much-neglected, but also increasingly important aspects of project testing and overall developer-experience.  
 * Ansible/Terraform are great, but they have a lot of baggage, aren't necessarily a great fit for this type of problem, and they also have to be versioned.  
 
-k8s.mk, especially combined with k8s-tools.yml and compose.mk, is aimed at fixing this stuff.  Less fighting with tools, more building things.
+`k8s.mk`, especially combined with `k8s-tools.yml` and `compose.mk`, is aimed at fixing this stuff.  
 
-If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](docs/but-why.md).
+If you're interested in the gory details of a longer-format answer, see [the Design Philosophy docs](/k8s-tools/but-why.md).
 
-Documentation per-target is included in the next section, but these tools aren't that interesting in isolation.  See the [Cluster Automation Demo](#demo-cluster-automation) for an example of how you can put all this stuff together.
 
-----------------------------------------------------
-
-### k8s.mk API 
-
-This is the complete list of namespaces & targets available from k8s.mk, along with their documentation.
-
-First, some important notes about how these targets work.
-
-1. You'll need to have setup KUBECONFIG before running most of these
-1. Targets are usable interactively from your shell as `make <target>` or `k8s.mk <target>`
-1. Targets are usable as an API, either as target prereqs or as part of the body in your targets
-
-The best way to use these targets is in combination with `compose.mk` and `k8s-tools.yml`, following the [makefile integration docs](#embedding-tools-with-makefiles).  See also the docs for the [Make/Compose Bridge](#makecompose-bridge) and [Container Dispatch](#container-dispatch).
-
-Still, many of these targets can run "natively" if your host already has the relevant tools, and some targets like `k8s.shell` can default to using containers if present, then fall-back to using kubectl directly.
-
-Target names are reserved names after declaration, but collisions aren't likely because things are organized into a few namespaces:
-
-* [k8s.* targets:](#api-k8s) Default namespace with general helpers.  These targets only use things available in the [k8s:base container](k8s.yml).
-* [k3d.* targets:](#api-k3d):  Helpers for working with the `k3d` tool / container
-* [kubefwd.* targets:](#api-kubefwd) Helpers for working with `kubefwd` tool / container
-* [helm.* targets:](#api-helm) Helpers for working with `helm` tool / container
-
-{% include "api-k8s.md" %}

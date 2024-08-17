@@ -1,6 +1,6 @@
 // configuration for pynchon (a docs-generation tool )
 {
-  "plugins": ["vhs","mermaid"],
+  "plugins": ["vhs","mermaid","github","mkdocs",],
   "mermaid":{
     output_mode: "png",
     mermaid_args: [
@@ -26,6 +26,6 @@
     ]
   },
   "jinja": {
-    "template_includes": ['docs/']
+    "template_includes": ['docs']
   },
 }

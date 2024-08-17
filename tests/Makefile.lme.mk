@@ -1,5 +1,5 @@
 SHELL := bash
-MAKEFLAGS=-s -S --warn-undefined-variables
+MAKEFLAGS=-sS --warn-undefined-variables
 .SHELLFLAGS := -eu -c
 
 # export KUBECONFIG:=./fake.profile.yaml

@@ -1,5 +1,4 @@
-
-### Container Dispatch
+## Container Dispatch
 
 Let's look at a more complicated example where we want to use make to dispatch commands *into* the compose-service containers.  For this we'll have to change the boilerplate somewhat as we add more functionality.
 
@@ -24,7 +23,7 @@ self.demo:
 
 The example above demonstrates another automatically generated target that uses some special syntax: `▰/<svc_name>/<target_to_dispatch>`.  This is just syntactic sugar that says that running `make demo` on the host runs `make self.demo` on the debian container.  Calling the top-level target looks like this:
 
-<img src="img/demo-dispatch.gif">
+<p align="center"><a href="/k8s-tools/img/demo-dispatch.gif"><img width="90%" src="/k8s-tools/img/demo-dispatch.gif"></a></p>
 
 What just happend?  If we unpack the syntactic sugar even more, you could say that the following are roughly equivalent:
 
@@ -46,7 +45,7 @@ include compose.mk
 $(eval $(call compose.import, ▰, TRUE, docker-compose.yml))
 
 # User-facing top-level target, with two dependencies
-demo-double-dispatch: ▰/debian/self.demo ▰/alpine/self.demo
+demo.double.dispatch: ▰/debian/self.demo ▰/alpine/self.demo
 
 # Displays platform info to show where target is running.
 # Since this target is intended to be private, we will 
@@ -58,14 +57,13 @@ self.demo:
 
 The *`self`* prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:
 
-<img src="img/demo-double-dispatch.gif">
-
+<p align="center"><a href="/k8s-tools/img/demo.double.dispatch.gif"><img width="90%" src="/k8s-tools/img/demo.double.dispatch.gif"></a></p>
 
 Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.
 
 ```bash
 # pithy invocation with compose.mk
-$ make demo-double-dispatch 
+$ make demo.double.dispatch 
 
 # verbose, fragile alternative
 $ docker compose -f docker-compose.yml \
@@ -74,14 +72,46 @@ $ docker compose -f docker-compose.yml \
     run --entrypoint bash alpine -c "make self.demo"
 ```
 
-<ins>**This simple pattern for dispatching targets in containers is the main feature of `compose.mk` as a library, and it's surprisingly powerful.**</ins>  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to [this section](#cluster-automation-demo).
+**This simple pattern for dispatching targets in containers is the main feature of `compose.mk` as a library, and it's surprisingly powerful.**  The next sections will cover macro arguments, and dispatch syntax/semantics in more detail.  If you're interested in a demo of how you can use this with k8s-tools.yml, you can skip to [this section](#cluster-automation-demo).
 
-Container-dispatch with `compose.mk` can also autodetect what shell to use with the container (via the [`<svc_name>/get_shell` target](#target-compose_stemspecial)).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See [docs for `make --reconn`](https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html) to learn more about dry-runs).  If you are thoughtful about the ways that you're using volumes and file state, you can also consider using [`make --jobs` for parallel execution](https://www.gnu.org/software/make/manual/make.html#Parallel-Execution).
+Container-dispatch with `compose.mk` can also autodetect what shell to use with the container (via the [`<svc_name>/get_shell` target](#target-svc_namespecial)).  Even better, the Makefile-based approach scales to lots of utility-containers in separate compose files, and can detect and prevent whole categories of errors (like typos in the name of the compose-file, service name, entrypoint, etc) at the start of a hour-long process instead of somewhere in the middle.  (See [docs for `make --reconn`](https://www.gnu.org/software/make/manual/html_node/Instead-of-Execution.html) to learn more about dry-runs).  If you are thoughtful about the ways that you're using volumes and file state, you can also consider using [`make --jobs` for parallel execution](https://www.gnu.org/software/make/manual/make.html#Parallel-Execution).
 
 **To make this work as expected though, we do have to add more stuff to the compose file.**  In practice the containers you use might be ready, but if they are slim, perhaps not.  Basically, **if the subtarget is going to run on the container, the container needs to at least have:**  `make`, `bash` (or whatever shell the Makefile uses), and a volume mount to read the `Makefile`.  
 
 ```yaml
-{{open('tests/docker-compose.yml','r').read()}}
+##
+# tests/docker-compose.yml: 
+#  A minimal compose file that works with target dispatch
+##
+services:
+  debian: &base
+    hostname: debian
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM debian
+        RUN apt-get update && apt-get install -y make procps
+    entrypoint: bash
+    working_dir: /workspace
+    volumes:
+      - ${PWD}:/workspace
+  ubuntu: 
+    <<: *base
+    hostname: ubuntu
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM ubuntu
+        RUN apt-get update && apt-get install -y make procps
+  alpine:
+    <<: *base
+    hostname: alpine
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM alpine
+        RUN apk add --update --no-cache coreutils alpine-sdk bash procps-ng
+
 ```
 
-The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](tests/).
+The debian/alpine compose file above and most of the interfaces described so far are all exercised inside [this repo's test suite](https://github.com/elo-enterprises/k8s-tools/tree/master/tests/).
