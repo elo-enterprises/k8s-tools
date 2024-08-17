@@ -2,11 +2,13 @@
 
 ## Overview
 
-**[k8s-tools.yml]({{mkdocs.site_relative_url}}/features) aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single compose file.**  It's useful for CI/CD pipelines or general development, and can be [embedded alongside your existing project](/integration), which helps to fix the problem of different project developers using different local versions of things like `helm`, `kubectl`, etc.
+**[k8s-tools.yml]({{mkdocs.site_relative_url}}/features) aggregates 20+ individual utilities for working with kubernetes into one dockerized toolchain, hosted inside a single docker-compose file.**  It's useful for CI/CD pipelines or general development, and can be [embedded alongside your existing project](/integration), which helps to fix the problem of different project developers using different local versions of things like `helm`, `kubectl`, etc.
 
 Containers defined here aren't built from scratch, and official sources are used where possible.  Low-level tools (*like `kubectl`, `helm`, etc*) mostly come from [alpine/k8s](https://hub.docker.com/r/alpine/k8s) but [many other tools]({{mkdocs.site_relative_url}}/features) (*like `argo`, `knative`, `cdk`, `k9s`, `k3d`, `ansible`, etc*) are also included.  
 
 However, *this isn't an attempt to build an omnibus "do-everything" container..* it's more a response to the fact that there are a lot of diverse tools that really can't be unified, so it's better to just learn how to work with that.  Tools containers are versioned independently, using defaults but allowing overrides, and are pulled only when they are used.
+
+-------------------
 
 Besides bundling some tooling in k8s-tools.yml, there are 2 other components that can help to build automation.Meet **`compose.mk`,** which describes core support for docker, docker-compose, and other extensions for `make`, and **`k8s.mk`,** which uses `compose.mk` to build automation APIs over the `k8s-tools.yml` containers.
 

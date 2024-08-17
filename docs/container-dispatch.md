@@ -23,7 +23,7 @@ self.demo:
 
 The example above demonstrates another automatically generated target that uses some special syntax: `▰/<svc_name>/<target_to_dispatch>`.  This is just syntactic sugar that says that running `make demo` on the host runs `make self.demo` on the debian container.  Calling the top-level target looks like this:
 
-<img src="/img/demo-dispatch.gif">
+<p align="center"><a href="/k8s-tools/img/demo-dispatch.gif"><img width="90%" src="/k8s-tools/img/demo-dispatch.gif"></a></p>
 
 What just happend?  If we unpack the syntactic sugar even more, you could say that the following are roughly equivalent:
 
@@ -57,7 +57,7 @@ self.demo:
 
 The *`self`* prefix is just a convention, more on that in the following sections.  The above looks pretty tidy though, and hopefully helps to illustrate how the target/container/callback association works.  Running that looks like this:
 
-<img src="/img/demo.double.dispatch.gif">
+<p align="center"><a href="/k8s-tools/img/demo.double.dispatch.gif"><img width="90%" src="/k8s-tools/img/demo.double.dispatch.gif"></a></p>
 
 Meanwhile, the equivalent-but-expanded version below is getting cluttered, plus it breaks when files move or get refactored.
 
